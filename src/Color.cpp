@@ -6,7 +6,11 @@ float fclamp(const float iMin, const float iMax, const float iVal) {
     return max(iMin, min(iMax, iVal));
 }
 
-Color::Color(const Color& iSource) {
+Color::Color(void) {
+  Color(1.0f, 1.0f, 1.0f, 1.0f); 
+}
+
+Color::Color(const Color& iOther) {
     if ( this != &(iOther) ) {
         m_R = iOther.m_R; 
         m_G = iOther.m_G; 
@@ -14,13 +18,14 @@ Color::Color(const Color& iSource) {
         m_A = iOther.m_A;
     }
 }
-Color& operator=(const Color& iOther) {
+Color& Color::operator=(const Color& iOther){
     if ( this != &(iOther) ) {
         m_R = iOther.m_R; 
         m_G = iOther.m_G; 
         m_B = iOther.m_B; 
         m_A = iOther.m_A;
     }
+    return *this;
 }
 
 Color::Color(int iRed, int iGreen, int iBlue, int iAlpha) {

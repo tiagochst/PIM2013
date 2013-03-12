@@ -12,8 +12,6 @@ class Image {
   int m_maxGreyLevel;
   Eigen::MatrixXd m_figure;
   
-  Image() { } // private default constructor
-  
  public:
   Image(std::string fileName);
   virtual ~Image();

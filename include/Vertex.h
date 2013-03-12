@@ -1,6 +1,7 @@
 #pragma once
 
-#include <Vec3D.h>
+#include <Vec3D.hpp>
+#include <Color.h>
 
 class Vertex {
 private:

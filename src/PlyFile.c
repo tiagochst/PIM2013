@@ -2510,4 +2510,3 @@ static char *my_alloc(int size, int lnum, char *fname)
 
   return (ptr);
 }
-

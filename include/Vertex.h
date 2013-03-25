@@ -1,7 +1,8 @@
-#pragma once
+#ifndef _VERTEX_H_
+#define _VERTEX_H_
 
-#include <Vec3D.hpp>
-#include <Color.h>
+#include "Vec3D.hpp"
+#include "Color.h"
 
 class Vertex {
 private:
@@ -29,3 +30,5 @@ public:
     // Operators
     Vertex& operator=(const Vertex& iOther);
 };
+
+#endif

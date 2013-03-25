@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _COLOR_H_
+#define _COLOR_H_
 
 class Color {
 private:
@@ -20,3 +21,5 @@ public:
 private:
     void ClampValues();
 };
+
+#endif

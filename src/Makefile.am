@@ -1,5 +1,17 @@
 # additional include paths necessary to compile the C++ programs
-AM_CPPFLAGS = -I$(srcdir)/../include -I$(srcdir)/../external
+
+# Debug Flags
+if DEBUG
+AM_CPPFLAGS=-g -O0
+AM_CXXFLAGS=-D__DEBUG_PLY_FILE
+else
+AM_CFLAGS = -O3
+AM_CXXFLAGS =-O3
+AM_CPPFLAGS =-O3
+endif
+
+# Include flags
+AM_CPPFLAGS += -I$(srcdir)/../include -I$(srcdir)/../external 
 
 ###############################################################################
 # THE PROGRAMS TO BUILD
@@ -17,7 +29,8 @@ main_libray = \
 		Color.cpp    \
 		PointSet.cpp \
 		Vertex.cpp   \
-		Image.cpp
+		Image.cpp    \
+		PlyFile.c
 
 main_SOURCES = \
 		$(main_header) \

@@ -4,6 +4,9 @@ AC_CONFIG_AUX_DIR([build-aux])
 AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AC_PREREQ(2.69)
 
+# Redefining compilers default flags
+CXXFLAGS=
+CFLAGS=
 
 # Checks for programs.
 AC_PROG_AWK
@@ -21,5 +24,19 @@ AC_PROG_RANLIB
 # Output Files
 AC_CONFIG_HEADER([config.h])
 AC_CONFIG_FILES([Makefile src/Makefile])
+
+# Debug condition
+AC_ARG_ENABLE(debug,
+AS_HELP_STRING([--enable-debug],
+               [enable debugging, default: no]),
+[case "${enableval}" in
+             yes) debug=true ;;
+             no)  debug=false ;;
+             *)   AC_MSG_ERROR([bad value ${enableval} for --enable-debug]) ;;
+esac],
+[debug=false])
+
+AM_CONDITIONAL(DEBUG, test x"$debug" = x"true")
+
 AC_OUTPUT
 

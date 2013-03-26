@@ -55,9 +55,9 @@ void Vertex::SetColor(const Color& iColor)
 Vertex& Vertex::operator=(const Vertex& iOther)
 {
     if ( this != &iOther ) {
-        m_position  = iSource.m_position;
-        m_normal    = iSource.m_normal;
-        m_color     = iSource.m_color;
+        m_position  = iOther.m_position;
+        m_normal    = iOther.m_normal;
+        m_color     = iOther.m_color;
     }
     return (*this);
 }

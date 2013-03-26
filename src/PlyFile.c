@@ -36,7 +36,11 @@ WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include <ply.h>
+#include "PlyFile.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 char *type_names[] = {
 "invalid",
@@ -988,7 +992,7 @@ Entry:
   elem_ptr - pointer to location where the element information should be put
 ******************************************************************************/
 
-ply_get_element(PlyFile *plyfile, void *elem_ptr)
+void ply_get_element(PlyFile *plyfile, void *elem_ptr)
 {
   if (plyfile->file_type == PLY_ASCII)
     ascii_get_element (plyfile, (char *) elem_ptr);
@@ -2510,3 +2514,7 @@ static char *my_alloc(int size, int lnum, char *fname)
 
   return (ptr);
 }
+
+#ifdef __cplusplus
+}
+#endif

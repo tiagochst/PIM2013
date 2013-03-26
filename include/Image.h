@@ -1,5 +1,5 @@
-#ifndef IMAGE_H_
-#define IMAGE_H_
+#ifndef _IMAGE_H_
+#define _IMAGE_H_
 
 #include <string>
 #include "Eigen/Dense"

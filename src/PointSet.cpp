@@ -13,25 +13,25 @@ typedef struct FacePOD {
     int*            verts;     /* vertex index list */
 } FacePOD;
 
-const static PlyProperty vertexProperties[] = {
-    {             "x", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,     x), 0,         0,         0,                      0},
-    {             "y", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,     y), 0,         0,         0,                      0},
-    {             "z", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,     z), 0,         0,         0,                      0},
-    {            "nx", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,    nx), 0,         0,         0,                      0},
-    {            "ny", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,    ny), 0,         0,         0,                      0},
-    {            "nz", PLY_FLOAT, PLY_FLOAT, offsetof(Vertex,    nz), 0,         0,         0,                      0},
-    {           "red", PLY_UCHAR, PLY_UCHAR, offsetof(Vertex,   red), 0,         0,         0,                      0},
-    {         "green", PLY_UCHAR, PLY_UCHAR, offsetof(Vertex, green), 0,         0,         0,                      0},
-    {          "blue", PLY_UCHAR, PLY_UCHAR, offsetof(Vertex,  blue), 0,         0,         0,                      0},
-    {         "alpha", PLY_UCHAR, PLY_UCHAR, offsetof(Vertex, alpha), 0,         0,         0,                      0},
+static PlyProperty vertexProperties[] = {
+    {             "x", PLY_FLOAT, PLY_FLOAT, offsetof(VertexPOD,     x), 0,         0,         0,                         0},
+    {             "y", PLY_FLOAT, PLY_FLOAT, offsetof(VertexPOD,     y), 0,         0,         0,                         0},
+    {             "z", PLY_FLOAT, PLY_FLOAT, offsetof(VertexPOD,     z), 0,         0,         0,                         0},
+    {            "nx", PLY_FLOAT, PLY_FLOAT, offsetof(VertexPOD,    nx), 0,         0,         0,                         0},
+    {            "ny", PLY_FLOAT, PLY_FLOAT, offsetof(VertexPOD,    ny), 0,         0,         0,                         0},
+    {            "nz", PLY_FLOAT, PLY_FLOAT, offsetof(VertexPOD,    nz), 0,         0,         0,                         0},
+    {           "red", PLY_UCHAR, PLY_UCHAR, offsetof(VertexPOD,   red), 0,         0,         0,                         0},
+    {         "green", PLY_UCHAR, PLY_UCHAR, offsetof(VertexPOD, green), 0,         0,         0,                         0},
+    {          "blue", PLY_UCHAR, PLY_UCHAR, offsetof(VertexPOD,  blue), 0,         0,         0,                         0},
+    {         "alpha", PLY_UCHAR, PLY_UCHAR, offsetof(VertexPOD, alpha), 0,         0,         0,                         0},
 };
-const static PlyProperty faceProperties[] = {
-    {"vertex_indices",   PLY_INT,   PLY_INT, offsetof(  Face, verts), 1, PLY_UCHAR, PLY_UCHAR, offsetof(Face, nVerts)},
+static PlyProperty faceProperties[] = {
+    {"vertex_indices",   PLY_INT,   PLY_INT, offsetof(  FacePOD, verts), 1, PLY_UCHAR, PLY_UCHAR, offsetof(FacePOD, nVerts)},
 };
 
 PointSet::PointSet(void) {}
 PointSet::PointSet(const std::string& iFilename) {
-    LoadFromFile(filename);
+    LoadFromFile(iFilename);
 }
 PointSet::~PointSet(void) {}
 
@@ -40,7 +40,6 @@ void PointSet::LoadPlyFile(const char* iFilename) {
     int             nGlobalElems;
     int             fileType;
     float           version;
-    
     int             nComments;
     char**          comments;
     int             nElems;
@@ -51,8 +50,14 @@ void PointSet::LoadPlyFile(const char* iFilename) {
     int             nProperties;
     PlyProperty**   propertyList;
 
+    size_t          pathLen = strlen(iFilename);
+    char*           filename = new char[pathLen + 1];
+    memcpy(filename, iFilename, (pathLen + 1) * sizeof(char));
+
     /* open a PLY file for reading */
-    plyFile = ply_open_for_reading(iFilename, &nGlobalElems, &elementNameList, &fileType, &version);
+    plyFile = ply_open_for_reading(filename, &nGlobalElems, &elementNameList, &fileType, &version);
+    delete[] filename;
+    filename = 0;
 
     /* print what we found out about the file */
     std::cout << "version " << version  << std::endl;
@@ -63,7 +68,8 @@ void PointSet::LoadPlyFile(const char* iFilename) {
     for ( int elem = 0; elem < nGlobalElems; elem++ ) {
         /* get the description of the first element */
         std::string elementName(elementNameList[elem]);
-        plist = ply_get_element_description (plyFile, elementName, &nElems, &nProperties);
+        char* cElementName = elementNameList[elem];
+        propertyList = ply_get_element_description(plyFile, cElementName, &nElems, &nProperties);
 
         /* print the name of the element, for debugging */
 #ifdef __DEBUG_PLY_READ
@@ -73,22 +79,22 @@ void PointSet::LoadPlyFile(const char* iFilename) {
         /* if we're on vertex elements, read them in */
         if ( elementName.compare("vertex") ) {
             /* set up for getting vertex elements */
-            ply_get_property(plyFile, elementName.c_str(), &vertexProperties[0]); // x
-            ply_get_property(plyFile, elementName.c_str(), &vertexProperties[1]); // y
-            ply_get_property(plyFile, elementName.c_str(), &vertexProperties[2]); // z
-            ply_get_property(plyFile, elementName.c_str(), &vertexProperties[3]); // nx
-            ply_get_property(plyFile, elementName.c_str(), &vertexProperties[4]); // ny
-            ply_get_property(plyFile, elementName.c_str(), &vertexProperties[5]); // nz
-            ply_get_property(plyFile, elementName.c_str(), &vertexProperties[6]); // red
-            ply_get_property(plyFile, elementName.c_str(), &vertexProperties[7]); // green
-            ply_get_property(plyFile, elementName.c_str(), &vertexProperties[8]); // blue
-            ply_get_property(plyFile, elementName.c_str(), &vertexProperties[9]); // alpha
+            ply_get_property(plyFile, cElementName, &vertexProperties[0]); // x
+            ply_get_property(plyFile, cElementName, &vertexProperties[1]); // y
+            ply_get_property(plyFile, cElementName, &vertexProperties[2]); // z
+            ply_get_property(plyFile, cElementName, &vertexProperties[3]); // nx
+            ply_get_property(plyFile, cElementName, &vertexProperties[4]); // ny
+            ply_get_property(plyFile, cElementName, &vertexProperties[5]); // nz
+            ply_get_property(plyFile, cElementName, &vertexProperties[6]); // red
+            ply_get_property(plyFile, cElementName, &vertexProperties[7]); // green
+            ply_get_property(plyFile, cElementName, &vertexProperties[8]); // blue
+            ply_get_property(plyFile, cElementName, &vertexProperties[9]); // alpha
                                                  
             /* grab all the vertex elements */   
             for ( int vertex = 0; vertex < nElems; vertex++ ) {
                 /* grab and element from the file */
                 VertexPOD vDesc;
-                ply_get_element(plyFile, (void*)&v);
+                ply_get_element(plyFile, (void*)&vDesc);
 
                 Vec3Df p(vDesc.x , vDesc.y , vDesc.z );
                 Vec3Df n(vDesc.nx, vDesc.ny, vDesc.nz);
@@ -110,19 +116,19 @@ void PointSet::LoadPlyFile(const char* iFilename) {
         /* if we're on face elements, read them in */
         if ( elementName.compare("face") == 0 ) {
             /* set up for getting face elements */
-            ply_get_property(plyFile, elementName.c_str(), &faceProperties[0]);
+            ply_get_property(plyFile, cElementName, &faceProperties[0]);
 
             /* grab all the face elements */
             for ( int face = 0; face < nElems; face++ ) {
                 /* grab and element from the file */
                 FacePOD f;
-                ply_get_element(plyFile, (void*)&(FacePOD));
+                ply_get_element(plyFile, (void*)&f);
 
 #ifdef __DEBUG_PLY_READ
                 /* print out face info, for debugging */
                 std::cout << f.nVerts << " ";
                 for ( int vert = 0; vert < f.nVerts; vert++ ) {
-                    std::cout << verts[vert]) << " ";
+                    std::cout << verts[vert] << " ";
                 }
                 std::cout << std::endl;
 #endif
@@ -144,17 +150,17 @@ void PointSet::LoadPlyFile(const char* iFilename) {
     }
 
     /* grab and print out the object information */
-    obj_info = ply_get_obj_info(plyFile, &nObjInfo);
-    for ( int objInfo = 0; i < nObjInfo; objInfo++) {
+    objectInfo = ply_get_obj_info(plyFile, &nObjectInfo);
+    for ( int objInfo = 0; objInfo < nObjectInfo; objInfo++) {
         std::cout << "obj_info = " << objectInfo[objInfo] << std::endl;
     }
 
     /* close the PLY file */
-    ply_close(ply);
+    ply_close(plyFile);
 }
 
 void PointSet::LoadFromFile(const std::string& iFilename) {
-    int plyPos = iFilename.find(".ply");
+    unsigned int plyPos = iFilename.find(".ply");
     if ( (plyPos != std::string::npos) && 
             (plyPos != (iFilename.size() - 4)) ) {
         LoadPlyFile(iFilename.c_str());

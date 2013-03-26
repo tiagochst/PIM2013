@@ -77,7 +77,7 @@ void PointSet::LoadPlyFile(const char* iFilename) {
 #endif
 
         /* if we're on vertex elements, read them in */
-        if ( elementName.compare("vertex") ) {
+        if ( elementName.compare("vertex")== 0 ) {
             /* set up for getting vertex elements */
             ply_get_property(plyFile, cElementName, &vertexProperties[0]); // x
             ply_get_property(plyFile, cElementName, &vertexProperties[1]); // y
@@ -108,7 +108,7 @@ void PointSet::LoadPlyFile(const char* iFilename) {
                 std::cout << "Read Vertex:" << std::endl;
                 std::cout << " - Position = " << vDesc.x   << " " << vDesc.y     << " " << vDesc.z    << std::endl;
                 std::cout << " - Normal   = " << vDesc.nx  << " " << vDesc.ny    << " " << vDesc.nz   << std::endl;
-                std::cout << " - Color    = " << vDesc.red << " " << vDesc.green << " " << vDesc.blue << " " << vDesc.alpha << std::endl;
+                std::cout << " - Color    = " << (int)vDesc.red << " " << (int)vDesc.green << " " << (int)vDesc.blue << " " << (int)vDesc.alpha << std::endl;
 #endif
             }
         }
@@ -128,7 +128,7 @@ void PointSet::LoadPlyFile(const char* iFilename) {
                 /* print out face info, for debugging */
                 std::cout << f.nVerts << " ";
                 for ( int vert = 0; vert < f.nVerts; vert++ ) {
-                    std::cout << verts[vert] << " ";
+                    std::cout << f.verts[vert] << " ";
                 }
                 std::cout << std::endl;
 #endif
@@ -162,7 +162,7 @@ void PointSet::LoadPlyFile(const char* iFilename) {
 void PointSet::LoadFromFile(const std::string& iFilename) {
     unsigned int plyPos = iFilename.find(".ply");
     if ( (plyPos != std::string::npos) && 
-            (plyPos != (iFilename.size() - 4)) ) {
+            (plyPos == (iFilename.size() - 4)) ) {
         LoadPlyFile(iFilename.c_str());
     }
 }

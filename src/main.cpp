@@ -7,8 +7,8 @@ int main(int argc, char** argv) {
     std::cout << "Hello World" << std::endl;
  
     PointSet psAscii, psBinary;    
-    psAscii.LoadFromFile("frame000-ascii.ply");
-    psBinary.LoadFromFile("frame000-brut.ply");
+    psAscii.LoadFromFile("../resources/Project/PointSets/frame000-ascii.ply");
+    psBinary.LoadFromFile("../resources/Project/PointSets/frame000-brut.ply");
 
 	return 0;
 }

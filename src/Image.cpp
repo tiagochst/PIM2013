@@ -15,7 +15,7 @@ void Image::loadFromFile(std::string fileName){
   std::string inputLine = "";
 
   /* path to our images */
-  std::string path ="../resources/Project/Images/";
+  std::string path ="./resources/Project/Images/";
   
   /* Opening pgm file*/
   std::ifstream infile((path+fileName).c_str(), std::ifstream::in | std::ifstream::binary);

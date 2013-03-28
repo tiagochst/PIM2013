@@ -66,6 +66,7 @@ void PointSet::LoadPlyFile(const char* iFilename) {
     /* go through each kind of element that we learned is in the file */
     /* and read them */
     for ( int elem = 0; elem < nGlobalElems; elem++ ) {
+    //for ( int elem = nGlobalElems - 1; elem >= 0; elem-- ) {
         /* get the description of the first element */
         std::string elementName(elementNameList[elem]);
         char* cElementName = elementNameList[elem];
@@ -74,10 +75,15 @@ void PointSet::LoadPlyFile(const char* iFilename) {
         /* print the name of the element, for debugging */
 #ifdef __DEBUG_PLY_READ
         std::cout << "element " << elementName << " " << nElems << std::endl;
+
+        /* print out the properties we got, for debugging */
+        for ( int prop = 0; prop < nProperties; prop++ ) {
+            std::cout << "property " << propertyList[prop]->name << std::endl;
+        }
 #endif
 
         /* if we're on vertex elements, read them in */
-        if ( elementName.compare("vertex")== 0 ) {
+        if ( elementName.compare("vertex") == 0 ) {
             /* set up for getting vertex elements */
             ply_get_property(plyFile, cElementName, &vertexProperties[0]); // x
             ply_get_property(plyFile, cElementName, &vertexProperties[1]); // y
@@ -106,11 +112,18 @@ void PointSet::LoadPlyFile(const char* iFilename) {
 #ifdef __DEBUG_PLY_READ
                 /* print out vertex x,y,z for debugging */
                 std::cout << "Read Vertex:" << std::endl;
-                std::cout << " - Position = " << vDesc.x   << " " << vDesc.y     << " " << vDesc.z    << std::endl;
-                std::cout << " - Normal   = " << vDesc.nx  << " " << vDesc.ny    << " " << vDesc.nz   << std::endl;
-                std::cout << " - Color    = " << (int)vDesc.red << " " << (int)vDesc.green << " " << (int)vDesc.blue << " " << (int)vDesc.alpha << std::endl;
+                std::cout << " - Position = "   << vDesc.x << " " 
+                                                << vDesc.y << " " 
+                                                << vDesc.z << std::endl;
+                std::cout << " - Normal   = "   << vDesc.nx << " " 
+                                                << vDesc.ny << " " 
+                                                << vDesc.nz << std::endl;
+                std::cout << " - Color    = "   << (int)vDesc.red   << " " 
+                                                << (int)vDesc.green << " "
+                                                << (int)vDesc.blue  << " " 
+                                                << (int)vDesc.alpha << std::endl;
 #endif
-            }
+                }
         }
 
         /* if we're on face elements, read them in */
@@ -135,12 +148,6 @@ void PointSet::LoadPlyFile(const char* iFilename) {
             }
         }
 
-#ifdef __DEBUG_PLY_READ
-        /* print out the properties we got, for debugging */
-        for ( int prop = 0; prop < nProperties; prop++ ) {
-            std::cout << "property " << propertyList[prop]->name << std::endl;
-        }
-#endif
     }
 
     /* grab and print out the comments in the file */

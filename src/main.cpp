@@ -6,13 +6,10 @@
 #define RES_PTSET_PATH "../resources/Project/PointSets/"
 
 int main(int argc, char** argv) {
-      
     /* Class image test */
-
     Image myImage("frame_20121108T103323.258153_rgb-ascci.pgm");
 
     /* Class Ply test  */
-    
     PointSet psAscii, psBinary;    
     psAscii.LoadFromFile(RES_PTSET_PATH + std::string("frame000-ascii.ply"));
     psBinary.LoadFromFile(RES_PTSET_PATH + std::string("frame000-brut.ply"));
@@ -47,5 +44,4 @@ int main(int argc, char** argv) {
     CHECK_RC(rc,"Viewer run");
     
     return 0;
-
 }

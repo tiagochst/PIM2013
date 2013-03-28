@@ -1,11 +1,30 @@
 VS2010/
 VS2012/
 bee11/
+Makefile.in
+aclocal.m4 
+autom4te.cache/
+build-aux/
+config.h
+Makefile
+stamp-h1
+config.log
+config.h.in
+.deps/
+build/
+configure
+aclocal.m4
+config.status
+
+# Vim temporary files
+*.swp
+*~
 
 # Compiled Object files
 *.slo
 *.lo
 *.o
+*.opp
 
 # Compiled Dynamic libraries
 *.so

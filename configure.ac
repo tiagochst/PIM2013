@@ -8,6 +8,8 @@ AC_PREREQ(2.69)
 CXXFLAGS=
 CFLAGS=
 
+#AC_CONFIG_COMMANDS([mkdir], [$MKDIR_P build src/bin])
+
 # Checks for programs.
 AC_PROG_AWK
 AC_PROG_CXX
@@ -17,6 +19,9 @@ AC_PROG_LN_S
 AC_PROG_RANLIB
 
 # Check for libraries 
+PKG_CHECK_MODULES(OPENCV,opencv)
+PKG_CHECK_MODULES(GLU,glu)
+
 # Check for header files 
 # Check for typedefs, structures, and compilers characteristics
 # Check for library functions 

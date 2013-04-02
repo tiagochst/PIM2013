@@ -36,10 +36,10 @@ void Image::LoadFromFile( const std::string& iFilename )
     std::string inputLine = "";
 
     /* path to our images */
-    std::string path = "./resources/Project/Images/";
+    //std::string path = "./resources/Project/Images/";
 
     /* Opening pgm file*/
-    std::ifstream inFile( ( path + iFilename ).c_str(), 
+    std::ifstream inFile( (iFilename).c_str(), 
                             std::ifstream::in | std::ifstream::binary );
 
     /* First line : version of pgm file*/
@@ -217,3 +217,4 @@ int Image::GetMaxGreyLevel()
 {
     return m_maxGreyLevel;
 }
+

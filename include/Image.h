@@ -3,6 +3,8 @@
 
 #include <string>
 #include "Eigen/Dense"
+#include <cv.h> 
+#include <highgui.h> 
 
 class BadIndex {};
 
@@ -37,6 +39,7 @@ public:
 
     Image Correlation( const Image& iOther ) const;
     Image Difference( const Image& iOther) const;
+
 };
 
 #endif /* IMAGE_H_ */

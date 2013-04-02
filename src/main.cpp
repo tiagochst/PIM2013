@@ -8,24 +8,24 @@ static const std::string RES_IMG_PATH("../resources/Project/Images/");
 
 int main(int argc, char** argv) {
     /* Class image test */
-    Image myImage(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-ascci.pgm");
+    // Image myImage(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-ascci.pgm");
 
-    /* Class Ply test  */
-    PointSet psAscii, psBinary;    
-    psAscii.LoadFromFile(RES_PTSET_PATH + "frame000-ascii.ply");
-    psBinary.LoadFromFile(RES_PTSET_PATH + "frame000-brut.ply");
+    // /* Class Ply test  */
+    // PointSet psAscii, psBinary;    
+    // psAscii.LoadFromFile(RES_PTSET_PATH + "frame000-ascii.ply");
+    // psBinary.LoadFromFile(RES_PTSET_PATH + "frame000-brut.ply");
  
     Image frame0(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
     Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
 
-    Coordinate bestMatch;
-    //Image mask("mask.pgm");
-    Image mask("bigMask.pgm");
+    //Coordinate bestMatch;
+    Image mask("mask.pgm");
+    //Image mask("bigMask.pgm");
     
-    Image correlation = frame1.PatternSearch( mask, bestMatch );
-    std::cout << "Match found at (" << bestMatch.x << ", " 
-                                    << bestMatch.y << ")" << std::endl;
-    correlation.CreateAsciiPgm("correlation.pgm");
+    frame1.CrossCorrelation(mask);
+    //std::cout << "Match found at (" << maxLoc.x << ", " 
+    //                                << maxLoc.y << ")" << std::endl;
+    //CVcorrelation.CreateAsciiPgm("CVcorrelation.pgm");
 
     //Image corr01 = frame0.Correlation(frame1);
     //Image corr10 = frame1.Correlation(frame0);
@@ -36,6 +36,7 @@ int main(int argc, char** argv) {
     Image diff10 = frame1.Difference(frame0);
     diff01.CreateAsciiPgm("diff01.pgm");
     diff10.CreateAsciiPgm("diff10.pgm");
+
 
     /* Class Camera test: Kinect's  */
     xn::Context        g_context;

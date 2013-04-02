@@ -16,8 +16,8 @@ AM_CXXFLAGS += $(OPENCV_CFLAGS) $(GLU_CFLAGS) $(OPENNI_CFLAGS)
 AM_CPPFLAGS += -I$(srcdir)/../include -I$(srcdir)/../external 
 AM_LDFLAGS += $(OPENCV_LIBS) $(OPENNI_LIBS) $(GLU_LIBS)
 
-bin_PROGRAMS = main
-main_SOURCES = \
+bin_PROGRAMS = $(top_builddir)/bin/main
+__top_builddir__bin_main_SOURCES = \
 		Color.cpp    \
 		PointSet.cpp \
 		Vertex.cpp   \

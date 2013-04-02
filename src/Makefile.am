@@ -10,33 +10,17 @@ AM_CPPFLAGS =-O3 -DNDEBUG
 endif
 
 # Include flags
-AM_CXXFLAGS += -I/usr/include/ni/ -I/usr/include/opencv/ -I/usr/include/opencv2/ -lOpenNI -lm -lglut $(GLU_CFLAGS) $(GLU_LIBS) -lm -g $(OPENCV_CFLAGS) $(OPENCV_LIBS) -Wno-write-strings
-
+AM_CXXFLAGS += -I/usr/include/ni/ -I/usr/include/opencv/ -I/usr/include/opencv2/
+AM_CPPFLAGS += -lOpenNI -lm -lglut $(GLU_CFLAGS) $(GLU_LIBS) $(OPENCV_CFLAGS) $(OPENCV_LIBS) -Wno-write-strings
 AM_CPPFLAGS += -I$(srcdir)/../include -I$(srcdir)/../external 
 
-
-###############################################################################
-# THE PROGRAMS TO BUILD
-###############################################################################
 bin_PROGRAMS = main
-main_header = \
-		Color.h    \
-		Image.h	   \
-		PlyFile.h  \
-		PointSet.h \
-		Vec3D.hpp  \
-		Vertex.h   \
-		Camera.h
-main_libray = \
+main_SOURCES = \
 		Color.cpp    \
 		PointSet.cpp \
 		Vertex.cpp   \
 		Image.cpp    \
 		PlyFile.c    \
-		Camera.cpp 
-
-main_SOURCES = \
-		$(main_header) \
-		$(main_libray) \
+		Camera.cpp   \
 		main.cpp 
 

@@ -4,32 +4,39 @@
 #include <string>
 #include "Eigen/Dense"
 
+class BadIndex {};
+
 class Image {
+private:
+    int                 m_height;
+    int                 m_width;
+    int                 m_maxGreyLevel;
+    Eigen::MatrixXi     m_figure;
 
- private:
-  int m_height;
-  int m_width;
-  int m_maxGreyLevel;
-  Eigen::MatrixXd m_figure;
-  
- public:
-  Image(std::string fileName);
-  virtual ~Image();
-  
-  void SetHeight     (int newHeight);
-  void SetWidth      (int newWidth) ;
-  void SetGreyLevel  (int newGreyLevel); 
+public:
+    Image(const int iWidth, const int iHeight, const int iGreyLevel);
+    Image(const std::string& iFilename);
+    virtual ~Image();
 
-  int GetHeight      () ;
-  int GetWidth       () ;
-  int GetMaxGreyLevel();
+    void SetHeight(const int iHeight);
+    void SetWidth(const int iWidth) ;
+    void SetGreyLevel(const int iGreyLevel); 
 
-  /* Read a binary (P5) or Asc(P2) .pgm file*/
-  void loadFromFile(std::string fileName);
- 
-  /* Verify if image was read correctly*/
-  void CreateAscPgm(std::string fileName);
-  
+    int GetHeight();
+    int GetWidth();
+    int GetMaxGreyLevel();
+
+    /* Read a binary (P5) or Asc(P2) .pgm file*/
+    void LoadFromFile(const std::string& iFilename);
+
+    /* Verify if image was read correctly*/
+    void CreateAsciiPgm(const std::string& iFilename);
+
+    int& operator()( const int iRow, const int iCol );
+    int  operator()( const int iRow, const int iCol ) const;
+
+    Image Correlation( const Image& iOther ) const;
+    Image Difference( const Image& iOther) const;
 };
 
 #endif /* IMAGE_H_ */

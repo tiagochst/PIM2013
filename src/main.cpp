@@ -13,6 +13,19 @@ int main(int argc, char** argv) {
     PointSet psAscii, psBinary;    
     psAscii.LoadFromFile(RES_PTSET_PATH + std::string("frame000-ascii.ply"));
     psBinary.LoadFromFile(RES_PTSET_PATH + std::string("frame000-brut.ply"));
+ 
+    Image frame0("frame_20121108T103323.258153_rgb-brut.pgm");
+    Image frame1("frame_20121108T103323.390878_rgb-brut.pgm");
+
+    Image corr01 = frame0.Correlation(frame1);
+    Image corr10 = frame1.Correlation(frame0);
+    corr01.CreateAsciiPgm("corr01");
+    corr10.CreateAsciiPgm("corr10");
+
+    Image diff01 = frame0.Difference(frame1);
+    Image diff10 = frame1.Difference(frame0);
+    diff01.CreateAsciiPgm("diff01");
+    diff10.CreateAsciiPgm("diff10");
 
     /* Class Camera test: Kinect's  */
     xn::Context        g_context;

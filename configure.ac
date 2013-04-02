@@ -5,8 +5,10 @@ AM_INIT_AUTOMAKE([foreign -Wall -Werror])
 AC_PREREQ(2.69)
 
 # Redefining compilers default flags
+CPPFLAGS=
 CXXFLAGS=
 CFLAGS=
+LDFLAGS=
 
 #AC_CONFIG_COMMANDS([mkdir], [$MKDIR_P build src/bin])
 
@@ -20,6 +22,7 @@ AC_PROG_RANLIB
 
 # Check for libraries 
 PKG_CHECK_MODULES(OPENCV,opencv)
+PKG_CHECK_MODULES(OPENNI,openni)
 PKG_CHECK_MODULES(GLU,glu)
 
 # Check for header files 

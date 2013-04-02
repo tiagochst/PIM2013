@@ -3,19 +3,20 @@
 #include "PointSet.h"
 #include "Camera.h"
 
-#define RES_PTSET_PATH "../resources/Project/PointSets/"
+static const std::string RES_PTSET_PATH("../resources/Project/PointSets/");
+static const std::string RES_IMG_PATH("../resources/Project/Images/");
 
 int main(int argc, char** argv) {
     /* Class image test */
-    Image myImage("frame_20121108T103323.258153_rgb-ascci.pgm");
+    Image myImage(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-ascci.pgm");
 
     /* Class Ply test  */
     PointSet psAscii, psBinary;    
-    psAscii.LoadFromFile(RES_PTSET_PATH + std::string("frame000-ascii.ply"));
-    psBinary.LoadFromFile(RES_PTSET_PATH + std::string("frame000-brut.ply"));
+    psAscii.LoadFromFile(RES_PTSET_PATH + "frame000-ascii.ply");
+    psBinary.LoadFromFile(RES_PTSET_PATH + "frame000-brut.ply");
  
-    Image frame0("frame_20121108T103323.258153_rgb-brut.pgm");
-    Image frame1("frame_20121108T103323.390878_rgb-brut.pgm");
+    Image frame0(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
+    Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
 
     Image corr01 = frame0.Correlation(frame1);
     Image corr10 = frame1.Correlation(frame0);

@@ -18,15 +18,24 @@ int main(int argc, char** argv) {
     Image frame0(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
     Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
 
-    Image corr01 = frame0.Correlation(frame1);
-    Image corr10 = frame1.Correlation(frame0);
-    corr01.CreateAsciiPgm("corr01");
-    corr10.CreateAsciiPgm("corr10");
+    Coordinate bestMatch;
+    //Image mask("mask.pgm");
+    Image mask("bigMask.pgm");
+    
+    Image correlation = frame1.PatternSearch( mask, bestMatch );
+    std::cout << "Match found at (" << bestMatch.x << ", " 
+                                    << bestMatch.y << ")" << std::endl;
+    correlation.CreateAsciiPgm("correlation.pgm");
+
+    //Image corr01 = frame0.Correlation(frame1);
+    //Image corr10 = frame1.Correlation(frame0);
+    //corr01.CreateAsciiPgm("corr01");
+    //corr10.CreateAsciiPgm("corr10");
 
     Image diff01 = frame0.Difference(frame1);
     Image diff10 = frame1.Difference(frame0);
-    diff01.CreateAsciiPgm("diff01");
-    diff10.CreateAsciiPgm("diff10");
+    diff01.CreateAsciiPgm("diff01.pgm");
+    diff10.CreateAsciiPgm("diff10.pgm");
 
     /* Class Camera test: Kinect's  */
     xn::Context        g_context;

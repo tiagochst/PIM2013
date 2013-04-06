@@ -311,6 +311,10 @@ void Camera::OnKey(unsigned char key, int x, int y)
     case 'P':
         captureSingleFrame();
         break;
+    case '?':
+        drawHelpScreen();
+        break;
+
     }
 }
 
@@ -368,4 +372,104 @@ void Camera::captureSingleFrame()
     /* Frame saved: increase ID*/
     m_nbFrames++;  
     
+}
+
+
+void Camera::drawHelpScreen()
+{
+	int nXStartLocation = GL_WIN_SIZE_X/8;
+	int nYStartLocation = GL_WIN_SIZE_Y/5;
+	int nXEndLocation = GL_WIN_SIZE_X*7/8;
+	int nYEndLocation = GL_WIN_SIZE_Y*4/5;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);		
+	glBegin(GL_QUADS);
+	glColor4f(0, 0, 0, 0.8);
+	glVertex2i(nXStartLocation, nYStartLocation);
+	glVertex2i(nXStartLocation, nYEndLocation);
+	glVertex2i(nXEndLocation, nYEndLocation);
+	glVertex2i(nXEndLocation, nYStartLocation);
+	glEnd();
+
+	glDisable(GL_BLEND);
+
+	// set color to red
+	glColor3f(1, 0, 0);
+
+	// leave some margins
+	nYStartLocation += 30;
+	nXStartLocation += 30;
+
+	// print left pane
+	int nXLocation = nXStartLocation;
+	int nYLocation = nYStartLocation;
+	printHelp(nXLocation, &nYLocation);
+
+}
+
+
+void Camera::printHelp(int nXLocation, int* pnYLocation)
+{
+	int nYLocation = *pnYLocation;
+
+	unsigned char aKeys[20];
+	const char* aDescs[20];
+	int nCount;
+
+        /* List of keys */
+        aKeys[0] = 'q';
+        aDescs[0] = "quit";
+
+        aKeys[1] = 'p';
+        aDescs[1] = "Save frame";
+
+        aKeys[2] = '1';
+        aDescs[2] = "Kinect: Overlay Mode";
+
+        aKeys[3] = '2';
+        aDescs[3] = "Kinect: Depth Mode";
+
+        aKeys[4] = '3';
+        aDescs[4] = "Kinect: Image Mode";
+
+        /* END List of keys */
+
+	glColor3f(0, 1, 0);
+	glRasterPos2i(nXLocation, nYLocation);
+	nYLocation += 30;
+
+	for (int i = 0; i < nCount; ++i, nYLocation += 22)
+	{
+		char buf[256];
+		switch (aKeys[i])
+		{
+		case 27:
+			sprintf(buf, "Esc");
+			break;
+		default:
+			sprintf(buf, "%c", aKeys[i]);
+			break;
+		}
+
+		glColor3f(1, 0, 0);
+		glRasterPos2i(nXLocation, nYLocation);
+		glPrintString(GLUT_BITMAP_HELVETICA_18, buf);
+
+		glRasterPos2i(nXLocation + 40, nYLocation);
+		glPrintString(GLUT_BITMAP_HELVETICA_18, aDescs[i]);
+	}
+
+	*pnYLocation = nYLocation + 20;
+}
+
+
+void Camera::glPrintString(void *font, const char *str)
+{
+	int i,l = strlen(str);
+
+	for(i=0; i<l; i++)
+	{
+		glutBitmapCharacter(font,*str++);
+	}
 }

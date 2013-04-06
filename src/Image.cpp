@@ -61,17 +61,13 @@ void Image::LoadFromFile( const std::string& iFilename )
                     << inputLine 
                     << std::endl;
 
-    } else {
-        std::cout << "Version : " << inputLine << std::endl;
-    }
-
+    } 
     if ( inputLine.compare( "P5" ) == 0 ) {
         isBinary = 1;
     }
 
     /* Second line : comment */
     getline( inFile, inputLine );
-    std::cout << "Comment : " << inputLine << std::endl;
 
     /* Third  line : size
        Fourth line : grey level*/

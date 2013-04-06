@@ -52,6 +52,20 @@ int main(int argc, char** argv) {
     diff01.CreateAsciiPgm(Config::OutputPath() + "diff01.pgm");
     diff10.CreateAsciiPgm(Config::OutputPath() + "diff10.pgm");
 
+    char c;
+    puts ("Select Mode: Kinect ('k') Other:('o')");
+    c=getchar();
+    if(c == 'k'){
+        KinectInit(argc, argv);
+    }
+    
+    
+    return 0;
+}
+
+int KinectInit(int argc, char** argv)
+{
+
     /* Class Camera test: Kinect's  */
     xn::Context        g_context;
     xn::ScriptNode  g_scriptNode;
@@ -80,6 +94,7 @@ int main(int argc, char** argv) {
     
     rc = viewer.Run();
     CHECK_RC(rc,"Viewer run");
+
+    return 1;
     
-    return 0;
 }

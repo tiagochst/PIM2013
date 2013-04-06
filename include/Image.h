@@ -7,6 +7,18 @@
 #include <highgui.h> 
 
 class BadIndex {};
+class IncompatibleImages {};
+
+struct Coordinate {
+    int x, y;
+    Coordinate() {
+        this->x = this->y = 0;
+    }
+    Coordinate(const int& x, const int& y) {
+        this->x = x;
+        this->y = y;
+    }
+};
 
 class Image {
 private:
@@ -14,6 +26,7 @@ private:
     int                 m_width;
     int                 m_maxGreyLevel;
     Eigen::MatrixXi     m_figure;
+    Eigen::MatrixXf     m_normalisedFigure;
 
 public:
     Image(const int iWidth, const int iHeight, const int iGreyLevel);
@@ -24,9 +37,9 @@ public:
     void SetWidth(const int iWidth) ;
     void SetGreyLevel(const int iGreyLevel); 
 
-    int GetHeight();
-    int GetWidth();
-    int GetMaxGreyLevel();
+    int const& GetHeight() const;
+    int const& GetWidth() const;
+    int const& GetMaxGreyLevel() const;
 
     /* Read a binary (P5) or Asc(P2) .pgm file*/
     void LoadFromFile(const std::string& iFilename);
@@ -34,10 +47,13 @@ public:
     /* Verify if image was read correctly*/
     void CreateAsciiPgm(const std::string& iFilename);
 
-    int& operator()( const int iRow, const int iCol );
-    int  operator()( const int iRow, const int iCol ) const;
+    void Recalculate();
 
-    Image Correlation( const Image& iOther ) const;
+    float& operator()( const int iRow, const int iCol );
+    float  operator()( const int iRow, const int iCol ) const;
+
+    Image PatternSearch( const Image& iMask, Coordinate& oBestMatch ) const;
+    int Correlation( const Image& iOther ) const;
     Image Difference( const Image& iOther) const;
 
 };

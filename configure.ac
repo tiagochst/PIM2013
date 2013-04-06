@@ -10,7 +10,7 @@ CXXFLAGS=
 CFLAGS=
 LDFLAGS=
 
-AC_CONFIG_COMMANDS([mkdir], [$MKDIR_P bin bin/CapturedFrames])
+AC_CONFIG_COMMANDS([mkdir], [$MKDIR_P bin bin/CapturedFrames resources/Project/Data/Output])
 
 # Checks for programs.
 AC_PROG_AWK

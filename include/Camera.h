@@ -6,10 +6,9 @@
 #include <GL/glut.h>
 #include <math.h>
 #include <cassert>
-#include <cv.h> 
-#include <highgui.h> 
 #include <sstream> 
 #include <string> 
+#include "Image.h"
 
 //----------------------------------------------------------
 // Defines

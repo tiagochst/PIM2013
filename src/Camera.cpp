@@ -331,11 +331,8 @@ std::string Camera::Int2Str(int nb){
 
 void Camera::captureSingleFrame()
 {
-    cv::Mat Image; 
-    cv::Mat Depth; 
-
-    Image  = cv::Mat(m_imageMD.YRes(),m_imageMD.XRes(),CV_8U); 
-    Depth  = cv::Mat(m_depthMD.YRes(),m_depthMD.XRes(),CV_8U); 
+    Image camImg(m_imageMD.XRes(),m_imageMD.YRes(),65535);
+    Image camDepth(m_depthMD.XRes(),m_depthMD.YRes(),65535); 
 
     const XnRGB24Pixel* pImageRow = m_imageMD.RGB24Data();
     const XnDepthPixel* pDepthRow = m_depthMD.Data();
@@ -344,39 +341,31 @@ void Camera::captureSingleFrame()
     {
         const XnRGB24Pixel* pImage = pImageRow;
         const XnDepthPixel* pDepth = pDepthRow;
-        uchar* ptrIm = Image.ptr<uchar>(y); 
-        uchar* ptrDp = Depth.ptr<uchar>(y); 
         
         for (XnUInt x = 0; x < m_imageMD.XRes(); ++x, ++pImage, ++pDepth)
         {
             /* HDTV rgb to grayscale*/
-            ptrIm[x] = pImage -> nRed *  0.2126 + \
+            camImg(x,y) = pImage -> nRed *  0.2126 +      \
                      pImage -> nBlue * 0.0722 + \
                      pImage-> nGreen * 0.7152;
             /* HDTV rgb to grayscale*/
             if (*pDepth != 0)
             {
-                ptrDp[x] =  m_pDepthHist[*pDepth];
+                camDepth(x,y) =  m_pDepthHist[*pDepth];
             }
             
         }
+
         pImageRow += m_imageMD.XRes();
         pDepthRow += m_depthMD.XRes();
 
     }
-    
-    std::string str_aux = "CapturedFrames/image_"+ Int2Str(m_nbFrames)  +".pgm"; 
-    IplImage bgrIpl = Image;   
-    cvSaveImage(str_aux.c_str(),&bgrIpl);  
 
+    std::string str_aux = "CapturedFrames/image_"+ Int2Str(m_nbFrames)  +".pgm";    camImg.CreateAsciiPgm(str_aux);
     str_aux = "CapturedFrames/depth_"+ Int2Str(m_nbFrames)  +".pgm"; 
-    bgrIpl = Depth;   
-    cvSaveImage(str_aux.c_str(),&bgrIpl);  
-
-
-    printf("Frames saved with ID %d", m_nbFrames);
+    camDepth.CreateAsciiPgm(str_aux);
+    
+    /* Frame saved: increase ID*/
     m_nbFrames++;  
     
 }
-
-

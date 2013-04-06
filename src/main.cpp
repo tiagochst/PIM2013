@@ -99,8 +99,8 @@ int main(int argc, char** argv) {
     Image mask(Config::DataPath() + "mask.pgm");
     Image bigMask(Config::DataPath() + "bigMask.pgm");
     
-    Image correlation = bigMask.PatternSearch(mask, bestMatch);
-    //Image correlation = frame1.PatternSearch( mask, bestMatch );
+    //Image correlation = bigMask.PatternSearch(mask, bestMatch);
+    Image correlation = frame1.PatternSearch( mask, bestMatch );
     std::cout << "Match found at (" << bestMatch.x << ", " 
                                     << bestMatch.y << ")" << std::endl;
     correlation.CreateAsciiPgm(Config::OutputPath() + "correlation.pgm");
@@ -114,7 +114,6 @@ int main(int argc, char** argv) {
     Image diff10 = frame1.Difference(frame0);
     diff01.CreateAsciiPgm(Config::OutputPath() + "diff01.pgm");
     diff10.CreateAsciiPgm(Config::OutputPath() + "diff10.pgm");
-
 
     /* Class Camera test: Kinect's  */
     xn::Context        g_context;
@@ -136,7 +135,7 @@ int main(int argc, char** argv) {
     {
         CHECK_RC(rc,"Open");
     }
-        
+    
     Camera& viewer = Camera::CreateInstance(g_context);
     
     rc = viewer.Init(argc, argv);

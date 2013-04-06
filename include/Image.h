@@ -3,8 +3,6 @@
 
 #include <string>
 #include "Eigen/Dense"
-#include <cv.h> 
-#include <highgui.h> 
 
 class BadIndex {};
 class IncompatibleImages {};

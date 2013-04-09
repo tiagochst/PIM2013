@@ -21,7 +21,7 @@ int main(int argc, char** argv) {
     Image frame0(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
     Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
 
-    Coordinate bestMatch;
+    CartesianCoordinate bestMatch;
     Image smallMask(Config::DataPath() + "smallMask.pgm");
     Image mask(Config::DataPath() + "mask.pgm");
     Image bigMask(Config::DataPath() + "bigMask.pgm");
@@ -39,6 +39,9 @@ int main(int argc, char** argv) {
     bigMaskCorrelation.CreateAsciiPgm(Config::OutputPath() + "bigMaskCorrelation.pgm");
     frame1Correlation.CreateAsciiPgm(Config::OutputPath() + "frame1Correlation.pgm");
 
+//    Image ft = frame0.FourierTransform();
+  //  ft.CreateAsciiPgm(Config::OutputPath() + "Frame0FT.pgm");
+    
     //Image corr01 = frame0.Correlation(frame1);
     //Image corr10 = frame1.Correlation(frame0);
     //corr01.CreateAsciiPgm("corr01");

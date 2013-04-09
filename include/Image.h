@@ -7,15 +7,19 @@
 class BadIndex {};
 class IncompatibleImages {};
 
-struct Coordinate {
+struct CartesianCoordinate {
     int x, y;
-    Coordinate() {
+    CartesianCoordinate() {
         this->x = this->y = 0;
     }
-    Coordinate(const int& x, const int& y) {
+    CartesianCoordinate( const int& x, const int& y ) {
         this->x = x;
         this->y = y;
     }
+};
+struct Rectangle {
+    CartesianCoordinate m_position;
+    int width, height;
 };
 
 class Image {
@@ -50,12 +54,17 @@ public:
     float& operator()( const int iRow, const int iCol );
     float  operator()( const int iRow, const int iCol ) const;
 
-    Image PatternSearch( const Image& iMask, Coordinate& oBestMatch ) const;
-    int Correlation( const Image& iOther ) const;
-    Image Difference( const Image& iOther) const;
+    float& operator()( const CartesianCoordinate& iCoordinate );
+    float  operator()( const CartesianCoordinate& iCoordinate ) const;
 
+    CartesianCoordinate Center() const;
+    
+    Image SubImage( const int iX, const int iY, const int iWidth, const int iHeight ) const;
+    Image TemplateMatch( const Image& iMask, CartesianCoordinate& oBestMatch ) const;
+    Image FourierTransform() const;
+    Image Difference( const Image& iOther ) const;
+    float Correlation( const Image& iOther ) const;
 };
 
 #endif /* IMAGE_H_ */
-
 

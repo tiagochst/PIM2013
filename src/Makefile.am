@@ -11,10 +11,9 @@ endif
 AM_LDFLAGS=-lm -lglut
 
 # Include flags
-AM_CXXFLAGS+=$(GLU_CFLAGS) $(OPENNI_CFLAGS) $(GL_CFLAGS) 
-AM_CPPFLAGS+=-Wno-write-strings -Wunused-result 
-AM_CPPFLAGS+=-I$(srcdir)/../include -I$(srcdir)/../external
-AM_LDFLAGS+=$(OPENNI_LIBS) $(GLU_LIBS) $(GL_LIBS) 
+AM_CXXFLAGS+=$(OPENNI_CFLAGS) $(GLU_CFLAGS) $(GL_CFLAGS) 
+AM_CPPFLAGS+=-I$(top_builddir)/include -I$(top_builddir)/external
+AM_LDFLAGS+=$(OPENNI_LIBS) $(GLU_LIBS) $(GL_LIBS)
 
 bin_PROGRAMS = $(top_builddir)/bin/main
 __top_builddir__bin_main_SOURCES = \

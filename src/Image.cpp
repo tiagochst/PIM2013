@@ -1,6 +1,9 @@
 #include <iostream> // cout, cerr
 #include <fstream> // ifstream
 #include <sstream> // stringstream
+
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "Image.h"
 
 inline bool InRange( 
@@ -15,7 +18,12 @@ inline int abs(int iVal) {
     return (iVal < 0) ? -iVal : iVal;
 }
 
-inline int max(int a, int b) {
+template<typename T>
+inline T min(T a, T b) {
+    return ( (a <= b) ? a : b );    
+}
+template<typename T>
+inline T max(T a, T b) {
     return ( (a >= b) ? a : b );    
 }
 
@@ -67,7 +75,7 @@ void Image::LoadFromFile( const std::string& iFilename )
 
     /* Third  line : size
        Fourth line : grey level*/
-    inFile  >> width >> height>> greyLevel ;
+    inFile >> width >> height >> greyLevel ;
 
     SetHeight( height );
     SetWidth( width );
@@ -87,11 +95,12 @@ void Image::LoadFromFile( const std::string& iFilename )
     } else {
         ss << inFile.rdbuf();
 
-        for ( i = 0; i < height; i++ )
+        for ( i = 0; i < height; i++ ) {
             for ( j = 0; j < width; j++ ) {
                 ss >> m_figure( i, j );
                 m_normalisedFigure( i , j ) = (float)m_figure( i, j ) / (float)(greyLevel);
             }
+        }
     }
 
     inFile.close();
@@ -113,10 +122,11 @@ void Image::CreateAsciiPgm( const std::string& iFilename )
     ostr << m_width << " " << m_height << std::endl;
     ostr << m_maxGreyLevel << std::endl;
 
-    for ( i = 0; i < m_height; i++ )
+    for ( i = 0; i < m_height; i++ ) {
         for ( j = 0; j < m_width; j++ ) {
             ostr << m_figure( i, j ) << std::endl;
         }
+    }
 
     ostr.close();
 }
@@ -145,37 +155,193 @@ float Image::operator()( const int iRow, const int iCol ) const
     }
 }
 
-int Image::Correlation( const Image& iOther ) const
+float& Image::operator()( const CartesianCoordinate& iCoordinate )
 {
+    Image& me = (*this);
+    
+    return me( iCoordinate.y, iCoordinate.x );
 }
-
-Image Image::PatternSearch( const Image& iMask, Coordinate& oBestMatch ) const
+float Image::operator()( const CartesianCoordinate& iCoordinate ) const
 {
     const Image& me = (*this);
-    Image correlation( m_width - iMask.GetWidth() + 1, 
-                        m_height - iMask.GetHeight() + 1, 
-                        65535);
 
-    float bestMatchVal = 0;
-    int minVal = 0;
-    int nMaskElems = iMask.m_width * iMask.m_width;
+    return me( iCoordinate.y, iCoordinate.x );
+}
+
+float Image::Correlation( const Image& iOther ) const
+{
+    if ( iOther.GetWidth() != m_width || 
+            iOther.GetHeight() != m_height  ) {
+        throw IncompatibleImages();
+    }
+
+    float correlation = 0;
+    for ( int x = 0; x < m_width; x++ ) {
+        for ( int y = 0; y < m_height; y++ ) {
+            CartesianCoordinate c( x, y );
+
+            correlation += (*this)( c ) * iOther( c );
+        } 
+    } 
     
-    float maskDenom = 0;
-    for ( int i = 0; i < iMask.m_height; i++ ) {
-        for ( int j = 0; j < iMask.m_width; j++ ) {
-            maskDenom += iMask( i, j ) * iMask( i, j );
+    return correlation;
+}
+
+Image Image::SubImage(
+    const int iX,
+    const int iY,
+    const int iWidth,
+    const int iHeight
+) const {
+    Image subImage( iWidth, iHeight, m_maxGreyLevel );
+
+    for ( int x = 0; x < iWidth; x++ ) {
+        for ( int y = 0; y < iHeight; y++ ) {
+            CartesianCoordinate subCoord(      x,      y );
+            CartesianCoordinate imgCoord( iX + x, iY + y );
+            
+            subImage( subCoord ) = (*this)( imgCoord );
         }
     }
 
-    for ( int i = 0; i < correlation.GetHeight(); i++ ) {
-        for ( int j = 0; j < correlation.GetWidth(); j++ ) {
+    return subImage;
+}
+
+CartesianCoordinate Image::Center() const 
+{
+    return CartesianCoordinate( m_width / 2, m_height / 2 );
+}
+
+Image Image::FourierTransform() const
+{
+    Image transform( m_width, m_height, 65535 );
+
+    float maxVal = 0;
+    for ( int x = 0; x < m_width; x++ ) {
+        for ( int y = 0; y < m_height; y++ ) {
+            CartesianCoordinate transCoord( x, y );
+            float ftVal = 0;
+            for ( int xx = 0; xx < m_width; xx++ ) {
+                for ( int yy = 0; yy < m_height; yy++ ) {
+                    CartesianCoordinate myCoord( xx, yy );
+
+                    float myVal = (*this)(myCoord); 
+                    float arg = -2 * M_PI;
+                    arg *= ( ( x * xx / m_width ) + ( y * yy / m_height ) );
+                    
+                    float re = myVal * cos(arg); 
+                    float im = myVal * sin(arg); 
+                    
+                    ftVal += sqrt(re*re + im*im); 
+                }
+            }    
+            transform( transCoord ) = ftVal; 
+            
+            maxVal = max(ftVal, maxVal);
+        }
+    }    
+    for ( int x = 0; x < m_width; x++ ) {
+        for ( int y = 0; y < m_height; y++ ) {
+            CartesianCoordinate c( x, y );
+
+            transform( c ) /= maxVal;
+        }
+    }
+    transform.Recalculate();
+
+    return transform;
+}
+
+//Image Image::PatternSearch( const Image& iMask, CartesianCoordinate& oBestMatch ) const
+//{
+//    const Image& me = (*this);
+//    Image correlation( m_width  - iMask.GetWidth()  + 1, 
+//                       m_height - iMask.GetHeight() + 1, 
+//                       65535);
+//
+//    int nMaskElems = iMask.m_width * iMask.m_width;
+//    
+//    float maskDenom = 0;
+//    for ( int xx = 0; xx < iMask.GetWidth(); xx++ ) {
+//        for ( int yy = 0; yy < iMask.GetHeight(); yy++ ) {
+//            CartesianCoordinate maskCoords( xx, yy );
+//            
+//            float maskVal = iMask( maskCoords );
+//            
+//            maskDenom += maskVal * maskVal; 
+//        }
+//    }
+//
+//    float bestMatchVal = 0;
+//    for ( int x = 0; x < correlation.GetWidth(); x++ ) {
+//        for ( int y = 0; y < correlation.GetHeight(); y++ ) {
+//            CartesianCoordinate corrCoords( x, y );
+//
+//            float val = 0;
+//            float myDenom = 0;
+//            for ( int xx = 0; xx < iMask.GetWidth(); xx++ ) {
+//                for ( int yy = 0; yy < iMask.GetHeight(); yy++ ) {
+//                    CartesianCoordinate myCoords( x + xx, y + yy );
+//                    CartesianCoordinate maskCoords( xx, yy );
+//
+//                    float myVal   = me( myCoords );
+//                    float maskVal = iMask( maskCoords );
+//
+//                    myDenom += myVal * myVal; 
+//                    
+//                    val += myVal * maskVal;
+//                }
+//            }
+//            val /= sqrt(maskDenom * myDenom);
+//            
+//            correlation( corrCoords ) = val;
+//            if ( val >= bestMatchVal ) {
+//                bestMatchVal = val;
+//                oBestMatch = corrCoords;
+//            }
+//        }
+//    }
+//    correlation.Recalculate();    
+//
+//    return correlation;
+//}
+Image Image::TemplateMatch(
+    const Image&            iMask,
+    CartesianCoordinate&    oBestMatch
+) const {
+    const Image& me = (*this);
+    Image correlation( m_width, 
+                       m_height, 
+                       65535);
+
+    int nMaskElems = iMask.m_width * iMask.m_width;
+    
+    float maskDenom = 0;
+    for ( int xx = 0; xx < iMask.GetWidth(); xx++ ) {
+        for ( int yy = 0; yy < iMask.GetHeight(); yy++ ) {
+            CartesianCoordinate maskCoords( xx, yy );
+            
+            float maskVal = iMask( maskCoords );
+            
+            maskDenom += maskVal * maskVal; 
+        }
+    }
+
+    float bestMatchVal = 0;
+    CartesianCoordinate c( iMask.GetWidth() / 2, iMask.GetHeight() / 2);
+    for ( int x = 0; x < correlation.GetWidth(); x++ ) {
+        for ( int y = 0; y < correlation.GetHeight(); y++ ) {
+            CartesianCoordinate corrCoords( x, y );
 
             float val = 0;
             float myDenom = 0;
-            for ( int k = 0; k < iMask.GetHeight(); k++ ) {
-                for ( int l = 0; l < iMask.GetWidth(); l++ ) {
-                    float myVal   = me( i + k, j + l );
-                    float maskVal = iMask( k, l );
+            for ( int xx = -c.x; xx <= c.x ; xx++ ) {
+                for ( int yy = -c.y; yy <= c.y; yy++ ) {
+                    CartesianCoordinate myCoords( x + xx, y + yy );
+                    CartesianCoordinate maskCoords( xx + c.x, yy + c.y );
+
+                    float myVal   = me( myCoords );
+                    float maskVal = iMask( maskCoords );
 
                     myDenom += myVal * myVal; 
                     
@@ -184,11 +350,10 @@ Image Image::PatternSearch( const Image& iMask, Coordinate& oBestMatch ) const
             }
             val /= sqrt(maskDenom * myDenom);
             
-            correlation(i, j) = val;
-            if ( val > bestMatchVal ) {
-	      bestMatchVal = val;
-	      oBestMatch.x = i;
-	      oBestMatch.y = j; 
+            correlation( corrCoords ) = val;
+            if ( val >= bestMatchVal ) {
+                bestMatchVal = val;
+                oBestMatch = corrCoords;
             }
         }
     }

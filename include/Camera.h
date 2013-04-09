@@ -83,7 +83,7 @@ protected:
 	void glPrintString(void *font, const char *str);
 	void printHelp(int nXLocation, int* pnYLocation);
 	void drawHelpScreen();
-
+	
 private:
 	// GLUT callbacks
 	static void glutIdle();

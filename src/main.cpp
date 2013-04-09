@@ -4,6 +4,10 @@
 #include "Camera.h"
 #include "Config.h"
 
+
+int KinectInit(int argc, char** argv);
+
+
 int main(int argc, char** argv) {
     Config::LoadConfigs(Config::RootPath() + "settings");
 
@@ -62,6 +66,7 @@ int main(int argc, char** argv) {
     
     return 0;
 }
+
 
 int KinectInit(int argc, char** argv)
 {

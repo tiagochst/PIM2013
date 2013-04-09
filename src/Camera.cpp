@@ -4,6 +4,7 @@
 ******************************************************************/
 
 #include "Camera.h"
+#include "Config.h"
 
 using namespace xn;
 
@@ -30,6 +31,7 @@ void Camera::glutKeyboard (unsigned char key, int x, int y)
 {
     Instance().OnKey(key, x, y);
 }
+
 
 
 //-----------------------------------------------------------------

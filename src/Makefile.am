@@ -24,5 +24,6 @@ __top_builddir__bin_main_SOURCES = \
 		Image.cpp    \
 		PlyFile.c    \
 		Camera.cpp   \
+		Config.cpp   \
 		main.cpp 
 

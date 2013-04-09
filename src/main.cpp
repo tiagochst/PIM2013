@@ -1,82 +1,8 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
-#include <cstdlib>
 #include "Image.h"
 #include "PointSet.h"
 #include "Camera.h"
-
-class Config {
-private:
-    static std::string _rootPath;
-    static std::string _resourcesPath;
-    static std::string _dataPath;
-    static std::string _outputPath;
-    static std::string _configPath;
-
-public:
-    static void LoadConfigs(const std::string& iFilename) {
-        std::ifstream configFile( iFilename.c_str(), std::fstream::in);
-        
-        std::string line;
-        
-        if ( !configFile.good() ) {
-            std::cout << "Could not open settings file." << std::endl;
-            return;
-        }
-        
-        while ( !configFile.eof() ) {
-            std::getline( configFile, line );
-            
-            std::stringstream lineStream(line);
-            
-            std::string tag;
-
-            lineStream >> tag;
-
-            if ( tag.compare("RSC_DIR") == 0 ) {
-                lineStream >> Config::_resourcesPath;
-
-                std::cout << "RSC_DIR = " << Config::ResourcesPath() << std::endl;
-            }
-        }
-        
-        if (Config::_resourcesPath.empty() ) {
-            std::cout << "Error loading settings from " << _rootPath + iFilename << std::endl;
-            exit(-1);
-        }
-        if ( Config::_dataPath.empty() ) {
-            Config::_dataPath = ResourcesPath() + "Data/";
-        }
-        if ( Config::_outputPath.empty() ) {
-            Config::_outputPath = DataPath() + "Output/";
-        }
-        if ( Config::_configPath.empty() ) {
-            Config::_configPath = DataPath() + "Config/";
-        }
-    }
-    static const std::string& RootPath() {
-        return Config::_rootPath;
-    }
-    static const std::string& ResourcesPath() {
-        return Config::_resourcesPath;
-    }
-    static const std::string& DataPath() {
-        return Config::_dataPath;
-    }
-    static const std::string& OutputPath() {
-        return Config::_outputPath;
-    }
-    static const std::string& ConfigPath() {
-        return Config::_configPath;
-    }
-};
-static const std::string USR_HOME = std::string(getenv("HOME"));
-std::string Config::_rootPath(USR_HOME + "/.pim2013/");
-std::string Config::_resourcesPath("");
-std::string Config::_dataPath("");
-std::string Config::_outputPath("");
-std::string Config::_configPath("");
+#include "Config.h"
 
 int main(int argc, char** argv) {
     Config::LoadConfigs(Config::RootPath() + "settings");
@@ -96,14 +22,22 @@ int main(int argc, char** argv) {
     Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
 
     Coordinate bestMatch;
+    Image smallMask(Config::DataPath() + "smallMask.pgm");
     Image mask(Config::DataPath() + "mask.pgm");
     Image bigMask(Config::DataPath() + "bigMask.pgm");
     
-    //Image correlation = bigMask.PatternSearch(mask, bestMatch);
-    Image correlation = frame1.PatternSearch( mask, bestMatch );
+    Image smallMaskCorrelation = bigMask.TemplateMatch( smallMask, bestMatch );
     std::cout << "Match found at (" << bestMatch.x << ", " 
                                     << bestMatch.y << ")" << std::endl;
-    correlation.CreateAsciiPgm(Config::OutputPath() + "correlation.pgm");
+    Image bigMaskCorrelation = bigMask.TemplateMatch( mask, bestMatch );
+    std::cout << "Match found at (" << bestMatch.x << ", " 
+                                    << bestMatch.y << ")" << std::endl;
+    Image frame1Correlation = frame1.TemplateMatch( mask, bestMatch );
+    std::cout << "Match found at (" << bestMatch.x << ", " 
+                                    << bestMatch.y << ")" << std::endl;
+    smallMaskCorrelation.CreateAsciiPgm(Config::OutputPath() + "smallMaskCorrelation.pgm");
+    bigMaskCorrelation.CreateAsciiPgm(Config::OutputPath() + "bigMaskCorrelation.pgm");
+    frame1Correlation.CreateAsciiPgm(Config::OutputPath() + "frame1Correlation.pgm");
 
     //Image corr01 = frame0.Correlation(frame1);
     //Image corr10 = frame1.Correlation(frame0);

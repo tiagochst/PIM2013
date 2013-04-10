@@ -51,11 +51,15 @@ public:
 
     void Recalculate();
 
-    float& operator()( const int iRow, const int iCol );
-    float  operator()( const int iRow, const int iCol ) const;
+    void Set( const int iRow, const int iCol, int iValue );
+    void Set( const int iRow, const int iCol, float iValue );
+    void Set( const CartesianCoordinate& iPos, int iValue );
+    void Set( const CartesianCoordinate& iPos, float iValue );
 
-    float& operator()( const CartesianCoordinate& iCoordinate );
-    float  operator()( const CartesianCoordinate& iCoordinate ) const;
+    const int   Get( const int iRow, const int iCol ) const;
+    const int   Get( const CartesianCoordinate& iPos ) const;
+    const float GetNormed( const int iRow, const int iCol ) const;
+    const float GetNormed( const CartesianCoordinate& iPos ) const;
 
     CartesianCoordinate Center() const;
     

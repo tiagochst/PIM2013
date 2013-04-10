@@ -43,8 +43,18 @@ int main(int argc, char** argv) {
     bigMaskCorrelation.CreateAsciiPgm(Config::OutputPath() + "bigMaskCorrelation.pgm");
     frame1Correlation.CreateAsciiPgm(Config::OutputPath() + "frame1Correlation.pgm");
 
-//    Image ft = frame0.FourierTransform();
-  //  ft.CreateAsciiPgm(Config::OutputPath() + "Frame0FT.pgm");
+    Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
+    for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
+        for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {
+            int val = bigMask.Get( y - bigMask.GetHeight(), x - bigMask.GetWidth() );
+            
+            fullSpectre.Set( y, x, val );
+        }
+    }    
+    fullSpectre.CreateAsciiPgm(Config::OutputPath() + "fullSpectre.pgm");
+
+    //Image ft = frame0.FourierTransform();
+    //ft.CreateAsciiPgm(Config::OutputPath() + "Frame0FT.pgm");
     
     //Image corr01 = frame0.Correlation(frame1);
     //Image corr10 = frame1.Correlation(frame0);

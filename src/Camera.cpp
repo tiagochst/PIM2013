@@ -3,8 +3,9 @@
 *  from Copyright (C) 2011 PrimeSense Ltd.                             *
 ******************************************************************/
 
-#include "Camera.h"
 #include "Config.h"
+#include "Camera.h"
+#include <iostream>
 
 using namespace xn;
 
@@ -342,7 +343,7 @@ void Camera::captureSingleFrame()
 
     const XnRGB24Pixel* pImageRow = m_imageMD.RGB24Data();
     const XnDepthPixel* pDepthRow = m_depthMD.Data();
-     
+
     for (XnUInt y = 0; y < m_imageMD.YRes(); ++y)
     {
         const XnRGB24Pixel* pImage = pImageRow;
@@ -351,13 +352,13 @@ void Camera::captureSingleFrame()
         for (XnUInt x = 0; x < m_imageMD.XRes(); ++x, ++pImage, ++pDepth)
         {
             /* HDTV rgb to grayscale*/
-            camImg(x,y) = pImage -> nRed *  0.2126 +      \
-                     pImage -> nBlue * 0.0722 + \
-                     pImage-> nGreen * 0.7152;
+            camImg.Set( y, x, pImage->nRed *  0.2126f + \
+                              pImage->nBlue * 0.0722f + \
+                              pImage->nGreen * 0.7152f );
             /* HDTV rgb to grayscale*/
             if (*pDepth != 0)
             {
-                camDepth(x,y) =  m_pDepthHist[*pDepth];
+                camDepth.Set( y, x, m_pDepthHist[*pDepth] );
             }
             
         }
@@ -367,8 +368,10 @@ void Camera::captureSingleFrame()
 
     }
 
-    std::string str_aux = "CapturedFrames/image_"+ Int2Str(m_nbFrames)  +".pgm";    camImg.CreateAsciiPgm(str_aux);
-    str_aux = "CapturedFrames/depth_"+ Int2Str(m_nbFrames)  +".pgm"; 
+    std::string str_aux = Config::OutputPath() + "CapturedFrames/image_"+ Int2Str(m_nbFrames)  +".pgm";
+    camImg.CreateAsciiPgm(str_aux);
+
+    str_aux = Config::OutputPath() + "CapturedFrames/depth_"+ Int2Str(m_nbFrames)  +".pgm"; 
     camDepth.CreateAsciiPgm(str_aux);
     
     /* Frame saved: increase ID*/

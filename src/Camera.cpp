@@ -3,7 +3,9 @@
 *  from Copyright (C) 2011 PrimeSense Ltd.                             *
 ******************************************************************/
 
+#include "Config.h"
 #include "Camera.h"
+#include <iostream>
 
 using namespace xn;
 
@@ -30,6 +32,7 @@ void Camera::glutKeyboard (unsigned char key, int x, int y)
 {
     Instance().OnKey(key, x, y);
 }
+
 
 
 //-----------------------------------------------------------------
@@ -311,6 +314,10 @@ void Camera::OnKey(unsigned char key, int x, int y)
     case 'P':
         captureSingleFrame();
         break;
+    case '?':
+        drawHelpScreen();
+        break;
+
     }
 }
 
@@ -331,52 +338,143 @@ std::string Camera::Int2Str(int nb){
 
 void Camera::captureSingleFrame()
 {
-    cv::Mat Image; 
-    cv::Mat Depth; 
-
-    Image  = cv::Mat(m_imageMD.YRes(),m_imageMD.XRes(),CV_8U); 
-    Depth  = cv::Mat(m_depthMD.YRes(),m_depthMD.XRes(),CV_8U); 
+    Image camImg(m_imageMD.XRes(),m_imageMD.YRes(),65535);
+    Image camDepth(m_depthMD.XRes(),m_depthMD.YRes(),65535); 
 
     const XnRGB24Pixel* pImageRow = m_imageMD.RGB24Data();
     const XnDepthPixel* pDepthRow = m_depthMD.Data();
-     
+
     for (XnUInt y = 0; y < m_imageMD.YRes(); ++y)
     {
         const XnRGB24Pixel* pImage = pImageRow;
         const XnDepthPixel* pDepth = pDepthRow;
-        uchar* ptrIm = Image.ptr<uchar>(y); 
-        uchar* ptrDp = Depth.ptr<uchar>(y); 
         
         for (XnUInt x = 0; x < m_imageMD.XRes(); ++x, ++pImage, ++pDepth)
         {
             /* HDTV rgb to grayscale*/
-            ptrIm[x] = pImage -> nRed *  0.2126 + \
-                     pImage -> nBlue * 0.0722 + \
-                     pImage-> nGreen * 0.7152;
+            camImg.Set( y, x, pImage->nRed *  0.2126f + \
+                              pImage->nBlue * 0.0722f + \
+                              pImage->nGreen * 0.7152f );
             /* HDTV rgb to grayscale*/
             if (*pDepth != 0)
             {
-                ptrDp[x] =  m_pDepthHist[*pDepth];
+                camDepth.Set( y, x, m_pDepthHist[*pDepth] );
             }
             
         }
+
         pImageRow += m_imageMD.XRes();
         pDepthRow += m_depthMD.XRes();
 
     }
+
+    std::string str_aux = Config::OutputPath() + "CapturedFrames/image_"+ Int2Str(m_nbFrames)  +".pgm";
+    camImg.CreateAsciiPgm(str_aux);
+
+    str_aux = Config::OutputPath() + "CapturedFrames/depth_"+ Int2Str(m_nbFrames)  +".pgm"; 
+    camDepth.CreateAsciiPgm(str_aux);
     
-    std::string str_aux = "CapturedFrames/image_"+ Int2Str(m_nbFrames)  +".pgm"; 
-    IplImage bgrIpl = Image;   
-    cvSaveImage(str_aux.c_str(),&bgrIpl);  
-
-    str_aux = "CapturedFrames/depth_"+ Int2Str(m_nbFrames)  +".pgm"; 
-    bgrIpl = Depth;   
-    cvSaveImage(str_aux.c_str(),&bgrIpl);  
-
-
-    printf("Frames saved with ID %d", m_nbFrames);
+    /* Frame saved: increase ID*/
     m_nbFrames++;  
     
 }
 
 
+void Camera::drawHelpScreen()
+{
+	int nXStartLocation = GL_WIN_SIZE_X/8;
+	int nYStartLocation = GL_WIN_SIZE_Y/5;
+	int nXEndLocation = GL_WIN_SIZE_X*7/8;
+	int nYEndLocation = GL_WIN_SIZE_Y*4/5;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);		
+	glBegin(GL_QUADS);
+	glColor4f(0, 0, 0, 0.8);
+	glVertex2i(nXStartLocation, nYStartLocation);
+	glVertex2i(nXStartLocation, nYEndLocation);
+	glVertex2i(nXEndLocation, nYEndLocation);
+	glVertex2i(nXEndLocation, nYStartLocation);
+	glEnd();
+
+	glDisable(GL_BLEND);
+
+	// set color to red
+	glColor3f(1, 0, 0);
+
+	// leave some margins
+	nYStartLocation += 30;
+	nXStartLocation += 30;
+
+	// print left pane
+	int nXLocation = nXStartLocation;
+	int nYLocation = nYStartLocation;
+	printHelp(nXLocation, &nYLocation);
+
+}
+
+
+void Camera::printHelp(int nXLocation, int* pnYLocation)
+{
+	int nYLocation = *pnYLocation;
+
+	unsigned char aKeys[20];
+	const char* aDescs[20];
+	int nCount;
+
+        /* List of keys */
+        aKeys[0] = 'q';
+        aDescs[0] = "quit";
+
+        aKeys[1] = 'p';
+        aDescs[1] = "Save frame";
+
+        aKeys[2] = '1';
+        aDescs[2] = "Kinect: Overlay Mode";
+
+        aKeys[3] = '2';
+        aDescs[3] = "Kinect: Depth Mode";
+
+        aKeys[4] = '3';
+        aDescs[4] = "Kinect: Image Mode";
+
+        /* END List of keys */
+
+	glColor3f(0, 1, 0);
+	glRasterPos2i(nXLocation, nYLocation);
+	nYLocation += 30;
+
+	for (int i = 0; i < nCount; ++i, nYLocation += 22)
+	{
+		char buf[256];
+		switch (aKeys[i])
+		{
+		case 27:
+			sprintf(buf, "Esc");
+			break;
+		default:
+			sprintf(buf, "%c", aKeys[i]);
+			break;
+		}
+
+		glColor3f(1, 0, 0);
+		glRasterPos2i(nXLocation, nYLocation);
+		glPrintString(GLUT_BITMAP_HELVETICA_18, buf);
+
+		glRasterPos2i(nXLocation + 40, nYLocation);
+		glPrintString(GLUT_BITMAP_HELVETICA_18, aDescs[i]);
+	}
+
+	*pnYLocation = nYLocation + 20;
+}
+
+
+void Camera::glPrintString(void *font, const char *str)
+{
+	int i,l = strlen(str);
+
+	for(i=0; i<l; i++)
+	{
+		glutBitmapCharacter(font,*str++);
+	}
+}

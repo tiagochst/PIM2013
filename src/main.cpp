@@ -2,30 +2,84 @@
 #include "Image.h"
 #include "PointSet.h"
 #include "Camera.h"
+#include "Config.h"
 
-#define RES_PTSET_PATH "../resources/Project/PointSets/"
+
+int KinectInit(int argc, char** argv);
+
 
 int main(int argc, char** argv) {
+    Config::LoadConfigs(Config::RootPath() + "settings");
+
+    static const std::string RES_PTSET_PATH(Config::ResourcesPath() + "PointSets/");
+    static const std::string RES_IMG_PATH(Config::ResourcesPath() + "Images/");
+
     /* Class image test */
-    Image myImage("frame_20121108T103323.258153_rgb-ascci.pgm");
+    // Image myImage(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-ascci.pgm");
 
     /* Class Ply test  */
-    PointSet psAscii, psBinary;    
-    psAscii.LoadFromFile(RES_PTSET_PATH + std::string("frame000-ascii.ply"));
-    psBinary.LoadFromFile(RES_PTSET_PATH + std::string("frame000-brut.ply"));
+    //PointSet psAscii, psBinary;    
+    //psAscii.LoadFromFile(RES_PTSET_PATH + "frame000-ascii.ply");
+    //psBinary.LoadFromFile(RES_PTSET_PATH + "frame000-brut.ply");
  
-    Image frame0("frame_20121108T103323.258153_rgb-brut.pgm");
-    Image frame1("frame_20121108T103323.390878_rgb-brut.pgm");
+    Image frame0(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
+    Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
 
-    Image corr01 = frame0.Correlation(frame1);
-    Image corr10 = frame1.Correlation(frame0);
-    corr01.CreateAsciiPgm("corr01");
-    corr10.CreateAsciiPgm("corr10");
+    CartesianCoordinate bestMatch;
+    Image smallMask(Config::DataPath() + "smallMask.pgm");
+    Image mask(Config::DataPath() + "mask.pgm");
+    Image bigMask(Config::DataPath() + "bigMask.pgm");
+    
+    Image smallMaskCorrelation = bigMask.TemplateMatch( smallMask, bestMatch );
+    std::cout << "Match found at (" << bestMatch.x << ", " 
+                                    << bestMatch.y << ")" << std::endl;
+    Image bigMaskCorrelation = bigMask.TemplateMatch( mask, bestMatch );
+    std::cout << "Match found at (" << bestMatch.x << ", " 
+                                    << bestMatch.y << ")" << std::endl;
+    Image frame1Correlation = frame1.TemplateMatch( mask, bestMatch );
+    std::cout << "Match found at (" << bestMatch.x << ", " 
+                                    << bestMatch.y << ")" << std::endl;
+    smallMaskCorrelation.CreateAsciiPgm(Config::OutputPath() + "smallMaskCorrelation.pgm");
+    bigMaskCorrelation.CreateAsciiPgm(Config::OutputPath() + "bigMaskCorrelation.pgm");
+    frame1Correlation.CreateAsciiPgm(Config::OutputPath() + "frame1Correlation.pgm");
+
+    Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
+    for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
+        for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {
+            int val = bigMask.Get( y - bigMask.GetHeight(), x - bigMask.GetWidth() );
+            
+            fullSpectre.Set( y, x, val );
+        }
+    }    
+    fullSpectre.CreateAsciiPgm(Config::OutputPath() + "fullSpectre.pgm");
+
+    //Image ft = frame0.FourierTransform();
+    //ft.CreateAsciiPgm(Config::OutputPath() + "Frame0FT.pgm");
+    
+    //Image corr01 = frame0.Correlation(frame1);
+    //Image corr10 = frame1.Correlation(frame0);
+    //corr01.CreateAsciiPgm("corr01");
+    //corr10.CreateAsciiPgm("corr10");
 
     Image diff01 = frame0.Difference(frame1);
     Image diff10 = frame1.Difference(frame0);
-    diff01.CreateAsciiPgm("diff01");
-    diff10.CreateAsciiPgm("diff10");
+    diff01.CreateAsciiPgm(Config::OutputPath() + "diff01.pgm");
+    diff10.CreateAsciiPgm(Config::OutputPath() + "diff10.pgm");
+
+    char c;
+    puts ("Select Mode: Kinect ('k') Other:('o')");
+    c=getchar();
+    if(c == 'k'){
+        KinectInit(argc, argv);
+    }
+    
+    
+    return 0;
+}
+
+
+int KinectInit(int argc, char** argv)
+{
 
     /* Class Camera test: Kinect's  */
     xn::Context        g_context;
@@ -34,7 +88,7 @@ int main(int argc, char** argv) {
     XnStatus                  rc;
     
     /* Create a context with default settings */
-    rc = g_context.InitFromXmlFile(SAMPLE_XML_PATH, g_scriptNode, &errors);
+    rc = g_context.InitFromXmlFile( ( Config::ConfigPath() + SAMPLE_XML_PATH ).c_str(), g_scriptNode, &errors);
     /* Verify if device is connected */
     if (rc == XN_STATUS_NO_NODE_PRESENT)
     {
@@ -47,7 +101,7 @@ int main(int argc, char** argv) {
     {
         CHECK_RC(rc,"Open");
     }
-        
+    
     Camera& viewer = Camera::CreateInstance(g_context);
     
     rc = viewer.Init(argc, argv);
@@ -55,6 +109,7 @@ int main(int argc, char** argv) {
     
     rc = viewer.Run();
     CHECK_RC(rc,"Viewer run");
+
+    return 1;
     
-    return 0;
 }

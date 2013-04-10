@@ -6,10 +6,9 @@
 #include <GL/glut.h>
 #include <math.h>
 #include <cassert>
-#include <cv.h> 
-#include <highgui.h> 
 #include <sstream> 
 #include <string> 
+#include "Image.h"
 
 //----------------------------------------------------------
 // Defines
@@ -40,7 +39,6 @@ enum DisplayModes_e
 	DISPLAY_MODE_DEPTH,
 	DISPLAY_MODE_IMAGE
 };
-
 
 class Camera
 {
@@ -78,6 +76,14 @@ protected:
 
 	void ScalePoint(XnPoint3D& point);
 
+	/*
+	  UI: Help Screen
+	  Draws a new window with commands 
+	*/
+	void glPrintString(void *font, const char *str);
+	void printHelp(int nXLocation, int* pnYLocation);
+	void drawHelpScreen();
+	
 private:
 	// GLUT callbacks
 	static void glutIdle();

@@ -4,23 +4,25 @@ if DEBUG
 AM_CPPFLAGS=-g -O0
 AM_CXXFLAGS=-D__DEBUG_PLY_READ
 else
-AM_CFLAGS = -O3 -msse2
-AM_CXXFLAGS =-O3 -msse2
-AM_CPPFLAGS =-O3 -DNDEBUG 
+AM_CFLAGS=-O3 -msse2
+AM_CXXFLAGS=-O3 -msse2
+AM_CPPFLAGS=-O3 -DNDEBUG
 endif
+AM_LDFLAGS=-lm -lglut
 
 # Include flags
-AM_CXXFLAGS += -I/usr/include/ni/ -I/usr/include/opencv/ -I/usr/include/opencv2/
-AM_CPPFLAGS += -lOpenNI -lm -lglut $(GLU_CFLAGS) $(GLU_LIBS) $(OPENCV_CFLAGS) $(OPENCV_LIBS) -Wno-write-strings
-AM_CPPFLAGS += -I$(srcdir)/../include -I$(srcdir)/../external 
+AM_CXXFLAGS+=$(OPENNI_CFLAGS) $(GLU_CFLAGS) $(GL_CFLAGS) 
+AM_CPPFLAGS+=-I$(top_builddir)/include -I$(top_builddir)/external
+AM_LDFLAGS+=$(OPENNI_LIBS) $(GLU_LIBS) $(GL_LIBS)
 
-bin_PROGRAMS = main
-main_SOURCES = \
+bin_PROGRAMS = $(top_builddir)/bin/main
+__top_builddir__bin_main_SOURCES = \
 		Color.cpp    \
 		PointSet.cpp \
 		Vertex.cpp   \
 		Image.cpp    \
 		PlyFile.c    \
 		Camera.cpp   \
+		Config.cpp   \
 		main.cpp 
 

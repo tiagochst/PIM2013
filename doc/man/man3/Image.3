@@ -1,0 +1,64 @@
+.TH "Image" 3 "Tue Apr 9 2013" "Version 0.1" "PIM380" \" -*- nroff -*-
+.ad l
+.nh
+.SH NAME
+Image \- 
+.SH SYNOPSIS
+.br
+.PP
+.SS "Public Member Functions"
+
+.in +1c
+.ti -1c
+.RI "\fBImage\fP (const int iWidth, const int iHeight, const int iGreyLevel)"
+.br
+.ti -1c
+.RI "\fBImage\fP (const std::string &iFilename)"
+.br
+.ti -1c
+.RI "void \fBSetHeight\fP (const int iHeight)"
+.br
+.ti -1c
+.RI "void \fBSetWidth\fP (const int iWidth)"
+.br
+.ti -1c
+.RI "void \fBSetGreyLevel\fP (const int iGreyLevel)"
+.br
+.ti -1c
+.RI "int const & \fBGetHeight\fP () const "
+.br
+.ti -1c
+.RI "int const & \fBGetWidth\fP () const "
+.br
+.ti -1c
+.RI "int const & \fBGetMaxGreyLevel\fP () const "
+.br
+.ti -1c
+.RI "void \fBLoadFromFile\fP (const std::string &iFilename)"
+.br
+.ti -1c
+.RI "void \fBCreateAsciiPgm\fP (const std::string &iFilename)"
+.br
+.ti -1c
+.RI "void \fBRecalculate\fP ()"
+.br
+.ti -1c
+.RI "float & \fBoperator()\fP (const int iRow, const int iCol)"
+.br
+.ti -1c
+.RI "float \fBoperator()\fP (const int iRow, const int iCol) const "
+.br
+.ti -1c
+.RI "\fBImage\fP \fBPatternSearch\fP (const \fBImage\fP &iMask, \fBCoordinate\fP &oBestMatch) const "
+.br
+.ti -1c
+.RI "int \fBCorrelation\fP (const \fBImage\fP &iOther) const "
+.br
+.ti -1c
+.RI "\fBImage\fP \fBDifference\fP (const \fBImage\fP &iOther) const "
+.br
+.in -1c
+
+.SH "Author"
+.PP 
+Generated automatically by Doxygen for PIM380 from the source code\&.

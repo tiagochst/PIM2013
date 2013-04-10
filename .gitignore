@@ -1,3 +1,12 @@
+/bin/.dirstamp
+/bin/main
+/depcomp
+/install-sh
+/missing
+/src/PROGcorr01
+/src/PROGcorr10
+/src/PROGdiff01
+/src/PROGdiff10
 VS2010/
 VS2012/
 bee11/
@@ -5,7 +14,7 @@ Makefile.in
 aclocal.m4 
 autom4te.cache/
 build-aux/
-config.h
+/config.h
 Makefile
 stamp-h1
 config.log
@@ -15,6 +24,8 @@ build/
 configure
 aclocal.m4
 config.status
+resources/Project/Data/Output/
+bin/
 
 # Vim temporary files
 *.swp

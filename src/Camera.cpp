@@ -352,13 +352,13 @@ void Camera::captureSingleFrame()
         for (XnUInt x = 0; x < m_imageMD.XRes(); ++x, ++pImage, ++pDepth)
         {
             /* HDTV rgb to grayscale*/
-            camImg.Set( y, x, pImage->nRed *  0.2126f + \
-                              pImage->nBlue * 0.0722f + \
-                              pImage->nGreen * 0.7152f );
+            camImg.SetGreyLvl( y, x, pImage->nRed *  0.2126f + \
+                                     pImage->nBlue * 0.0722f + \
+                                     pImage->nGreen * 0.7152f );
             /* HDTV rgb to grayscale*/
             if (*pDepth != 0)
             {
-                camDepth.Set( y, x, m_pDepthHist[*pDepth] );
+                camDepth.SetGreyLvl( y, x, m_pDepthHist[*pDepth] );
             }
             
         }

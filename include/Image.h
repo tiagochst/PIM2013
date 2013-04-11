@@ -51,13 +51,13 @@ public:
 
     void Recalculate();
 
-    void Set( const int iRow, const int iCol, int iValue );
-    void Set( const int iRow, const int iCol, float iValue );
-    void Set( const CartesianCoordinate& iPos, int iValue );
-    void Set( const CartesianCoordinate& iPos, float iValue );
+    void SetGreyLvl( const int iRow, const int iCol, int iValue );
+    void SetNormed( const int iRow, const int iCol, float iValue );
+    void SetGreyLvl( const CartesianCoordinate& iPos, int iValue );
+    void SetNormed( const CartesianCoordinate& iPos, float iValue );
 
-    const int   Get( const int iRow, const int iCol ) const;
-    const int   Get( const CartesianCoordinate& iPos ) const;
+    const int   GetGreyLvl( const int iRow, const int iCol ) const;
+    const int   GetGreyLvl( const CartesianCoordinate& iPos ) const;
     const float GetNormed( const int iRow, const int iCol ) const;
     const float GetNormed( const CartesianCoordinate& iPos ) const;
 

@@ -46,9 +46,9 @@ int main(int argc, char** argv) {
     Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
     for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
         for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {
-            int val = bigMask.Get( y - bigMask.GetHeight(), x - bigMask.GetWidth() );
+            int val = bigMask.GetGreyLvl( y - bigMask.GetHeight(), x - bigMask.GetWidth() );
             
-            fullSpectre.Set( y, x, val );
+            fullSpectre.SetGreyLvl( y, x, val );
         }
     }    
     fullSpectre.CreateAsciiPgm(Config::OutputPath() + "fullSpectre.pgm");

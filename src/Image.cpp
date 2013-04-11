@@ -135,7 +135,7 @@ void Image::CreateAsciiPgm( const std::string& iFilename )
     ostr.close();
 }
 
-void Image::Set( const int iRow, const int iCol, int iValue )
+void Image::SetGreyLvl( const int iRow, const int iCol, int iValue )
 {
     if ( InRange( iCol, 0, m_width  - 1 ) &&
          InRange( iRow, 0, m_height - 1 ) ) {
@@ -145,7 +145,7 @@ void Image::Set( const int iRow, const int iCol, int iValue )
         throw BadIndex();
     }
 }
-void Image::Set( const int iRow, const int iCol, float iValue )
+void Image::SetNormed( const int iRow, const int iCol, float iValue )
 {
     if ( InRange( iCol, 0, m_width  - 1 ) &&
          InRange( iRow, 0, m_height - 1 ) ) {
@@ -155,15 +155,15 @@ void Image::Set( const int iRow, const int iCol, float iValue )
         throw BadIndex();
     }
 }
-void Image::Set( const CartesianCoordinate& iPos, int iValue )
+void Image::SetGreyLvl( const CartesianCoordinate& iPos, int iValue )
 {
-    Set( iPos.y, iPos.x, iValue );
+    SetGreyLvl( iPos.y, iPos.x, iValue );
 }
-void Image::Set( const CartesianCoordinate& iPos, float iValue )
+void Image::SetNormed( const CartesianCoordinate& iPos, float iValue )
 {
-    Set( iPos.y, iPos.x, iValue );
+    SetNormed( iPos.y, iPos.x, iValue );
 }
-const int   Image::Get( const int iRow, const int iCol ) const
+const int   Image::GetGreyLvl( const int iRow, const int iCol ) const
 {
     int row = abs(iRow);
     int col = abs(iCol);
@@ -179,9 +179,9 @@ const int   Image::Get( const int iRow, const int iCol ) const
     //    return 0;
     //}
 }
-const int   Image::Get( const CartesianCoordinate& iPos ) const
+const int   Image::GetGreyLvl( const CartesianCoordinate& iPos ) const
 {
-    return Get( iPos.y, iPos.x );
+    return GetGreyLvl( iPos.y, iPos.x );
 }
 const float Image::GetNormed( const int iRow, const int iCol ) const
 {
@@ -236,7 +236,7 @@ Image Image::SubImage(
             CartesianCoordinate subCoord(      x,      y );
             CartesianCoordinate imgCoord( iX + x, iY + y );
             
-            subImage.Set( subCoord, Get( imgCoord ) );
+            subImage.SetGreyLvl( subCoord, GetGreyLvl( imgCoord ) );
         }
     }
 
@@ -271,7 +271,7 @@ Image Image::FourierTransform() const
                     ftVal += sqrt(re*re + im*im); 
                 }
             }    
-            transform.Set( transCoord, ftVal ); 
+            transform.SetNormed( transCoord, ftVal ); 
             
             maxVal = max(ftVal, maxVal);
         }
@@ -280,7 +280,7 @@ Image Image::FourierTransform() const
         for ( int y = 0; y < m_height; y++ ) {
             CartesianCoordinate c( x, y );
 
-            transform.Set( c, transform.GetNormed(c) / maxVal );
+            transform.SetNormed( c, transform.GetNormed(c) / maxVal );
         }
     }
     transform.Recalculate();
@@ -333,7 +333,7 @@ Image Image::TemplateMatch(
             }
             val /= sqrt(maskDenom * myDenom);
             
-            correlation.Set( corrCoords, val);
+            correlation.SetNormed( corrCoords, val);
             if ( val >= bestMatchVal ) {
                 bestMatchVal = val;
                 oBestMatch = corrCoords;
@@ -351,8 +351,8 @@ Image Image::Difference( const Image& iOther ) const
 
     for ( int i = 0; i < m_height; i++ ) {
         for ( int j = 0; j < m_width; j++ ) {
-            int val = me.Get( i, j ) - iOther.Get( i, j );
-            difference.Set( i, j, abs( val ) );
+            int val = me.GetGreyLvl( i, j ) - iOther.GetGreyLvl( i, j );
+            difference.SetGreyLvl( i, j, abs( val ) );
         }
     }
     

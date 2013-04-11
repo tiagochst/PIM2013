@@ -8,7 +8,7 @@ AM_CFLAGS=-O3 -msse2
 AM_CXXFLAGS=-O3 -msse2
 AM_CPPFLAGS=-O3 -DNDEBUG -fopenmp
 endif
-AM_LDFLAGS=-lm -lglut
+AM_LDFLAGS=-lm -lglut -lgomp
 
 # Include flags
 AM_CXXFLAGS+=$(OPENNI_CFLAGS) $(GLU_CFLAGS) $(GL_CFLAGS) 

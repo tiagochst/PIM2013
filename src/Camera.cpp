@@ -40,6 +40,7 @@ void Camera::glutKeyboard (unsigned char key, int x, int y)
 //------------------------------------------------------------------
 Camera::Camera(xn::Context& context)
     :m_pTexMap(NULL),
+     m_help(0),
      m_nTexMapX(0),
      m_nTexMapY(0),
      m_eViewState(DEFAULT_DISPLAY_MODE),
@@ -284,6 +285,10 @@ int Camera::Display()
     // Subclass draw hook
     DisplayPostDraw();
 
+    if(m_help){
+        drawHelpScreen();
+    }
+    
     // Swap the OpenGL display buffers
     glutSwapBuffers();
 
@@ -315,7 +320,12 @@ void Camera::OnKey(unsigned char key, int x, int y)
         captureSingleFrame();
         break;
     case '?':
-        drawHelpScreen();
+        if(m_help == 0){
+            m_help = 1;
+        }
+        else{
+            m_help = 0;
+        }
         break;
 
     }
@@ -410,21 +420,19 @@ void Camera::drawHelpScreen()
 	int nXLocation = nXStartLocation;
 	int nYLocation = nYStartLocation;
 	printHelp(nXLocation, &nYLocation);
-
 }
 
 
 void Camera::printHelp(int nXLocation, int* pnYLocation)
 {
 	int nYLocation = *pnYLocation;
-
-	unsigned char aKeys[20];
-	const char* aDescs[20];
-	int nCount;
+	int nCount = 6;
+	unsigned char aKeys[6];
+	const char* aDescs[6];
 
         /* List of keys */
-        aKeys[0] = 'q';
-        aDescs[0] = "quit";
+        aKeys[0] = 27;
+        aDescs[0] = "Quit";
 
         aKeys[1] = 'p';
         aDescs[1] = "Save frame";
@@ -438,13 +446,16 @@ void Camera::printHelp(int nXLocation, int* pnYLocation)
         aKeys[4] = '3';
         aDescs[4] = "Kinect: Image Mode";
 
+        aKeys[5] = '?';
+        aDescs[5] = "Close help window";
+
         /* END List of keys */
 
 	glColor3f(0, 1, 0);
 	glRasterPos2i(nXLocation, nYLocation);
 	nYLocation += 30;
 
-	for (int i = 0; i < nCount; ++i, nYLocation += 22)
+	for (int i = 0; i < nCount; ++i, nYLocation += 35)
 	{
 		char buf[256];
 		switch (aKeys[i])
@@ -457,15 +468,18 @@ void Camera::printHelp(int nXLocation, int* pnYLocation)
 			break;
 		}
 
-		glColor3f(1, 0, 0);
+		glColor3f(1, 1, 1);
 		glRasterPos2i(nXLocation, nYLocation);
-		glPrintString(GLUT_BITMAP_HELVETICA_18, buf);
+		glPrintString(GLUT_BITMAP_TIMES_ROMAN_24, buf);
 
+                sprintf(buf, "%s", aDescs[i]);
+
+		glColor3f(0.5, 0.5, 1);
 		glRasterPos2i(nXLocation + 40, nYLocation);
-		glPrintString(GLUT_BITMAP_HELVETICA_18, aDescs[i]);
+		glPrintString(GLUT_BITMAP_TIMES_ROMAN_24, buf);
 	}
 
-	*pnYLocation = nYLocation + 20;
+	*pnYLocation = nYLocation + 40;
 }
 
 

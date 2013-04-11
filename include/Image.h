@@ -8,14 +8,14 @@ class BadIndex {};
 class IncompatibleImages {};
 
 struct CartesianCoordinate {
-    int x, y;
-    CartesianCoordinate() {
-        this->x = this->y = 0;
-    }
-    CartesianCoordinate( const int& x, const int& y ) {
-        this->x = x;
-        this->y = y;
-    }
+    int x;
+    int y;
+    inline CartesianCoordinate()
+        : x( 0 ), y ( 0 )
+    {}
+    inline CartesianCoordinate( const int& x, const int& y )
+        : x( x ), y ( y )
+    {}
 };
 class Rectangle {
 private:

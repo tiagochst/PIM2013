@@ -1,12 +1,9 @@
 /bin/.dirstamp
 /bin/main
 /depcomp
+/doc
 /install-sh
 /missing
-/src/PROGcorr01
-/src/PROGcorr10
-/src/PROGdiff01
-/src/PROGdiff10
 VS2010/
 VS2012/
 bee11/

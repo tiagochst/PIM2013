@@ -5,8 +5,56 @@
 #include "Config.h"
 
 
-int KinectInit(int argc, char** argv);
+int KinectInit(int argc, char** argv)
+{
 
+    /* Class Camera test: Kinect's  */
+    xn::Context        g_context;
+    xn::ScriptNode  g_scriptNode;
+    xn::EnumerationErrors errors;
+    XnStatus                  rc;
+    
+    /* Create a context with default settings */
+    rc = g_context.InitFromXmlFile( ( Config::ConfigPath() + SAMPLE_XML_PATH ).c_str(), g_scriptNode, &errors);
+    /* Verify if device is connected */
+    if (rc == XN_STATUS_NO_NODE_PRESENT)
+    {
+        XnChar strError[1024];
+        errors.ToString(strError, 1024);
+        printf("%s\n", strError);
+        return (rc);
+    }
+    else 
+    {
+        CHECK_RC(rc,"Open");
+    }
+    
+    Camera& viewer = Camera::CreateInstance(g_context);
+    
+    rc = viewer.Init(argc, argv);
+    CHECK_RC(rc,"Viewer Init");
+    
+    rc = viewer.Run();
+    CHECK_RC(rc,"Viewer run");
+
+    return 1;
+    
+}
+
+void FindTemplateAndPrintMap(
+    const Image& iBaseImage,
+    const Image& iTemplate,
+    Image& oCorrelationMap,
+    CartesianCoordinate& oBestMatch,
+    float& oBestMatchVal,
+    const std::string& iMapFilename
+) {
+    oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, oBestMatch, &oCorrelationMap );
+    std::cout   << "Possible match found at ("  << oBestMatch.x << ", " << oBestMatch.y << ") "
+                << "with correlation value of "   << oBestMatchVal
+                << std::endl;
+    oCorrelationMap.CreateAsciiPgm(Config::OutputPath() + iMapFilename);
+}
 
 int main(int argc, char** argv) {
     Config::LoadConfigs(Config::RootPath() + "settings");
@@ -33,26 +81,30 @@ int main(int argc, char** argv) {
     float correlationVal = 0.0f;
     CartesianCoordinate bestMatch;
 
-    correlationVal = bigMask.TemplateMatch( smallMask, bestMatch, &correlationMap );
-    std::cout << "Match found at (" << bestMatch.x << ", " 
-                                    << bestMatch.y << ") "
-                                    << correlationVal
-                                    << std::endl;
-    correlationMap.CreateAsciiPgm(Config::OutputPath() + "smallMaskCorrelation.pgm");
-
-    correlationVal = bigMask.TemplateMatch( mask, bestMatch, &correlationMap );
-    std::cout << "Match found at (" << bestMatch.x << ", " 
-                                    << bestMatch.y << ") "
-                                    << correlationVal
-                                    << std::endl;
-    correlationMap.CreateAsciiPgm(Config::OutputPath() + "bigMaskCorrelation.pgm");
-
-    correlationVal = frame1.TemplateMatch( mask, bestMatch, &correlationMap );
-    std::cout << "Match found at (" << bestMatch.x << ", " 
-                                    << bestMatch.y << ") "
-                                    << correlationVal
-                                    << std::endl;
-    correlationMap.CreateAsciiPgm(Config::OutputPath() + "frame1Correlation.pgm");
+    FindTemplateAndPrintMap(
+        bigMask,
+        smallMask,
+        correlationMap,
+        bestMatch,
+        correlationVal,
+        "smallMaskCorrelation.pgm"
+    );
+    FindTemplateAndPrintMap(
+        bigMask,
+        mask,
+        correlationMap,
+        bestMatch,
+        correlationVal,
+        "bigMaskCorrelation.pgm"
+    );
+    FindTemplateAndPrintMap(
+        frame1,
+        mask,
+        correlationMap,
+        bestMatch,
+        correlationVal,
+        "frame1Correlation.pgm"
+    );
 
     Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
     for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
@@ -89,38 +141,3 @@ int main(int argc, char** argv) {
 }
 
 
-int KinectInit(int argc, char** argv)
-{
-
-    /* Class Camera test: Kinect's  */
-    xn::Context        g_context;
-    xn::ScriptNode  g_scriptNode;
-    xn::EnumerationErrors errors;
-    XnStatus                  rc;
-    
-    /* Create a context with default settings */
-    rc = g_context.InitFromXmlFile( ( Config::ConfigPath() + SAMPLE_XML_PATH ).c_str(), g_scriptNode, &errors);
-    /* Verify if device is connected */
-    if (rc == XN_STATUS_NO_NODE_PRESENT)
-    {
-        XnChar strError[1024];
-        errors.ToString(strError, 1024);
-        printf("%s\n", strError);
-        return (rc);
-    }
-    else 
-    {
-        CHECK_RC(rc,"Open");
-    }
-    
-    Camera& viewer = Camera::CreateInstance(g_context);
-    
-    rc = viewer.Init(argc, argv);
-    CHECK_RC(rc,"Viewer Init");
-    
-    rc = viewer.Run();
-    CHECK_RC(rc,"Viewer run");
-
-    return 1;
-    
-}

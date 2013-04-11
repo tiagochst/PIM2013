@@ -25,17 +25,17 @@ inline int abs( const int iVal )
 }
 
 template<typename T>
-inline T min(T a, T b)
+inline T min( const T& a, const T& b )
 {
     return ( (a <= b) ? a : b );    
 }
 template<typename T>
-inline T max(T a, T b)
+inline T max( const T& a, const T& b )
 {
     return ( (a >= b) ? a : b );    
 }
 
-Image::Image(const int iWidth, const int iHeight, const int iGreyLevel)
+Image::Image( const int& iWidth, const int& iHeight, const int& iGreyLevel )
     : m_height( iHeight ), 
       m_width( iWidth ), 
       m_maxGreyLevel( iGreyLevel )
@@ -88,7 +88,7 @@ void Image::LoadFromFile( const std::string& iFilename )
 
     SetHeight( height );
     SetWidth( width );
-    SetGreyLevel( greyLevel );
+    SetMaxGreyLevel( greyLevel );
 
     /* resize matrix to receive the image */
     m_figure.resize( m_height, m_width );
@@ -140,7 +140,7 @@ void Image::CreateAsciiPgm( const std::string& iFilename )
     ostr.close();
 }
 
-void Image::SetGreyLvl( const int iRow, const int iCol, int iValue )
+void Image::SetGreyLvl( const int& iRow, const int& iCol, const int& iValue )
 {
     if ( InRange( iCol, 0, m_width  - 1 ) &&
          InRange( iRow, 0, m_height - 1 ) ) {
@@ -150,7 +150,7 @@ void Image::SetGreyLvl( const int iRow, const int iCol, int iValue )
         throw BadIndex();
     }
 }
-void Image::SetNormed( const int iRow, const int iCol, float iValue )
+void Image::SetNormed( const int& iRow, const int& iCol, const float& iValue )
 {
     if ( InRange( iCol, 0, m_width  - 1 ) &&
          InRange( iRow, 0, m_height - 1 ) ) {
@@ -160,15 +160,15 @@ void Image::SetNormed( const int iRow, const int iCol, float iValue )
         throw BadIndex();
     }
 }
-void Image::SetGreyLvl( const CartesianCoordinate& iPos, int iValue )
+void Image::SetGreyLvl( const CartesianCoordinate& iPos, const int& iValue )
 {
     SetGreyLvl( iPos.y, iPos.x, iValue );
 }
-void Image::SetNormed( const CartesianCoordinate& iPos, float iValue )
+void Image::SetNormed( const CartesianCoordinate& iPos, const float& iValue )
 {
     SetNormed( iPos.y, iPos.x, iValue );
 }
-const int   Image::GetGreyLvl( const int iRow, const int iCol ) const
+const int&   Image::GetGreyLvl( const int& iRow, const int& iCol ) const
 {
     int row = abs(iRow);
     int col = abs(iCol);
@@ -184,11 +184,11 @@ const int   Image::GetGreyLvl( const int iRow, const int iCol ) const
     //    return 0;
     //}
 }
-const int   Image::GetGreyLvl( const CartesianCoordinate& iPos ) const
+const int&   Image::GetGreyLvl( const CartesianCoordinate& iPos ) const
 {
     return GetGreyLvl( iPos.y, iPos.x );
 }
-const float Image::GetNormed( const int iRow, const int iCol ) const
+const float& Image::GetNormed( const int& iRow, const int& iCol ) const
 {
     int row = abs(iRow);
     int col = abs(iCol);
@@ -204,7 +204,7 @@ const float Image::GetNormed( const int iRow, const int iCol ) const
     //    return 0.0f;
     //}
 }
-const float Image::GetNormed( const CartesianCoordinate& iPos ) const
+const float& Image::GetNormed( const CartesianCoordinate& iPos ) const
 {
     return GetNormed( iPos.y, iPos.x );
 }
@@ -407,19 +407,19 @@ void Image::Recalculate()
     }
 }
 
-void Image::SetHeight( const int iHeight )
+void Image::SetHeight( const int& iHeight )
 {
     m_height = iHeight;
     ResetMatrix();
 }
 
-void Image::SetWidth( const int iWidth )
+void Image::SetWidth( const int& iWidth )
 {
     m_width = iWidth;
     ResetMatrix();
 }
 
-void Image::SetGreyLevel( const int iGreyLevel )
+void Image::SetMaxGreyLevel( const int& iGreyLevel )
 {
     m_maxGreyLevel = iGreyLevel;
 }

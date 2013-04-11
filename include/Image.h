@@ -48,35 +48,35 @@ private:
     Eigen::MatrixXf     m_normalisedFigure;
 
 public:
-    Image(const int iWidth, const int iHeight, const int iGreyLevel);
-    Image(const std::string& iFilename);
+    Image( const int& iWidth, const int& iHeight, const int& iGreyLevel );
+    Image( const std::string& iFilename );
     virtual ~Image();
 
-    void SetHeight(const int iHeight);
-    void SetWidth(const int iWidth) ;
-    void SetGreyLevel(const int iGreyLevel); 
+    void SetHeight( const int& iHeight );
+    void SetWidth( const int& iWidth );
+    void SetMaxGreyLevel( const int& iGreyLevel ); 
 
     int const& GetHeight() const;
     int const& GetWidth() const;
     int const& GetMaxGreyLevel() const;
 
     /* Read a binary (P5) or Asc(P2) .pgm file*/
-    void LoadFromFile(const std::string& iFilename);
+    void LoadFromFile( const std::string& iFilename );
 
     /* Verify if image was read correctly*/
-    void CreateAsciiPgm(const std::string& iFilename);
+    void CreateAsciiPgm( const std::string& iFilename );
 
     void Recalculate();
 
-    void SetGreyLvl( const int iRow, const int iCol, int iValue );
-    void SetNormed( const int iRow, const int iCol, float iValue );
-    void SetGreyLvl( const CartesianCoordinate& iPos, int iValue );
-    void SetNormed( const CartesianCoordinate& iPos, float iValue );
+    void SetGreyLvl( const int& iRow, const int& iCol, const int& iValue );
+    void SetNormed( const int& iRow, const int& iCol, const float& iValue );
+    void SetGreyLvl( const CartesianCoordinate& iPos, const int& iValue );
+    void SetNormed( const CartesianCoordinate& iPos, const float& iValue );
 
-    const int   GetGreyLvl( const int iRow, const int iCol ) const;
-    const int   GetGreyLvl( const CartesianCoordinate& iPos ) const;
-    const float GetNormed( const int iRow, const int iCol ) const;
-    const float GetNormed( const CartesianCoordinate& iPos ) const;
+    const int&   GetGreyLvl( const int& iRow, const int& iCol ) const;
+    const int&   GetGreyLvl( const CartesianCoordinate& iPos ) const;
+    const float& GetNormed( const int& iRow, const int& iCol ) const;
+    const float& GetNormed( const CartesianCoordinate& iPos ) const;
 
     CartesianCoordinate Center() const;
     

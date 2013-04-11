@@ -17,9 +17,26 @@ struct CartesianCoordinate {
         this->y = y;
     }
 };
-struct Rectangle {
-    CartesianCoordinate m_position;
-    int width, height;
+class Rectangle {
+private:
+    CartesianCoordinate     m_position;
+    CartesianCoordinate     m_center;
+    int                     m_width;
+    int                     m_height;
+
+public:
+    inline Rectangle( const int& iX, const int& iY, const int& iWidth, const int& iHeight )
+        : m_position( iX, iY ), 
+            m_width( iWidth ),
+            m_height( iHeight ),
+            m_center( iX + iWidth / 2, iY + iHeight / 2 )
+    {}
+    inline const int& GetWidth() const { return m_width; }
+    inline const int& GetHeight() const { return m_height; } 
+    inline const int& GetX() const { return m_position.x; }
+    inline const int& GetY() const { return m_position.y; }
+    inline const CartesianCoordinate& GetPosition() const { return m_position; }
+    inline const CartesianCoordinate& GetCenter() const { return m_center; }
 };
 
 class Image {

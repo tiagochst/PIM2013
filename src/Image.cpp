@@ -40,13 +40,18 @@ Image::Image(const int iWidth, const int iHeight, const int iGreyLevel)
       m_width( iWidth ), 
       m_maxGreyLevel( iGreyLevel )
 {
-    m_figure.resize( m_height, m_width );
-    m_normalisedFigure.resize( m_height, m_width );
+    ResetMatrix();
 }
 
 Image::Image( const std::string& iFilename )
 {
     LoadFromFile( iFilename );
+}
+
+void Image::ResetMatrix()
+{
+    m_figure.resize( m_height, m_width );
+    m_normalisedFigure.resize( m_height, m_width );
 }
 
 void Image::LoadFromFile( const std::string& iFilename )
@@ -371,11 +376,13 @@ void Image::Recalculate()
 void Image::SetHeight( const int iHeight )
 {
     m_height = iHeight;
+    ResetMatrix();
 }
 
 void Image::SetWidth( const int iWidth )
 {
     m_width = iWidth;
+    ResetMatrix();
 }
 
 void Image::SetGreyLevel( const int iGreyLevel )

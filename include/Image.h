@@ -68,6 +68,9 @@ public:
     Image FourierTransform() const;
     Image Difference( const Image& iOther ) const;
     float Correlation( const Image& iOther ) const;
+
+private:
+    void ResetMatrix();
 };
 
 #endif /* IMAGE_H_ */

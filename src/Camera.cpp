@@ -338,8 +338,8 @@ std::string Camera::Int2Str(int nb){
 
 void Camera::captureSingleFrame()
 {
-    Image camImg(m_imageMD.XRes(),m_imageMD.YRes(),65535);
-    Image camDepth(m_depthMD.XRes(),m_depthMD.YRes(),65535); 
+    Image camImg(m_imageMD.XRes(),m_imageMD.YRes(),255);
+    Image camDepth(m_depthMD.XRes(),m_depthMD.YRes(),255); 
 
     const XnRGB24Pixel* pImageRow = m_imageMD.RGB24Data();
     const XnDepthPixel* pDepthRow = m_depthMD.Data();

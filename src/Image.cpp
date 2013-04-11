@@ -313,14 +313,24 @@ Image Image::FourierTransform() const
     return transform;
 }
 
-Image Image::TemplateMatch(
+float Image::TemplateMatch(
     const Image&            iMask,
-    CartesianCoordinate&    oBestMatch
+    CartesianCoordinate&    oBestMatch,
+    Image*                  oCorrelationMap
 ) const {
     const Image& me = (*this);
-    Image correlation( m_width, 
-                       m_height, 
-                       65535);
+    
+    if ( oCorrelationMap != NULL ) {
+        if ( oCorrelationMap->GetHeight() != GetHeight() ) {
+            oCorrelationMap->SetHeight( m_height );
+        }
+        if ( oCorrelationMap->GetWidth() != GetWidth() ) {
+            oCorrelationMap->SetWidth( m_width );
+        }
+        if ( oCorrelationMap->GetMaxGreyLevel() != m_maxGreyLevel ) {
+            oCorrelationMap->SetMaxGreyLevel( m_maxGreyLevel );
+        }
+    }
 
     int nMaskElems = iMask.m_width * iMask.m_width;
     
@@ -336,17 +346,16 @@ Image Image::TemplateMatch(
     }
 
     float bestMatchVal = 0;
-    CartesianCoordinate c( iMask.GetWidth() / 2, iMask.GetHeight() / 2);
-    for ( int x = 0; x < correlation.GetWidth(); x++ ) {
-        for ( int y = 0; y < correlation.GetHeight(); y++ ) {
-            CartesianCoordinate corrCoords( x, y );
-
+    CartesianCoordinate maskCenter = iMask.Center();
+    for ( int x = 0; x < GetWidth(); x++ ) {
+        for ( int y = 0; y < GetHeight(); y++ ) {
             float val = 0;
             float myDenom = 0;
-            for ( int xx = -c.x; xx <= c.x ; xx++ ) {
-                for ( int yy = -c.y; yy <= c.y; yy++ ) {
+            for ( int xx = -maskCenter.x; xx <= maskCenter.x ; xx++ ) {
+                for ( int yy = -maskCenter.y; yy <= maskCenter.y; yy++ ) {
                     CartesianCoordinate myCoords( x + xx, y + yy );
-                    CartesianCoordinate maskCoords( xx + c.x, yy + c.y );
+                    CartesianCoordinate maskCoords( xx + maskCenter.x,
+                                                    yy + maskCenter.y );
 
                     float myVal   = me.GetNormed( myCoords );
                     float maskVal = iMask.GetNormed( maskCoords );
@@ -358,15 +367,20 @@ Image Image::TemplateMatch(
             }
             val /= sqrt(maskDenom * myDenom);
             
-            correlation.SetNormed( corrCoords, val);
+            if ( oCorrelationMap != NULL ) {
+                CartesianCoordinate corrCoords( x, y );
+
+                oCorrelationMap->SetNormed( corrCoords, val);
+            }
             if ( val >= bestMatchVal ) {
                 bestMatchVal = val;
-                oBestMatch = corrCoords;
+                oBestMatch.x = x;
+                oBestMatch.y = y;
             }
         }
     }
 
-    return correlation;
+    return bestMatchVal;
 }
 
 Image Image::Difference( const Image& iOther ) const

@@ -80,7 +80,12 @@ public:
 
     CartesianCoordinate Center() const;
     
-    Image TemplateMatch( const Image& iMask, CartesianCoordinate& oBestMatch ) const;
+    float TemplateMatch(
+        const Image&            iMask,
+        CartesianCoordinate&    oBestMatch,
+        Image*                  oCorrelationMap=NULL
+    ) const;
+
     void SubImage(
         const Rectangle&    iRegion,
         Image&              oSubImage

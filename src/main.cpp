@@ -25,23 +25,34 @@ int main(int argc, char** argv) {
     Image frame0(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
     Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
 
-    CartesianCoordinate bestMatch;
     Image smallMask(Config::DataPath() + "smallMask.pgm");
     Image mask(Config::DataPath() + "mask.pgm");
     Image bigMask(Config::DataPath() + "bigMask.pgm");
     
-    Image smallMaskCorrelation = bigMask.TemplateMatch( smallMask, bestMatch );
+    Image correlationMap( 1, 1, 255 );
+    float correlationVal = 0.0f;
+    CartesianCoordinate bestMatch;
+
+    correlationVal = bigMask.TemplateMatch( smallMask, bestMatch, &correlationMap );
     std::cout << "Match found at (" << bestMatch.x << ", " 
-                                    << bestMatch.y << ")" << std::endl;
-    Image bigMaskCorrelation = bigMask.TemplateMatch( mask, bestMatch );
+                                    << bestMatch.y << ") "
+                                    << correlationVal
+                                    << std::endl;
+    correlationMap.CreateAsciiPgm(Config::OutputPath() + "smallMaskCorrelation.pgm");
+
+    correlationVal = bigMask.TemplateMatch( mask, bestMatch, &correlationMap );
     std::cout << "Match found at (" << bestMatch.x << ", " 
-                                    << bestMatch.y << ")" << std::endl;
-    Image frame1Correlation = frame1.TemplateMatch( mask, bestMatch );
+                                    << bestMatch.y << ") "
+                                    << correlationVal
+                                    << std::endl;
+    correlationMap.CreateAsciiPgm(Config::OutputPath() + "bigMaskCorrelation.pgm");
+
+    correlationVal = frame1.TemplateMatch( mask, bestMatch, &correlationMap );
     std::cout << "Match found at (" << bestMatch.x << ", " 
-                                    << bestMatch.y << ")" << std::endl;
-    smallMaskCorrelation.CreateAsciiPgm(Config::OutputPath() + "smallMaskCorrelation.pgm");
-    bigMaskCorrelation.CreateAsciiPgm(Config::OutputPath() + "bigMaskCorrelation.pgm");
-    frame1Correlation.CreateAsciiPgm(Config::OutputPath() + "frame1Correlation.pgm");
+                                    << bestMatch.y << ") "
+                                    << correlationVal
+                                    << std::endl;
+    correlationMap.CreateAsciiPgm(Config::OutputPath() + "frame1Correlation.pgm");
 
     Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
     for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {

@@ -228,24 +228,44 @@ float Image::Correlation( const Image& iOther ) const
     return correlation;
 }
 
-Image Image::SubImage(
-    const int iX,
-    const int iY,
-    const int iWidth,
-    const int iHeight
+void Image::SubImage(
+    const Rectangle&    iRegion,
+    Image&              oSubImage
 ) const {
-    Image subImage( iWidth, iHeight, m_maxGreyLevel );
+    SubImage(
+        iRegion.GetX(),
+        iRegion.GetY(),
+        iRegion.GetWidth(),
+        iRegion.GetHeight(),
+        oSubImage
+    );
+}
+
+void Image::SubImage(
+    const int&  iX,
+    const int&  iY,
+    const int&  iWidth,
+    const int&  iHeight,
+    Image&      oSubImage
+) const {
+    if ( oSubImage.GetHeight() != iHeight ) {
+        oSubImage.SetHeight( iHeight );
+    }
+    if ( oSubImage.GetWidth() != iWidth ) {
+        oSubImage.SetWidth( iWidth );
+    }
+    if ( oSubImage.GetMaxGreyLevel() != m_maxGreyLevel ) {
+        oSubImage.SetMaxGreyLevel( m_maxGreyLevel );
+    }
 
     for ( int x = 0; x < iWidth; x++ ) {
         for ( int y = 0; y < iHeight; y++ ) {
             CartesianCoordinate subCoord(      x,      y );
             CartesianCoordinate imgCoord( iX + x, iY + y );
             
-            subImage.SetGreyLvl( subCoord, GetGreyLvl( imgCoord ) );
+            oSubImage.SetGreyLvl( subCoord, GetGreyLvl( imgCoord ) );
         }
     }
-
-    return subImage;
 }
 
 CartesianCoordinate Image::Center() const 

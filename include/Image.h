@@ -80,8 +80,18 @@ public:
 
     CartesianCoordinate Center() const;
     
-    Image SubImage( const int iX, const int iY, const int iWidth, const int iHeight ) const;
     Image TemplateMatch( const Image& iMask, CartesianCoordinate& oBestMatch ) const;
+    void SubImage(
+        const Rectangle&    iRegion,
+        Image&              oSubImage
+    ) const;
+    void SubImage(
+        const int&  iX,
+        const int&  iY,
+        const int&  iWidth,
+        const int&  iHeight,
+        Image&      oSubImage
+    ) const;
     Image FourierTransform() const;
     Image Difference( const Image& iOther ) const;
     float Correlation( const Image& iOther ) const;
@@ -91,4 +101,3 @@ private:
 };
 
 #endif /* IMAGE_H_ */
-

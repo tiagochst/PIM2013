@@ -147,7 +147,7 @@ void Image::SetGreyLvl( const int& iRow, const int& iCol, const int& iValue )
         m_figure( iRow, iCol ) = iValue;
         m_normalisedFigure( iRow, iCol ) = (float)iValue / (float)m_maxGreyLevel;
     } else {
-        throw BadIndex();
+        throw BadIndex( iCol, iRow );
     }
 }
 void Image::SetNormed( const int& iRow, const int& iCol, const float& iValue )
@@ -157,7 +157,7 @@ void Image::SetNormed( const int& iRow, const int& iCol, const float& iValue )
         m_figure( iRow, iCol ) = iValue * m_maxGreyLevel;
         m_normalisedFigure( iRow, iCol ) = iValue;
     } else {
-        throw BadIndex();
+        throw BadIndex( iCol, iRow );
     }
 }
 void Image::SetGreyLvl( const CartesianCoordinate& iPos, const int& iValue )
@@ -233,10 +233,10 @@ void Image::SubImage(
     Image&              oSubImage
 ) const {
     SubImage(
-        iRegion.GetX(),
-        iRegion.GetY(),
-        iRegion.GetWidth(),
-        iRegion.GetHeight(),
+        iRegion.X(),
+        iRegion.Y(),
+        iRegion.Width(),
+        iRegion.Height(),
         oSubImage
     );
 }
@@ -308,7 +308,7 @@ Image Image::FourierTransform() const
             transform.SetNormed( c, transform.GetNormed(c) / maxVal );
         }
     }
-    transform.Recalculate();
+    transform.RecalculateGreyLvl();
 
     return transform;
 }
@@ -318,14 +318,30 @@ float Image::TemplateMatch(
     CartesianCoordinate&    oBestMatch,
     Image*                  oCorrelationMap
 ) const {
+    Rectangle window( 0, 0, m_width, m_height );
+    TemplateMatch(
+        iMask,
+        window,
+        oBestMatch,
+        oCorrelationMap
+    );
+}
+
+float Image::TemplateMatch(
+    const Image&            iMask,
+    const Rectangle&        iSearchWindow,
+    CartesianCoordinate&    oBestMatch,
+    Image*                  oCorrelationMap
+) const {
     const Image& me = (*this);
-    
+    const Rectangle& sw( iSearchWindow );
+
     if ( oCorrelationMap != NULL ) {
-        if ( oCorrelationMap->GetHeight() != GetHeight() ) {
-            oCorrelationMap->SetHeight( m_height );
+        if ( oCorrelationMap->GetHeight() != sw.Height() ) {
+            oCorrelationMap->SetHeight( sw.Height() );
         }
-        if ( oCorrelationMap->GetWidth() != GetWidth() ) {
-            oCorrelationMap->SetWidth( m_width );
+        if ( oCorrelationMap->GetWidth() != sw.Width() ) {
+            oCorrelationMap->SetWidth( sw.Width() );
         }
         if ( oCorrelationMap->GetMaxGreyLevel() != m_maxGreyLevel ) {
             oCorrelationMap->SetMaxGreyLevel( m_maxGreyLevel );
@@ -347,8 +363,8 @@ float Image::TemplateMatch(
 
     float bestMatchVal = 0;
     CartesianCoordinate maskCenter = iMask.Center();
-    for ( int x = 0; x < GetWidth(); x++ ) {
-        for ( int y = 0; y < GetHeight(); y++ ) {
+    for ( int x = sw.X(); x < sw.Right(); x++ ) {
+        for ( int y = sw.Y(); y < sw.Bottom(); y++ ) {
             float val = 0;
             float myDenom = 0;
             for ( int xx = -maskCenter.x; xx <= maskCenter.x ; xx++ ) {
@@ -368,7 +384,7 @@ float Image::TemplateMatch(
             val /= sqrt(maskDenom * myDenom);
             
             if ( oCorrelationMap != NULL ) {
-                CartesianCoordinate corrCoords( x, y );
+                CartesianCoordinate corrCoords( x - sw.X(), y - sw.Y() );
 
                 oCorrelationMap->SetNormed( corrCoords, val);
             }
@@ -381,6 +397,66 @@ float Image::TemplateMatch(
     }
 
     return bestMatchVal;
+}
+
+void Image::TrackPixels(
+    const Image&        iRefImage,
+    const Image&        iTargetImage,
+    const int&          iWindowWidth,
+    const int&          iWindowHeight,
+    const int&          iNeighbourhoodWidth,
+    const int&          iNeighbourhoodHeight,
+    Image&              oDisplacementMapX,
+    Image&              oDisplacementMapY
+) {
+    if ( iRefImage.GetHeight() != iTargetImage.GetHeight() ||
+         iRefImage.GetWidth()  != iTargetImage.GetWidth() ) {
+        throw IncompatibleImages();
+    }
+    
+    CartesianCoordinate bestMatch;
+    Image neighbourhood( iNeighbourhoodWidth, iNeighbourhoodHeight, 65535 );
+    CartesianCoordinate nCenter = neighbourhood.Center();
+    CartesianCoordinate wCenter( iWindowWidth / 2, iWindowHeight / 2 );
+
+    int minValX = 0, minValY = 0;
+    int maxValX = 0, maxValY = 0;
+    for ( int x = 0; x < iRefImage.GetWidth(); x++ ) {
+        for ( int y = 0; y < iRefImage.GetHeight(); y++ ) {
+            Rectangle nRegion( x - nCenter.x,
+                                y - nCenter.y, 
+                                iNeighbourhoodWidth,
+                                iNeighbourhoodHeight );
+            Rectangle wRegion( x - wCenter.x,
+                                y - wCenter.y,
+                                iWindowWidth,
+                                iWindowHeight );
+            iRefImage.SubImage( nRegion, neighbourhood );
+
+            iTargetImage.TemplateMatch( neighbourhood, wRegion, bestMatch );
+            
+            minValX = min( minValX, 10 * (bestMatch.x - x) );
+            maxValX = max( maxValX, 10 * (bestMatch.x - x) );
+            minValY = min( minValY, 10 * (bestMatch.y - y) );
+            maxValY = max( maxValY, 10 * (bestMatch.y - y) );
+
+            oDisplacementMapX.SetGreyLvl( y, x, 10 * (bestMatch.x - x) );
+            oDisplacementMapY.SetGreyLvl( y, x, 10 * (bestMatch.y - y) );
+        }
+    }
+    maxValX += abs(minValX);
+    maxValY += abs(minValY);
+    oDisplacementMapX.SetMaxGreyLevel(maxValX);
+    oDisplacementMapY.SetMaxGreyLevel(maxValY);
+    for ( int x = 0; x < iRefImage.GetWidth(); x++ ) {
+        for ( int y = 0; y < iRefImage.GetHeight(); y++ ) {
+            int valX = oDisplacementMapX.GetGreyLvl( y, x );
+            int valY = oDisplacementMapY.GetGreyLvl( y, x );
+
+            oDisplacementMapX.SetGreyLvl( y, x, ( valX + abs(minValX) ) );
+            oDisplacementMapY.SetGreyLvl( y, x, ( valY + abs(minValY) ) );
+        }
+    }
 }
 
 Image Image::Difference( const Image& iOther ) const
@@ -398,11 +474,19 @@ Image Image::Difference( const Image& iOther ) const
     return difference;
 }
 
-void Image::Recalculate()
+void Image::RecalculateGreyLvl()
 {
     for ( int i = 0; i < m_height; i++ ) {
         for ( int j = 0; j < m_width; j++ ) {
             m_figure( i, j ) = m_normalisedFigure( i, j ) * m_maxGreyLevel;
+        }
+    }
+}
+void Image::RecalculateNormalised()
+{
+    for ( int i = 0; i < m_height; i++ ) {
+        for ( int j = 0; j < m_width; j++ ) {
+            m_normalisedFigure( i, j ) = (float)m_figure( i, j ) / (float)m_maxGreyLevel;
         }
     }
 }
@@ -422,6 +506,7 @@ void Image::SetWidth( const int& iWidth )
 void Image::SetMaxGreyLevel( const int& iGreyLevel )
 {
     m_maxGreyLevel = iGreyLevel;
+    RecalculateNormalised();
 }
 
 int const& Image::GetHeight() const

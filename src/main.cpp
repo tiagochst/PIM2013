@@ -47,9 +47,14 @@ void FindTemplateAndPrintMap(
     Image& oCorrelationMap,
     CartesianCoordinate& oBestMatch,
     float& oBestMatchVal,
-    const std::string& iMapFilename
+    const std::string& iMapFilename,
+    const Rectangle* iSearchWindow=NULL
 ) {
-    oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, oBestMatch, &oCorrelationMap );
+    if (iSearchWindow != NULL ) {
+        oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, *iSearchWindow, oBestMatch, &oCorrelationMap );
+    } else {
+        oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, oBestMatch, &oCorrelationMap );
+    }
     std::cout   << "Possible match found at ("  << oBestMatch.x << ", " << oBestMatch.y << ") "
                 << "with correlation value of "   << oBestMatchVal
                 << std::endl;
@@ -72,6 +77,8 @@ int main(int argc, char** argv) {
  
     Image frame0(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
     Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
+    Image dispX( frame0.GetWidth(), frame0.GetHeight(), 255 );
+    Image dispY( frame0.GetWidth(), frame0.GetHeight(), 255 );
 
     Image smallMask(Config::DataPath() + "smallMask.pgm");
     Image mask(Config::DataPath() + "mask.pgm");
@@ -105,7 +112,24 @@ int main(int argc, char** argv) {
         correlationVal,
         "frame1Correlation.pgm"
     );
+    Rectangle window( 150, 150, 200, 200 );
+    FindTemplateAndPrintMap(
+        frame1,
+        mask,
+        correlationMap,
+        bestMatch,
+        correlationVal,
+        "frame1WindowedCorrelation.pgm",
+        &window
+    );
 
+    try {
+        Image::TrackPixels( frame0, frame1, 17, 17, 9, 9, dispX, dispY );
+        dispX.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1x.pgm");
+        dispY.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1y.pgm");
+    } catch (BadIndex bi) {
+        std::cout << bi.what();
+    }
     Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
     for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
         for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {
@@ -131,8 +155,8 @@ int main(int argc, char** argv) {
 
     char c;
     puts ("Select Mode: Kinect ('k') Other:('o')");
-    c=getchar();
-    if(c == 'k'){
+    c = getchar();
+    if ( c == 'k' ) {
         KinectInit(argc, argv);
     }
     

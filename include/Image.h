@@ -4,7 +4,17 @@
 #include <string>
 #include "Eigen/Dense"
 
-class BadIndex {};
+class BadIndex {
+    std::string m_what;
+public:
+    inline BadIndex(int iCol, int iRow)
+    {
+        std::stringstream ss;
+        ss << "Col: " << iCol << " Row: " << iRow;
+        m_what = ss.str();
+    }
+    inline const std::string& what() { return m_what; }
+};
 class IncompatibleImages {};
 
 struct CartesianCoordinate {
@@ -21,22 +31,27 @@ class Rectangle {
 private:
     CartesianCoordinate     m_position;
     CartesianCoordinate     m_center;
+    int                     m_right;
+    int                     m_bottom;
     int                     m_width;
     int                     m_height;
 
 public:
     inline Rectangle( const int& iX, const int& iY, const int& iWidth, const int& iHeight )
-        : m_position( iX, iY ), 
-            m_width( iWidth ),
-            m_height( iHeight ),
-            m_center( iX + iWidth / 2, iY + iHeight / 2 )
+        : m_position( iX, iY ), m_center( iX + iWidth / 2, iY + iHeight / 2 ),
+            m_width( iWidth ), m_height( iHeight ),
+            m_right( iX + iWidth ), m_bottom( iY + iHeight )
     {}
-    inline const int& GetWidth() const { return m_width; }
-    inline const int& GetHeight() const { return m_height; } 
-    inline const int& GetX() const { return m_position.x; }
-    inline const int& GetY() const { return m_position.y; }
-    inline const CartesianCoordinate& GetPosition() const { return m_position; }
-    inline const CartesianCoordinate& GetCenter() const { return m_center; }
+    inline const int& Width() const { return m_width; }
+    inline const int& Height() const { return m_height; } 
+    inline const int& X() const { return m_position.x; }
+    inline const int& Y() const { return m_position.y; }
+    inline const int& Right() const { return m_right; }
+    inline const int& Left() const { return m_position.x; }
+    inline const int& Top() const { return m_position.y; }
+    inline const int& Bottom() const { return m_bottom; }
+    inline const CartesianCoordinate& Position() const { return m_position; }
+    inline const CartesianCoordinate& Center() const { return m_center; }
 };
 
 class Image {
@@ -60,13 +75,11 @@ public:
     int const& GetWidth() const;
     int const& GetMaxGreyLevel() const;
 
-    /* Read a binary (P5) or Asc(P2) .pgm file*/
+    /* Read a binary (P5) or Ascii(P2) .pgm file*/
     void LoadFromFile( const std::string& iFilename );
 
     /* Verify if image was read correctly*/
     void CreateAsciiPgm( const std::string& iFilename );
-
-    void Recalculate();
 
     void SetGreyLvl( const int& iRow, const int& iCol, const int& iValue );
     void SetNormed( const int& iRow, const int& iCol, const float& iValue );
@@ -86,6 +99,13 @@ public:
         Image*                  oCorrelationMap=NULL
     ) const;
 
+    float TemplateMatch(
+        const Image&            iMask,
+        const Rectangle&        iSearchWindow,
+        CartesianCoordinate&    oBestMatch,
+        Image*                  oCorrelationMap=NULL
+    ) const;
+
     void SubImage(
         const Rectangle&    iRegion,
         Image&              oSubImage
@@ -101,8 +121,21 @@ public:
     Image Difference( const Image& iOther ) const;
     float Correlation( const Image& iOther ) const;
 
+    static void TrackPixels(
+        const Image&        iRefImage,
+        const Image&        iTargetImage,
+        const int&          iWindowWidth,
+        const int&          iWindowHeight,
+        const int&          iNeighbourhoodWidth,
+        const int&          iNeighbourhoodHeight,
+        Image&              oDisplacementMapX,
+        Image&              oDisplacementMapY
+    );
+
 private:
     void ResetMatrix();
+    void RecalculateGreyLvl();
+    void RecalculateNormalised();
 };
 
 #endif /* IMAGE_H_ */

@@ -47,13 +47,26 @@ void FindTemplateAndPrintMap(
     Image& oCorrelationMap,
     CartesianCoordinate& oBestMatch,
     float& oBestMatchVal,
-    const std::string& iMapFilename
+    const std::string& iMapFilename,
+    const Rectangle* iSearchWindow=NULL
 ) {
-    oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, oBestMatch, &oCorrelationMap );
+    bool cleanup = false;
+    const Rectangle* sw;
+    if (iSearchWindow != NULL ) {
+        sw = iSearchWindow;
+    } else {
+        sw = new Rectangle( 0, 0, iBaseImage.GetWidth(), iBaseImage.GetHeight() );
+        cleanup = true;
+    }
+    oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, *sw, oBestMatch, &oCorrelationMap );
     std::cout   << "Possible match found at ("  << oBestMatch.x << ", " << oBestMatch.y << ") "
                 << "with correlation value of "   << oBestMatchVal
                 << std::endl;
     oCorrelationMap.CreateAsciiPgm(Config::OutputPath() + iMapFilename);
+    if ( cleanup ) {
+        delete sw;
+        sw = NULL;
+    }
 }
 
 int main(int argc, char** argv) {
@@ -104,6 +117,16 @@ int main(int argc, char** argv) {
         bestMatch,
         correlationVal,
         "frame1Correlation.pgm"
+    );
+    Rectangle window( 150, 150, 200, 200 );
+    FindTemplateAndPrintMap(
+        frame1,
+        mask,
+        correlationMap,
+        bestMatch,
+        correlationVal,
+        "frame1WindowedCorrelation.pgm",
+        &window
     );
 
     Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );

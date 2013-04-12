@@ -315,17 +315,19 @@ Image Image::FourierTransform() const
 
 float Image::TemplateMatch(
     const Image&            iMask,
+    const Rectangle&        iSearchWindow,
     CartesianCoordinate&    oBestMatch,
     Image*                  oCorrelationMap
 ) const {
     const Image& me = (*this);
-    
+    const Rectangle& sw( iSearchWindow );
+
     if ( oCorrelationMap != NULL ) {
-        if ( oCorrelationMap->GetHeight() != GetHeight() ) {
-            oCorrelationMap->SetHeight( m_height );
+        if ( oCorrelationMap->GetHeight() != sw.Height() ) {
+            oCorrelationMap->SetHeight( sw.Height() );
         }
-        if ( oCorrelationMap->GetWidth() != GetWidth() ) {
-            oCorrelationMap->SetWidth( m_width );
+        if ( oCorrelationMap->GetWidth() != sw.Width() ) {
+            oCorrelationMap->SetWidth( sw.Width() );
         }
         if ( oCorrelationMap->GetMaxGreyLevel() != m_maxGreyLevel ) {
             oCorrelationMap->SetMaxGreyLevel( m_maxGreyLevel );
@@ -347,8 +349,8 @@ float Image::TemplateMatch(
 
     float bestMatchVal = 0;
     CartesianCoordinate maskCenter = iMask.Center();
-    for ( int x = 0; x < GetWidth(); x++ ) {
-        for ( int y = 0; y < GetHeight(); y++ ) {
+    for ( int x = sw.X(); x < sw.Right(); x++ ) {
+        for ( int y = sw.Y(); y < sw.Bottom(); y++ ) {
             float val = 0;
             float myDenom = 0;
             for ( int xx = -maskCenter.x; xx <= maskCenter.x ; xx++ ) {
@@ -368,7 +370,7 @@ float Image::TemplateMatch(
             val /= sqrt(maskDenom * myDenom);
             
             if ( oCorrelationMap != NULL ) {
-                CartesianCoordinate corrCoords( x, y );
+                CartesianCoordinate corrCoords( x - sw.X(), y - sw.Y() );
 
                 oCorrelationMap->SetNormed( corrCoords, val);
             }

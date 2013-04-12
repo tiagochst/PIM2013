@@ -4,7 +4,17 @@
 #include <string>
 #include "Eigen/Dense"
 
-class BadIndex {};
+class BadIndex {
+    std::string m_what;
+public:
+    inline BadIndex(int iCol, int iRow)
+    {
+        std::stringstream ss;
+        ss << "Col: " << iCol << " Row: " << iRow;
+        m_what = ss.str();
+    }
+    inline const std::string& what() { return m_what; }
+};
 class IncompatibleImages {};
 
 struct CartesianCoordinate {

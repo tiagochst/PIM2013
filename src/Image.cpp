@@ -147,7 +147,7 @@ void Image::SetGreyLvl( const int& iRow, const int& iCol, const int& iValue )
         m_figure( iRow, iCol ) = iValue;
         m_normalisedFigure( iRow, iCol ) = (float)iValue / (float)m_maxGreyLevel;
     } else {
-        throw BadIndex();
+        throw BadIndex( iCol, iRow );
     }
 }
 void Image::SetNormed( const int& iRow, const int& iCol, const float& iValue )
@@ -157,7 +157,7 @@ void Image::SetNormed( const int& iRow, const int& iCol, const float& iValue )
         m_figure( iRow, iCol ) = iValue * m_maxGreyLevel;
         m_normalisedFigure( iRow, iCol ) = iValue;
     } else {
-        throw BadIndex();
+        throw BadIndex( iCol, iRow );
     }
 }
 void Image::SetGreyLvl( const CartesianCoordinate& iPos, const int& iValue )

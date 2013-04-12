@@ -233,10 +233,10 @@ void Image::SubImage(
     Image&              oSubImage
 ) const {
     SubImage(
-        iRegion.GetX(),
-        iRegion.GetY(),
-        iRegion.GetWidth(),
-        iRegion.GetHeight(),
+        iRegion.X(),
+        iRegion.Y(),
+        iRegion.Width(),
+        iRegion.Height(),
         oSubImage
     );
 }

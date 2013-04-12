@@ -41,12 +41,12 @@ public:
             m_height( iHeight ),
             m_center( iX + iWidth / 2, iY + iHeight / 2 )
     {}
-    inline const int& GetWidth() const { return m_width; }
-    inline const int& GetHeight() const { return m_height; } 
-    inline const int& GetX() const { return m_position.x; }
-    inline const int& GetY() const { return m_position.y; }
-    inline const CartesianCoordinate& GetPosition() const { return m_position; }
-    inline const CartesianCoordinate& GetCenter() const { return m_center; }
+    inline const int& Width() const { return m_width; }
+    inline const int& Height() const { return m_height; } 
+    inline const int& X() const { return m_position.x; }
+    inline const int& Y() const { return m_position.y; }
+    inline const CartesianCoordinate& Position() const { return m_position; }
+    inline const CartesianCoordinate& Center() const { return m_center; }
 };
 
 class Image {

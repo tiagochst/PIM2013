@@ -308,7 +308,7 @@ Image Image::FourierTransform() const
             transform.SetNormed( c, transform.GetNormed(c) / maxVal );
         }
     }
-    transform.Recalculate();
+    transform.RecalculateGreyLvl();
 
     return transform;
 }
@@ -398,11 +398,19 @@ Image Image::Difference( const Image& iOther ) const
     return difference;
 }
 
-void Image::Recalculate()
+void Image::RecalculateGreyLvl()
 {
     for ( int i = 0; i < m_height; i++ ) {
         for ( int j = 0; j < m_width; j++ ) {
             m_figure( i, j ) = m_normalisedFigure( i, j ) * m_maxGreyLevel;
+        }
+    }
+}
+void Image::RecalculateNormalised()
+{
+    for ( int i = 0; i < m_height; i++ ) {
+        for ( int j = 0; j < m_width; j++ ) {
+            m_normalisedFigure( i, j ) = (float)m_figure( i, j ) / (float)m_maxGreyLevel;
         }
     }
 }
@@ -422,6 +430,7 @@ void Image::SetWidth( const int& iWidth )
 void Image::SetMaxGreyLevel( const int& iGreyLevel )
 {
     m_maxGreyLevel = iGreyLevel;
+    RecalculateNormalised();
 }
 
 int const& Image::GetHeight() const

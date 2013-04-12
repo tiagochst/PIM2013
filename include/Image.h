@@ -76,8 +76,6 @@ public:
     /* Verify if image was read correctly*/
     void CreateAsciiPgm( const std::string& iFilename );
 
-    void Recalculate();
-
     void SetGreyLvl( const int& iRow, const int& iCol, const int& iValue );
     void SetNormed( const int& iRow, const int& iCol, const float& iValue );
     void SetGreyLvl( const CartesianCoordinate& iPos, const int& iValue );
@@ -113,6 +111,8 @@ public:
 
 private:
     void ResetMatrix();
+    void RecalculateGreyLvl();
+    void RecalculateNormalised();
 };
 
 #endif /* IMAGE_H_ */

@@ -146,8 +146,8 @@ int main(int argc, char** argv) {
 
     char c;
     puts ("Select Mode: Kinect ('k') Other:('o')");
-    c=getchar();
-    if(c == 'k'){
+    c = getchar();
+    if ( c == 'k' ) {
         KinectInit(argc, argv);
     }
     

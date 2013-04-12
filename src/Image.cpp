@@ -1,6 +1,7 @@
 #include <iostream> // cout, cerr
 #include <fstream> // ifstream
 #include <sstream> // stringstream
+#include "omp.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -351,19 +352,24 @@ float Image::TemplateMatch(
     int nMaskElems = iMask.m_width * iMask.m_width;
     
     float maskDenom = 0;
+    #pragma omp parallel for
     for ( int xx = 0; xx < iMask.GetWidth(); xx++ ) {
+        #pragma omp parallel for
         for ( int yy = 0; yy < iMask.GetHeight(); yy++ ) {
             CartesianCoordinate maskCoords( xx, yy );
             
             float maskVal = iMask.GetNormed( maskCoords );
             
+            #pragma omp critical
             maskDenom += maskVal * maskVal; 
         }
     }
-
+    
     float bestMatchVal = 0;
     CartesianCoordinate maskCenter = iMask.Center();
+    #pragma omp parallel for
     for ( int x = sw.X(); x < sw.Right(); x++ ) {
+        #pragma omp parallel for
         for ( int y = sw.Y(); y < sw.Bottom(); y++ ) {
             float val = 0;
             float myDenom = 0;
@@ -377,7 +383,6 @@ float Image::TemplateMatch(
                     float maskVal = iMask.GetNormed( maskCoords );
 
                     myDenom += myVal * myVal; 
-                    
                     val += myVal * maskVal;
                 }
             }
@@ -388,6 +393,7 @@ float Image::TemplateMatch(
 
                 oCorrelationMap->SetNormed( corrCoords, val);
             }
+            #pragma omp critical
             if ( val >= bestMatchVal ) {
                 bestMatchVal = val;
                 oBestMatch.x = x;
@@ -413,16 +419,18 @@ void Image::TrackPixels(
          iRefImage.GetWidth()  != iTargetImage.GetWidth() ) {
         throw IncompatibleImages();
     }
-    
-    CartesianCoordinate bestMatch;
-    Image neighbourhood( iNeighbourhoodWidth, iNeighbourhoodHeight, 65535 );
-    CartesianCoordinate nCenter = neighbourhood.Center();
-    CartesianCoordinate wCenter( iWindowWidth / 2, iWindowHeight / 2 );
 
     int minValX = 0, minValY = 0;
     int maxValX = 0, maxValY = 0;
+    #pragma omp parallel for
     for ( int x = 0; x < iRefImage.GetWidth(); x++ ) {
+        #pragma omp parallel for 
         for ( int y = 0; y < iRefImage.GetHeight(); y++ ) {
+            CartesianCoordinate bestMatch;
+            Image neighbourhood( iNeighbourhoodWidth, iNeighbourhoodHeight, 65535 );
+            CartesianCoordinate nCenter = neighbourhood.Center();
+            CartesianCoordinate wCenter( iWindowWidth / 2, iWindowHeight / 2 );
+
             Rectangle nRegion( x - nCenter.x,
                                 y - nCenter.y, 
                                 iNeighbourhoodWidth,
@@ -434,21 +442,29 @@ void Image::TrackPixels(
             iRefImage.SubImage( nRegion, neighbourhood );
 
             iTargetImage.TemplateMatch( neighbourhood, wRegion, bestMatch );
-            
-            minValX = min( minValX, 10 * (bestMatch.x - x) );
-            maxValX = max( maxValX, 10 * (bestMatch.x - x) );
-            minValY = min( minValY, 10 * (bestMatch.y - y) );
-            maxValY = max( maxValY, 10 * (bestMatch.y - y) );
 
-            oDisplacementMapX.SetGreyLvl( y, x, 10 * (bestMatch.x - x) );
-            oDisplacementMapY.SetGreyLvl( y, x, 10 * (bestMatch.y - y) );
+            int valX = 10 * (bestMatch.x - x);
+            int valY = 10 * (bestMatch.y - y);
+            
+            oDisplacementMapX.SetGreyLvl( y, x, valX );
+            oDisplacementMapY.SetGreyLvl( y, x, valY );
+
+            #pragma omp critical
+            {
+                minValX = min( valX, minValX );
+                maxValX = max( valX, maxValX );
+                minValY = min( valY, minValY );
+                maxValY = max( valY, maxValY );
+            }
         }
     }
     maxValX += abs(minValX);
     maxValY += abs(minValY);
     oDisplacementMapX.SetMaxGreyLevel(maxValX);
     oDisplacementMapY.SetMaxGreyLevel(maxValY);
+    #pragma omp parallel for
     for ( int x = 0; x < iRefImage.GetWidth(); x++ ) {
+        #pragma omp parallel for
         for ( int y = 0; y < iRefImage.GetHeight(); y++ ) {
             int valX = oDisplacementMapX.GetGreyLvl( y, x );
             int valY = oDisplacementMapY.GetGreyLvl( y, x );

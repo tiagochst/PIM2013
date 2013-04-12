@@ -75,7 +75,7 @@ public:
     int const& GetWidth() const;
     int const& GetMaxGreyLevel() const;
 
-    /* Read a binary (P5) or Asc(P2) .pgm file*/
+    /* Read a binary (P5) or Ascii(P2) .pgm file*/
     void LoadFromFile( const std::string& iFilename );
 
     /* Verify if image was read correctly*/

@@ -50,23 +50,15 @@ void FindTemplateAndPrintMap(
     const std::string& iMapFilename,
     const Rectangle* iSearchWindow=NULL
 ) {
-    bool cleanup = false;
-    const Rectangle* sw;
     if (iSearchWindow != NULL ) {
-        sw = iSearchWindow;
+        oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, *iSearchWindow, oBestMatch, &oCorrelationMap );
     } else {
-        sw = new Rectangle( 0, 0, iBaseImage.GetWidth(), iBaseImage.GetHeight() );
-        cleanup = true;
+        oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, oBestMatch, &oCorrelationMap );
     }
-    oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, *sw, oBestMatch, &oCorrelationMap );
     std::cout   << "Possible match found at ("  << oBestMatch.x << ", " << oBestMatch.y << ") "
                 << "with correlation value of "   << oBestMatchVal
                 << std::endl;
     oCorrelationMap.CreateAsciiPgm(Config::OutputPath() + iMapFilename);
-    if ( cleanup ) {
-        delete sw;
-        sw = NULL;
-    }
 }
 
 int main(int argc, char** argv) {

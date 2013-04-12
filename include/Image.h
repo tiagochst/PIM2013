@@ -95,6 +95,12 @@ public:
     
     float TemplateMatch(
         const Image&            iMask,
+        CartesianCoordinate&    oBestMatch,
+        Image*                  oCorrelationMap=NULL
+    ) const;
+
+    float TemplateMatch(
+        const Image&            iMask,
         const Rectangle&        iSearchWindow,
         CartesianCoordinate&    oBestMatch,
         Image*                  oCorrelationMap=NULL

@@ -315,6 +315,20 @@ Image Image::FourierTransform() const
 
 float Image::TemplateMatch(
     const Image&            iMask,
+    CartesianCoordinate&    oBestMatch,
+    Image*                  oCorrelationMap
+) const {
+    Rectangle window( 0, 0, m_width, m_height );
+    TemplateMatch(
+        iMask,
+        window,
+        oBestMatch,
+        oCorrelationMap
+    );
+}
+
+float Image::TemplateMatch(
+    const Image&            iMask,
     const Rectangle&        iSearchWindow,
     CartesianCoordinate&    oBestMatch,
     Image*                  oCorrelationMap

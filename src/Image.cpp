@@ -399,6 +399,66 @@ float Image::TemplateMatch(
     return bestMatchVal;
 }
 
+void Image::TrackPixels(
+    const Image&        iRefImage,
+    const Image&        iTargetImage,
+    const int&          iWindowWidth,
+    const int&          iWindowHeight,
+    const int&          iNeighbourhoodWidth,
+    const int&          iNeighbourhoodHeight,
+    Image&              oDisplacementMapX,
+    Image&              oDisplacementMapY
+) {
+    if ( iRefImage.GetHeight() != iTargetImage.GetHeight() ||
+         iRefImage.GetWidth()  != iTargetImage.GetWidth() ) {
+        throw IncompatibleImages();
+    }
+    
+    CartesianCoordinate bestMatch;
+    Image neighbourhood( iNeighbourhoodWidth, iNeighbourhoodHeight, 65535 );
+    CartesianCoordinate nCenter = neighbourhood.Center();
+    CartesianCoordinate wCenter( iWindowWidth / 2, iWindowHeight / 2 );
+
+    int minValX = 0, minValY = 0;
+    int maxValX = 0, maxValY = 0;
+    for ( int x = 0; x < iRefImage.GetWidth(); x++ ) {
+        for ( int y = 0; y < iRefImage.GetHeight(); y++ ) {
+            Rectangle nRegion( x - nCenter.x,
+                                y - nCenter.y, 
+                                iNeighbourhoodWidth,
+                                iNeighbourhoodHeight );
+            Rectangle wRegion( x - wCenter.x,
+                                y - wCenter.y,
+                                iWindowWidth,
+                                iWindowHeight );
+            iRefImage.SubImage( nRegion, neighbourhood );
+
+            iTargetImage.TemplateMatch( neighbourhood, wRegion, bestMatch );
+            
+            minValX = min( minValX, 10 * (bestMatch.x - x) );
+            maxValX = max( maxValX, 10 * (bestMatch.x - x) );
+            minValY = min( minValY, 10 * (bestMatch.y - y) );
+            maxValY = max( maxValY, 10 * (bestMatch.y - y) );
+
+            oDisplacementMapX.SetGreyLvl( y, x, 10 * (bestMatch.x - x) );
+            oDisplacementMapY.SetGreyLvl( y, x, 10 * (bestMatch.y - y) );
+        }
+    }
+    maxValX += abs(minValX);
+    maxValY += abs(minValY);
+    oDisplacementMapX.SetMaxGreyLevel(maxValX);
+    oDisplacementMapY.SetMaxGreyLevel(maxValY);
+    for ( int x = 0; x < iRefImage.GetWidth(); x++ ) {
+        for ( int y = 0; y < iRefImage.GetHeight(); y++ ) {
+            int valX = oDisplacementMapX.GetGreyLvl( y, x );
+            int valY = oDisplacementMapY.GetGreyLvl( y, x );
+
+            oDisplacementMapX.SetGreyLvl( y, x, ( valX + abs(minValX) ) );
+            oDisplacementMapY.SetGreyLvl( y, x, ( valY + abs(minValY) ) );
+        }
+    }
+}
+
 Image Image::Difference( const Image& iOther ) const
 {
     const Image& me = (*this);

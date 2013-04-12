@@ -121,6 +121,17 @@ public:
     Image Difference( const Image& iOther ) const;
     float Correlation( const Image& iOther ) const;
 
+    static void TrackPixels(
+        const Image&        iRefImage,
+        const Image&        iTargetImage,
+        const int&          iWindowWidth,
+        const int&          iWindowHeight,
+        const int&          iNeighbourhoodWidth,
+        const int&          iNeighbourhoodHeight,
+        Image&              oDisplacementMapX,
+        Image&              oDisplacementMapY
+    );
+
 private:
     void ResetMatrix();
     void RecalculateGreyLvl();

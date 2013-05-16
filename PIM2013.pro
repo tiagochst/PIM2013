@@ -10,7 +10,6 @@ QT      += core gui
 QT *= opengl xml
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-FORMS *= resources/Project/Ui/mainInterface.Qt4.ui
 
 HEADERS =   include/Window.h    \ 
             include/GLViewer.h  \ 
@@ -20,8 +19,7 @@ HEADERS =   include/Window.h    \
             include/PlyFile.h   \ 
             include/Config.h    \ 
             include/PointSet.h  \ 
-            include/Vertex.h    \
-            ui_mainInterface.Qt4.h
+            include/Vertex.h    
 
 SOURCES = src/Window.cpp    \
           src/GLViewer.cpp  \

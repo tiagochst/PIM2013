@@ -70,7 +70,8 @@ void Image::LoadFromFile( const std::string& iFilename )
 
     if ( inputLine.compare( "P2" ) != 0 && inputLine.compare( "P5" ) != 0 ) {
         std::cerr   << "Version error " 
-                    << iFilename.c_str() 
+                    << iFilename.c_str()
+                    << " Version: "
                     << inputLine 
                     << std::endl;
 
@@ -126,7 +127,7 @@ void Image::CreateAsciiPgm( const std::string& iFilename )
     std::ofstream ostr( iFilename.c_str() );
 
     /* writing header */
-    ostr << "P2 " << std::endl;
+    ostr << "P2" << std::endl;
     ostr << "# CREATOR: PIM380 PROJ" << std::endl;;
     ostr << m_width << " " << m_height << std::endl;
     ostr << m_maxGreyLevel << std::endl;
@@ -172,8 +173,8 @@ const int&   Image::GetGreyLvl( const int& iRow, const int& iCol ) const
 {
     int row = abs(iRow);
     int col = abs(iCol);
-    row = IsOdd(row / m_height) ? (row % m_height) : (m_height - (row % m_height) - 1);
-    col = IsOdd(col / m_width ) ? (col % m_width ) : (m_width  - (col % m_width ) - 1);
+//    row = IsOdd(row / m_height) ? (row % m_height) : (m_height - (row % m_height) - 1);
+//    col = IsOdd(col / m_width ) ? (col % m_width ) : (m_width  - (col % m_width ) - 1);
     
     return m_figure( row, col );
 

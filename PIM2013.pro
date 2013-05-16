@@ -10,15 +10,22 @@ QT      += core gui
 QT *= opengl xml
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-HEADERS =   include/Camera.h    \
+FORMS *= resources/Project/Ui/mainInterface.Qt4.ui
+
+HEADERS =   include/Window.h    \ 
+            include/GLViewer.h  \ 
+            include/Camera.h    \
             include/Image.h     \ 
             include/Color.h     \ 
             include/PlyFile.h   \ 
             include/Config.h    \ 
             include/PointSet.h  \ 
-            include/Vertex.h
+            include/Vertex.h    \
+            ui_mainInterface.Qt4.h
 
-SOURCES = src/Camera.cpp    \ 
+SOURCES = src/Window.cpp    \
+          src/GLViewer.cpp  \
+          src/Camera.cpp    \ 
           src/Image.cpp     \ 
           src/Vertex.cpp    \ 
           src/Color.cpp     \ 

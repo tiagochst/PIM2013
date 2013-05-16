@@ -296,6 +296,10 @@ int Camera::Display()
     
 }
 
+
+/*!
+ *  \brief  Treats an event of button pressed
+ */
 void Camera::OnKey(unsigned char key, int x, int y)
 {
     switch (key)
@@ -348,23 +352,23 @@ std::string Camera::Int2Str(int nb){
 
 void Camera::captureSingleFrame()
 {
-    Image camImg(m_imageMD.XRes(),m_imageMD.YRes(),255);
-    Image camDepth(m_depthMD.XRes(),m_depthMD.YRes(),255); 
+    Image camImg  (m_imageMD.XRes(), m_imageMD.YRes(), 255);
+    Image camDepth(m_depthMD.XRes(), m_depthMD.YRes(), 255); 
 
-    const XnRGB24Pixel* pImageRow = m_imageMD.RGB24Data();
-    const XnDepthPixel* pDepthRow = m_depthMD.Data();
+    const XnRGB24Pixel * pImageRow = m_imageMD.RGB24Data();
+    const XnDepthPixel * pDepthRow = m_depthMD.Data();
 
     for (XnUInt y = 0; y < m_imageMD.YRes(); ++y)
     {
-        const XnRGB24Pixel* pImage = pImageRow;
-        const XnDepthPixel* pDepth = pDepthRow;
+        const XnRGB24Pixel * pImage = pImageRow;
+        const XnDepthPixel * pDepth = pDepthRow;
         
         for (XnUInt x = 0; x < m_imageMD.XRes(); ++x, ++pImage, ++pDepth)
         {
             /* HDTV rgb to grayscale*/
-            camImg.SetGreyLvl( y, x, pImage->nRed *  0.2126f + \
-                                     pImage->nBlue * 0.0722f + \
-                                     pImage->nGreen * 0.7152f );
+            camImg.SetGreyLvl( y, x, pImage -> nRed   * 0.2126f + \
+                                     pImage -> nBlue  * 0.0722f + \
+                                     pImage -> nGreen * 0.7152f );
             /* HDTV rgb to grayscale*/
             if (*pDepth != 0)
             {
@@ -390,6 +394,10 @@ void Camera::captureSingleFrame()
 }
 
 
+/*!
+ *  \brief  Creates the help screen during the capture of images. Use the Key '?'
+ *          to call the menu
+ */
 void Camera::drawHelpScreen()
 {
 	int nXStartLocation = GL_WIN_SIZE_X/8;
@@ -423,6 +431,9 @@ void Camera::drawHelpScreen()
 }
 
 
+/*!
+ *  \brief  Create the content of the help screen
+ */
 void Camera::printHelp(int nXLocation, int* pnYLocation)
 {
 	int nYLocation = *pnYLocation;
@@ -448,7 +459,6 @@ void Camera::printHelp(int nXLocation, int* pnYLocation)
 
         aKeys[5] = '?';
         aDescs[5] = "Close help window";
-
         /* END List of keys */
 
 	glColor3f(0, 1, 0);
@@ -482,7 +492,9 @@ void Camera::printHelp(int nXLocation, int* pnYLocation)
 	*pnYLocation = nYLocation + 40;
 }
 
-
+/*!
+ *  \brief  Print a string into the screen with a given font
+ */
 void Camera::glPrintString(void *font, const char *str)
 {
 	int i,l = strlen(str);

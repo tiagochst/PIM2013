@@ -1,9 +1,18 @@
+#include <QCoreApplication>
+#include <QApplication>
+#include "Window.h"
+#include <QDir>
+#include <QPixmap>
+#include <QSplashScreen>
+#include <QPlastiqueStyle>
+#include <QCleanlooksStyle>
+#include <string>
 #include <iostream>
 #include "Image.h"
 #include "PointSet.h"
 #include "Camera.h"
 #include "Config.h"
-
+//#include "ui_mainInterface.Qt4.h"
 
 int KinectInit(int argc, char** argv)
 {
@@ -88,6 +97,12 @@ int main(int argc, char** argv) {
     float correlationVal = 0.0f;
     CartesianCoordinate bestMatch;
 
+    char c;
+    puts ("Select Mode: Kinect ('k') Image Traking('t') UI (u) Other:('o')");
+    c = getchar();
+
+    if ( c == 't' ) {
+   
     FindTemplateAndPrintMap(
         bigMask,
         smallMask,
@@ -152,14 +167,25 @@ int main(int argc, char** argv) {
     Image diff10 = frame1.Difference(frame0);
     diff01.CreateAsciiPgm(Config::OutputPath() + "diff01.pgm");
     diff10.CreateAsciiPgm(Config::OutputPath() + "diff10.pgm");
-
-    char c;
-    puts ("Select Mode: Kinect ('k') Other:('o')");
-    c = getchar();
+    }
+    
     if ( c == 'k' ) {
         KinectInit(argc, argv);
     }
+
+    if ( c == 'u' ) {
+
+    QApplication program (argc, argv);
+    //setBoubekQTStyle (raymini);
+    QApplication::setStyle (new QPlastiqueStyle);
+    program.setAttribute(Qt::AA_DontUseNativeMenuBar,true);
+    Window * progWindow = new Window ();
+    progWindow->setWindowTitle ("PIM380: A facial reconstruction program.");
+    progWindow->show();
+    program.connect (&program, SIGNAL (lastWindowClosed()), &program, SLOT (quit()));
     
+    return program.exec ();
+    }
     
     return 0;
 }

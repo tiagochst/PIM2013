@@ -9,21 +9,21 @@ AM_CFLAGS=
 AM_CXXFLAGS=
 AM_CPPFLAGS=-O3 -msse2 -DNDEBUG
 endif
-AM_LDFLAGS=-lm -lglut -lgomp
 
 # Common optimisation flags
 AM_CFLAGS+=-fopenmp
 AM_CXXFLAGS+=-fopenmp
 
 # Include flags
-AM_CPPFLAGS+=-I$(top_builddir)/include -I$(top_builddir)/external
+AM_CFLAGS+=-I$(top_builddir)/include -I$(top_builddir)/external
+AM_CXXFLAGS+=-I$(top_builddir)/include -I$(top_builddir)/external
 
 # External libraries CFLAGS
 AM_CFLAGS+=$(OPENNI_CFLAGS) $(GLU_CFLAGS) $(GL_CFLAGS) 
 AM_CXXFLAGS+=$(OPENNI_CFLAGS) $(GLU_CFLAGS) $(GL_CFLAGS) 
 
-# External libraries LFLAGS
-AM_LDFLAGS+=$(OPENNI_LIBS) $(GLU_LIBS) $(GL_LIBS)
+# External libraries
+LDADD=$(OPENNI_LIBS)$(GLU_LIBS)$(GL_LIBS)-lm -lgomp -lglut
 
 bin_PROGRAMS = $(top_builddir)/bin/main
 __top_builddir__bin_main_SOURCES = \

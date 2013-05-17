@@ -2,19 +2,28 @@
 #define WINDOW_H
 
 #include "GLViewer.h"
+#include <QtCore/QVariant>
+#include <QtGui/QAction>
+#include <QtGui/QApplication>
+#include <QtGui/QButtonGroup>
+#include <QtGui/QComboBox>
+#include <QtGui/QDockWidget>
+#include <QtGui/QFormLayout>
+#include <QtGui/QGroupBox>
+#include <QtGui/QHeaderView>
+#include <QtGui/QLabel>
+#include <QtGui/QPushButton>
+#include <QtGui/QRadioButton>
+#include <QtGui/QWidget>
 #include <QMainWindow>
-#include <QAction>
 #include <QToolBar>
 #include <QCheckBox>
 #include <QGroupBox>
-#include <QComboBox>
 #include <QSlider>
 #include <QLCDNumber>
 #include <QSpinBox>
 #include <QImage>
-#include <QLabel>
 #include <QCheckBox>
-#include <QRadioButton>
 #include <QDockWidget>
 #include <QGroupBox>
 #include <QButtonGroup>
@@ -24,7 +33,6 @@
 #include <QLabel>
 #include <QProgressBar>
 #include <QColorDialog>
-#include <QLCDNumber>
 #include <QPixmap>
 #include <QFrame>
 #include <QSplitter>
@@ -35,18 +43,16 @@
 #include <QSizePolicy>
 #include <QImageReader>
 #include <QStatusBar>
-#include <QPushButton>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QStatusBar>
-#include <QtGui/QFormLayout>
 #include <vector>
 #include <string>
 #include <iostream>
 #include <cstdio>
 #include <cstdlib>
-
-//#include "QTUtils.h"
+#include <QTextStream>
+#include "Config.h"
 
 /*!
  *  \brief A class that creates the User Interface. 
@@ -65,16 +71,21 @@ public slots :
     void about ();
     void createMesh();
     void GLViewerHelp ();
-
+    void saveGLImage ();
 
 private :
     void initControlWidget ();
-    QGroupBox   * controlWidget;    //!< The Left dock group box.
-    GLViewer    * viewer;            //!< The GLViewer (central window)
-    QPushButton * createMeshPB;
-  
-private Q_SLOTS:
-  // void rendererFinished ();
+    void addImageItems();
+
+    QGroupBox    * controlWidget;    //!< The Left dock group box.
+    GLViewer     * viewer;            //!< The GLViewer (central window)
+    QPushButton  * createMeshPB;
+    QPushButton  * snapshotButton;
+    QComboBox    * frameComboBox;
+    //    QRadioButton * displacementRB;
+    //QRadioButton * meshRB;
+
 };
+
 
 #endif // WINDOW_H

@@ -36,12 +36,5 @@ protected :
     void draw ();
     QString helpString() const;
 
-    /* virtual void keyPressEvent (QKeyEvent * event); */
-    /* virtual void keyReleaseEvent (QKeyEvent * event); */
-    /* virtual void mousePressEvent (QMouseEvent * event); */
-    /* virtual void wheelEvent (QWheelEvent * e); */
-
-private:
-
 };
 #endif // GLVIEWER_H

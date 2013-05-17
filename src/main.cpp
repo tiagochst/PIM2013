@@ -103,70 +103,70 @@ int main(int argc, char** argv) {
 
     if ( c == 't' ) {
    
-    FindTemplateAndPrintMap(
-        bigMask,
-        smallMask,
-        correlationMap,
-        bestMatch,
-        correlationVal,
-        "smallMaskCorrelation.pgm"
-    );
-    FindTemplateAndPrintMap(
-        bigMask,
-        mask,
-        correlationMap,
-        bestMatch,
-        correlationVal,
-        "bigMaskCorrelation.pgm"
-    );
-    FindTemplateAndPrintMap(
-        frame1,
-        mask,
-        correlationMap,
-        bestMatch,
-        correlationVal,
-        "frame1Correlation.pgm"
-    );
-    Rectangle window( 150, 150, 200, 200 );
-    FindTemplateAndPrintMap(
-        frame1,
-        mask,
-        correlationMap,
-        bestMatch,
-        correlationVal,
-        "frame1WindowedCorrelation.pgm",
-        &window
-    );
-
-    try {
-        Image::TrackPixels( frame0, frame1, 17, 17, 9, 9, dispX, dispY );
-        dispX.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1x.pgm");
-        dispY.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1y.pgm");
-    } catch (BadIndex bi) {
-        std::cout << bi.what();
-    }
-    Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
-    for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
-        for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {
-            int val = bigMask.GetGreyLvl( y - bigMask.GetHeight(), x - bigMask.GetWidth() );
-            
-            fullSpectre.SetGreyLvl( y, x, val );
+        FindTemplateAndPrintMap(
+            bigMask,
+            smallMask,
+            correlationMap,
+            bestMatch,
+            correlationVal,
+            "smallMaskCorrelation.pgm"
+            );
+        FindTemplateAndPrintMap(
+            bigMask,
+            mask,
+            correlationMap,
+            bestMatch,
+            correlationVal,
+            "bigMaskCorrelation.pgm"
+            );
+        FindTemplateAndPrintMap(
+            frame1,
+            mask,
+            correlationMap,
+            bestMatch,
+            correlationVal,
+            "frame1Correlation.pgm"
+            );
+        Rectangle window( 150, 150, 200, 200 );
+        FindTemplateAndPrintMap(
+            frame1,
+            mask,
+            correlationMap,
+            bestMatch,
+            correlationVal,
+            "frame1WindowedCorrelation.pgm",
+            &window
+            );
+        
+        try {
+            Image::TrackPixels( frame0, frame1, 17, 17, 9, 9, dispX, dispY );
+            dispX.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1x.pgm");
+            dispY.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1y.pgm");
+        } catch (BadIndex bi) {
+            std::cout << bi.what();
         }
-    }    
-    fullSpectre.CreateAsciiPgm(Config::OutputPath() + "fullSpectre.pgm");
-
-    //Image ft = frame0.FourierTransform();
-    //ft.CreateAsciiPgm(Config::OutputPath() + "Frame0FT.pgm");
-    
-    //Image corr01 = frame0.Correlation(frame1);
-    //Image corr10 = frame1.Correlation(frame0);
-    //corr01.CreateAsciiPgm("corr01");
-    //corr10.CreateAsciiPgm("corr10");
-
-    Image diff01 = frame0.Difference(frame1);
-    Image diff10 = frame1.Difference(frame0);
-    diff01.CreateAsciiPgm(Config::OutputPath() + "diff01.pgm");
-    diff10.CreateAsciiPgm(Config::OutputPath() + "diff10.pgm");
+        Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
+        for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
+            for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {
+                int val = bigMask.GetGreyLvl( y - bigMask.GetHeight(), x - bigMask.GetWidth() );
+                
+                fullSpectre.SetGreyLvl( y, x, val );
+            }
+        }    
+        fullSpectre.CreateAsciiPgm(Config::OutputPath() + "fullSpectre.pgm");
+        
+        //Image ft = frame0.FourierTransform();
+        //ft.CreateAsciiPgm(Config::OutputPath() + "Frame0FT.pgm");
+        
+        //Image corr01 = frame0.Correlation(frame1);
+        //Image corr10 = frame1.Correlation(frame0);
+        //corr01.CreateAsciiPgm("corr01");
+        //corr10.CreateAsciiPgm("corr10");
+        
+        Image diff01 = frame0.Difference(frame1);
+        Image diff10 = frame1.Difference(frame0);
+        diff01.CreateAsciiPgm(Config::OutputPath() + "diff01.pgm");
+        diff10.CreateAsciiPgm(Config::OutputPath() + "diff10.pgm");
     }
     
     if ( c == 'k' ) {
@@ -175,15 +175,15 @@ int main(int argc, char** argv) {
 
     if ( c == 'u' ) {
 
-    QApplication program (argc, argv);
-    //setBoubekQTStyle (raymini);
-    QApplication::setStyle (new QPlastiqueStyle);
-    program.setAttribute(Qt::AA_DontUseNativeMenuBar,true);
-    Window * progWindow = new Window ();
-    progWindow->setWindowTitle ("PIM380: A facial reconstruction program.");
-    progWindow->show();
-    program.connect (&program, SIGNAL (lastWindowClosed()), &program, SLOT (quit()));
-    
+        QApplication program (argc, argv);
+        //setBoubekQTStyle (raymini);
+        QApplication::setStyle (new QPlastiqueStyle);
+        program.setAttribute(Qt::AA_DontUseNativeMenuBar,true);
+        Window * progWindow = new Window ();
+        progWindow->setWindowTitle ("PIM380: A facial reconstruction program.");
+        progWindow->show();
+        program.connect (&program, SIGNAL (lastWindowClosed()), &program, SLOT (quit()));
+        
     return program.exec ();
     }
     

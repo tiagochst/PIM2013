@@ -19,6 +19,7 @@ HEADERS =   include/Window.h    \
             include/PlyFile.h   \ 
             include/Config.h    \ 
             include/PointSet.h  \ 
+	    include/ParameterHandler.h \
             include/Vertex.h    
 
 SOURCES = src/Window.cpp    \
@@ -30,6 +31,7 @@ SOURCES = src/Window.cpp    \
           src/Config.cpp    \ 
           src/PointSet.cpp  \
           src/main.cpp      \
+          src/ParameterHandler.cpp \
           src/PlyFile.c
 
 DESTDIR=./bin
@@ -38,7 +40,7 @@ unix {
 
   QMAKE_CFLAGS   += -O3 -fopenmp `pkg-config --cflags openni glu`
 
-  QMAKE_CXXFLAGS += -O3 -fopenmp `pkg-config --cflags openni glu`
+  QMAKE_CXXFLAGS += -O3 -std=c++0x -fopenmp `pkg-config --cflags openni glu`
 
 
   LIBS += -lGLEW \

@@ -53,6 +53,7 @@
 #include <cstdlib>
 #include <QTextStream>
 #include "Config.h"
+#include "ParameterHandler.h"
 
 /*!
  *  \brief A class that creates the User Interface. 
@@ -72,6 +73,7 @@ public slots :
     void createMesh();
     void GLViewerHelp ();
     void saveGLImage ();
+    void setFrame(int iFrame);
 
 private :
     void initControlWidget ();
@@ -82,8 +84,6 @@ private :
     QPushButton  * createMeshPB;
     QPushButton  * snapshotButton;
     QComboBox    * frameComboBox;
-    //    QRadioButton * displacementRB;
-    //QRadioButton * meshRB;
 
 };
 

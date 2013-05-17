@@ -26,6 +26,15 @@ QString GLViewer::helpString() const {
 // -----------------------------------------------
 
 void GLViewer::init() {
+
+    ParameterHandler* params = ParameterHandler::Instance();
+    std::string frameID = std::to_string(params -> GetFrame());
+    
+    std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
+    
+    m_frame = Image(RES_IMG_PATH + "image_" + frameID + ".pgm");
+    m_depth = Image(RES_IMG_PATH + "depth_" + frameID + ".pgm");
+
   // Swap the CAMERA and FRAME state keys (NoButton and Control)
   // Save CAMERA binding first. See setHandlerKeyboardModifiers() documentation.
 #if QT_VERSION < 0x040000
@@ -67,14 +76,10 @@ void GLViewer::init() {
     // setAxisIsDrawn();
 }
 
-static void drawPoints()
+static void drawPoints(Image frame, Image depth)
 {
-    static const std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
-
-    static Image frame(RES_IMG_PATH + "image_0.pgm");
-    static Image depth(RES_IMG_PATH + "depth_0.pgm");
     int height = frame.GetHeight();
-    int width = frame.GetWidth();
+    int width  = frame.GetWidth();
 
     glBegin( GL_POINTS );
 
@@ -97,7 +102,6 @@ static void drawPoints()
 }
 
 void GLViewer::draw () {
-
   // Here we are in the world coordinate system.
   // Draw your scene here.
   // Save the current model view matrix (not needed here in fact)
@@ -113,7 +117,7 @@ void GLViewer::draw () {
   drawAxis();
 
   // Draws the image in 3D.
-  drawPoints();
+  drawPoints(m_frame,m_depth);
   
   // Restore the original (world) coordinate system
   glPopMatrix();

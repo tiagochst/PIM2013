@@ -43,6 +43,10 @@ Image::Image( const int& iWidth, const int& iHeight, const int& iGreyLevel )
     ResetMatrix();
 }
 
+Image::Image()
+{
+}
+
 Image::Image( const std::string& iFilename )
 {
     LoadFromFile( iFilename );

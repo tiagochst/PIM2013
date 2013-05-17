@@ -5,6 +5,16 @@ using namespace std;
 
 
 /*!
+ *  \brief  Set the new scene selected from the box
+ *  \param  scene Number of the scene
+ */
+void Window::setFrame(int iFrame) {
+    ParameterHandler* params = ParameterHandler::Instance();
+    params -> SetFrame(iFrame);
+    viewer -> reset();
+}
+
+/*!
  *  \brief Save image of the GLViewer
  */
 void Window::saveGLImage () {
@@ -136,10 +146,10 @@ void Window::initControlWidget () {
     QGroupBox * previewGroupBox = new QGroupBox ("Preview", controlWidget);
     QVBoxLayout * previewLayout = new QVBoxLayout (previewGroupBox);
     
-
-    /* Creating tables for general parameters */
+    /* Creating tables for frame selection */
     frameComboBox = new QComboBox (previewGroupBox);
     addImageItems();
+    connect (frameComboBox, SIGNAL (currentIndexChanged(int)), this, SLOT (setFrame (int)));
 
     QLabel      * frameLabel;
     frameLabel = new QLabel(tr("Frame:"));
@@ -150,6 +160,8 @@ void Window::initControlWidget () {
     generalFormLayout -> setContentsMargins(0, 0, 0, 0);
     generalFormLayout -> setWidget(0, QFormLayout::LabelRole, frameLabel);
     generalFormLayout -> setWidget(0, QFormLayout::FieldRole, frameComboBox);
+    /* End of  frame selection */
+
 
     createMeshPB  = new QPushButton ("Create Mesh", previewGroupBox);
     connect (createMeshPB, SIGNAL (clicked ()) , this, SLOT (createMesh()));

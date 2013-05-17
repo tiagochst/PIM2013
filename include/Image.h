@@ -65,6 +65,7 @@ private:
 public:
     Image( const int& iWidth, const int& iHeight, const int& iGreyLevel );
     Image( const std::string& iFilename );
+    Image();
     virtual ~Image();
 
     void SetHeight( const int& iHeight );

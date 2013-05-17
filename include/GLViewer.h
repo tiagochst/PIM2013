@@ -8,6 +8,7 @@
 #include <string>
 #include "Image.h"
 #include "Config.h"
+#include "ParameterHandler.h"
 
 
 class GLViewer : public QGLViewer  {
@@ -36,5 +37,8 @@ protected :
     void draw ();
     QString helpString() const;
 
+ private : 
+    Image m_frame;
+    Image m_depth;
 };
 #endif // GLVIEWER_H

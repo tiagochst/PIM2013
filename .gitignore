@@ -23,6 +23,8 @@ aclocal.m4
 config.status
 resources/Project/Data/Output/
 bin/
+.tmp
+.qglviewer.xml
 
 # Vim temporary files
 *.swp

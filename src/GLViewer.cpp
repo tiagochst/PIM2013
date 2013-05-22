@@ -60,9 +60,10 @@ void GLViewer::init() {
                                  // using the functionality as an extension.
 
     glDisable( GL_LIGHTING );
-    glEnable( GL_CULL_FACE );
+    //glEnable( GL_CULL_FACE );
     glEnable( GL_POINT_SMOOTH );
-    glPointSize( 6.0 );
+    glPointSize( 1.0 );
+    
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     // Add a manipulated frame to the viewer.
@@ -79,25 +80,61 @@ void GLViewer::init() {
 static void drawPoints(Image frame, Image depth)
 {
     int height = frame.GetHeight();
-    int width  = frame.GetWidth();
+    int width = frame.GetWidth();
+    float maxGreyLvl = frame.GetMaxGreyLevel ();
+    float maxDepth = depth.GetMaxGreyLevel ();
 
-    glBegin( GL_POINTS );
-
-    for ( int i = 0; i < height; i++ )
+    //glBegin( GL_TRIANGLES );
+    glBegin ( GL_POINTS );
+    for ( int i = 0; i < height - 1; i++ )
     {
-        for ( int j = 0; j < width; j++ )
+        for ( int j = 0; j < width - 1; j++ )
         {
-            float greyLvl = frame.GetGreyLvl( i, j );
-            float maxGreyLvl = frame.GetMaxGreyLevel();
-            float color =  (float)greyLvl/maxGreyLvl;
+            float brght;
+            
+            brght = (float)frame.GetGreyLvl( i    , j     ) / maxGreyLvl;
+            float v0c[3]    = { brght, brght, brght };
+            float v0x       = (float)(          j     ) / width;
+            float v0y       = (float)( height - i     ) / height;
+            float v0z       = (float)( depth.GetGreyLvl ( i    , j     ) ) / maxDepth;
 
-            glColor3f(color, color, color);
-            glVertex3f( (float) j/width,           
-                        (float) (height-i)/height, 
-                        (float) depth.GetGreyLvl(i,j)/depth.GetMaxGreyLevel());
+            //brght = (float)frame.GetGreyLvl( i    , j + 1 ) / maxGreyLvl;
+            //float v1c[3]    = { brght, brght, brght };
+            //float v1x       = (float)(          j + 1 ) / width;
+            //float v1y       = (float)( height - i     ) / height;
+            //float v1z       = (float)( depth.GetGreyLvl ( i    , j + 1 ) ) / maxDepth;
+
+            //brght = (float)frame.GetGreyLvl( i + 1, j     ) / maxGreyLvl;
+            //float v2c[3]    = { brght, brght, brght };
+            //float v2x       = (float)(          j     ) / width;
+            //float v2y       = (float)( height - i - 1 ) / height;
+            //float v2z       = (float)( depth.GetGreyLvl ( i + 1, j     ) ) / maxDepth;
+
+            //brght = (float)frame.GetGreyLvl( i + 1, j + 1 ) / maxGreyLvl;
+            //float v3c[3]    = { brght, brght, brght };
+            //float v3x       = (float)(          j + 1 ) / width;
+            //float v3y       = (float)( height - i - 1 ) / height;
+            //float v3z       = (float)( depth.GetGreyLvl ( i + 1, j + 1 ) ) / maxDepth;
+
+            glColor3fv ( v0c );
+            glVertex3f ( v0x, v0y, v0z );
+
+            //glColor3fv ( v2c );
+            //glVertex3f ( v2x, v2y, v2z );
+
+            //glColor3fv ( v1c );
+            //glVertex3f ( v1x, v1y, v1z );
+
+            //glColor3fv ( v1c );
+            //glVertex3f ( v1x, v1y, v1z );
+
+            //glColor3fv ( v2c );
+            //glVertex3f ( v2x, v2y, v2z );
+
+            //glColor3fv ( v3c );
+            //glVertex3f ( v3x, v3y, v3z );
         }
     }
-
     glEnd();
 }
 

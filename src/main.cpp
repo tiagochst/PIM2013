@@ -125,8 +125,8 @@ int main(int argc, char** argv) {
 
     try {
         Image::TrackPixels( frame0, frame1, 17, 17, 9, 9, dispX, dispY );
-        dispX.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1x.pgm");
-        dispY.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1y.pgm");
+        dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1x.pgm");
+        dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1y.pgm");
     } catch (BadIndex bi) {
         std::cout << bi.what();
     }
@@ -140,22 +140,9 @@ int main(int argc, char** argv) {
     }    
     fullSpectre.CreateAsciiPgm(Config::OutputPath() + "fullSpectre.pgm");
 
-    //Image ft = frame0.FourierTransform();
-    //ft.CreateAsciiPgm(Config::OutputPath() + "Frame0FT.pgm");
-    
-    //Image corr01 = frame0.Correlation(frame1);
-    //Image corr10 = frame1.Correlation(frame0);
-    //corr01.CreateAsciiPgm("corr01");
-    //corr10.CreateAsciiPgm("corr10");
-
-    Image diff01 = frame0.Difference(frame1);
-    Image diff10 = frame1.Difference(frame0);
-    diff01.CreateAsciiPgm(Config::OutputPath() + "diff01.pgm");
-    diff10.CreateAsciiPgm(Config::OutputPath() + "diff10.pgm");
-
     char c;
-    puts ("Select Mode: Kinect ('k') Other:('o')");
-    c = getchar();
+    std::cout << "Select Mode: Kinect ('k') Quit ('q')" << std::endl;
+    std::cin  >> c; 
     if ( c == 'k' ) {
         KinectInit(argc, argv);
     }
@@ -163,5 +150,4 @@ int main(int argc, char** argv) {
     
     return 0;
 }
-
 

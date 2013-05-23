@@ -7,6 +7,9 @@
 #include <cmath>
 #include "Image.h"
 
+#include "Config.h"
+#include <iomanip>
+
 inline bool IsOdd( const int iVal )
 {
     return !(iVal & 0x1);
@@ -426,25 +429,65 @@ void Image::TrackPixels(
     for ( int x = 0; x < iRefImage.GetWidth(); x++ ) {
         #pragma omp parallel for 
         for ( int y = 0; y < iRefImage.GetHeight(); y++ ) {
-            CartesianCoordinate bestMatch;
-            Image neighbourhood( iNeighbourhoodWidth, iNeighbourhoodHeight, 65535 );
-            CartesianCoordinate nCenter = neighbourhood.Center();
-            CartesianCoordinate wCenter( iWindowWidth / 2, iWindowHeight / 2 );
+            CartesianCoordinate bestMatchL;
+            Image neighbourhoodL ( iNeighbourhoodWidth, iNeighbourhoodHeight, 65535 );
+            Image correlationMapL ( iWindowWidth, iWindowHeight, 65535 );
 
-            Rectangle nRegion( x - nCenter.x,
+            CartesianCoordinate bestMatchR;
+            Image neighbourhoodR ( iNeighbourhoodWidth, iNeighbourhoodHeight, 65535 );
+            Image correlationMapR ( iWindowWidth, iWindowHeight, 65535 );
+
+            CartesianCoordinate nCenter = neighbourhoodL.Center();
+            CartesianCoordinate wCenter ( iWindowWidth / 2, iWindowHeight / 2 );
+
+            Rectangle nRegionL( x - nCenter.x,
                                 y - nCenter.y, 
                                 iNeighbourhoodWidth,
                                 iNeighbourhoodHeight );
-            Rectangle wRegion( x - wCenter.x,
+            Rectangle nRegionR( x - nCenter.x + 1,
+                                y - nCenter.y, 
+                                iNeighbourhoodWidth,
+                                iNeighbourhoodHeight );
+            Rectangle wRegionL( x - wCenter.x,
                                 y - wCenter.y,
                                 iWindowWidth,
                                 iWindowHeight );
-            iRefImage.SubImage( nRegion, neighbourhood );
+            Rectangle wRegionR( x - wCenter.x + 1,
+                                y - wCenter.y,
+                                iWindowWidth,
+                                iWindowHeight );
+            iRefImage.SubImage( nRegionL, neighbourhoodL );
+            iRefImage.SubImage( nRegionR, neighbourhoodR );
 
-            iTargetImage.TemplateMatch( neighbourhood, wRegion, bestMatch );
+            iTargetImage.TemplateMatch( neighbourhoodL, wRegionL, bestMatchL, &correlationMapL );
+            iTargetImage.TemplateMatch( neighbourhoodR, wRegionR, bestMatchR, &correlationMapR );
+            
+            CartesianCoordinate bestMatch;
+
+            static const float inf = std::numeric_limits<float>::infinity();
+            float bestR = -inf;
+            float bestL = -inf;
+            for ( int i = 0; i < correlationMapL.GetWidth (); i++ ) {
+                for ( int j = 0; j < correlationMapL.GetHeight (); j++ ) {
+                    float leftVal  = correlationMapL.GetNormed ( j, i );
+                    float rightVal = correlationMapR.GetNormed ( j, i );
+    
+                    if (
+                            leftVal > bestL
+                        && rightVal > bestR
+                    ) {
+                        bestMatch.x = i + wRegionL.X();
+                        bestMatch.y = j + wRegionL.Y();                        
+
+                        bestL = leftVal;
+                        bestR = rightVal;
+                    }
+                }
+            }
 
             int valX = 10 * (bestMatch.x - x);
             int valY = 10 * (bestMatch.y - y);
+
             
             oDisplacementMapX.SetGreyLvl( y, x, valX );
             oDisplacementMapY.SetGreyLvl( y, x, valY );

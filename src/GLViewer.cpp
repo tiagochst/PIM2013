@@ -28,10 +28,10 @@ QString GLViewer::helpString() const {
 void GLViewer::init() {
 
     ParameterHandler* params = ParameterHandler::Instance();
-    std::string frameID = std::to_string(params -> GetFrame());
+    std::string frameID = std::to_string(params -> GetFrame1());
     
     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
-    
+    std::cout << "showing image" <<  frameID << std::endl;
     m_frame = Image(RES_IMG_PATH + "image_" + frameID + ".pgm");
     m_depth = Image(RES_IMG_PATH + "depth_" + frameID + ".pgm");
 
@@ -58,7 +58,6 @@ void GLViewer::init() {
 
     glEnable( GL_POINT_SPRITE ); // GL_POINT_SPRITE_ARB if you're
                                  // using the functionality as an extension.
-
     glDisable( GL_LIGHTING );
     //glEnable( GL_CULL_FACE );
     glEnable( GL_POINT_SMOOTH );
@@ -67,8 +66,6 @@ void GLViewer::init() {
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     // Add a manipulated frame to the viewer.
-    // If you are not "using namespace qglqglviewer", you need
-    // to specify: new qglviewer::ManipulatedFrame().
     setManipulatedFrame(new qglviewer::ManipulatedFrame());
     
     restoreStateFromFile();

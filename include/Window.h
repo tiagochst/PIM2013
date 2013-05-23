@@ -73,7 +73,10 @@ public slots :
     void createMesh();
     void GLViewerHelp ();
     void saveGLImage ();
-    void setFrame(int iFrame);
+    void setFrame1(int iFrame);
+    void setFrame2(int iFrame);
+    void setMesh();
+    void setDisplacement();
 
 private :
     void initControlWidget ();
@@ -83,8 +86,10 @@ private :
     GLViewer     * viewer;            //!< The GLViewer (central window)
     QPushButton  * createMeshPB;
     QPushButton  * snapshotButton;
-    QComboBox    * frameComboBox;
-
+    QComboBox    * frame1ComboBox;
+    QComboBox    * frame2ComboBox;
+    QLabel       * myLabel;
+    QWidget      * centralwidget;
 };
 
 

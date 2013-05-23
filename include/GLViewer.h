@@ -40,5 +40,6 @@ protected :
  private : 
     Image m_frame;
     Image m_depth;
+
 };
 #endif // GLVIEWER_H

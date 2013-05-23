@@ -1,17 +1,40 @@
 #include <GL/glew.h>
 #include "Window.h"
-
+ #include <QGraphicsScene>
 using namespace std;
 
+void Window::setMesh(){
+  viewer -> reset();
+  setCentralWidget (viewer);
+}
+
+void Window::setDisplacement(){
+  setCentralWidget (myLabel);
+}
 
 /*!
  *  \brief  Set the new scene selected from the box
  *  \param  scene Number of the scene
  */
-void Window::setFrame(int iFrame) {
+void Window::setFrame1(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
-    params -> SetFrame(iFrame);
+    params -> SetFrame1(iFrame);
+
+    /* FIXME: Bug inside reset, maybe missing free */
     viewer -> reset();
+    setCentralWidget (viewer);
+}
+
+void Window::setFrame2(int iFrame) {
+    ParameterHandler* params = ParameterHandler::Instance();
+    params -> SetFrame2(iFrame);
+    //    viewer -> reset();
+    std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
+    std::string frameID = std::to_string(params -> GetFrame2());
+
+    myLabel = new QLabel;
+    myLabel -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
+    setCentralWidget(myLabel);    
 }
 
 /*!
@@ -27,6 +50,7 @@ void Window::saveGLImage () {
 void Window::addImageItems()
 {
     static const std::string IMG_LIST_PATH(Config::OutputPath() + "CapturedFrames/list.txt");
+
     QFile imageList(IMG_LIST_PATH.c_str());
     QString fileName;
     
@@ -44,7 +68,9 @@ void Window::addImageItems()
         {
             QStringList list = fileName.split("_"); // Slipt in image_ and ID.pgm
             QStringList id = list.at(1).split("."); // Slipt in id and pgm
-            frameComboBox -> addItem(id.at(0),QVariant::Char); // Show the ID
+	    /* Show the ID in the combo box*/
+            frame1ComboBox -> addItem(id.at(0),QVariant::Char); 
+            frame2ComboBox -> addItem(id.at(0),QVariant::Char); 
         }
     }
 
@@ -60,7 +86,8 @@ void Window::addImageItems()
 Window::Window () : QMainWindow (NULL) {
 
     /* creates the list of images in the system*/
-    static const std::string IMAGE_LIST(" ls " + Config::OutputPath() + "CapturedFrames/ >" + Config::OutputPath() + "CapturedFrames/list.txt");
+    static const std::string IMAGE_LIST(" ls -B --ignore=list.txt " + Config::OutputPath() + "CapturedFrames/ >" + Config::OutputPath() + "CapturedFrames/list.txt");
+
     system(IMAGE_LIST.c_str());
    
     try {
@@ -70,6 +97,13 @@ Window::Window () : QMainWindow (NULL) {
         exit (1);
     }
     setCentralWidget (viewer);
+
+    ParameterHandler* params = ParameterHandler::Instance();
+    std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
+    std::string frameID = std::to_string(params -> GetFrame2());
+
+    myLabel = new QLabel;
+    myLabel -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
 
     /* Adding settings to upper menu */
     /* Adding quit and about buttons to upper menu */
@@ -147,21 +181,28 @@ void Window::initControlWidget () {
     QVBoxLayout * previewLayout = new QVBoxLayout (previewGroupBox);
     
     /* Creating tables for frame selection */
-    frameComboBox = new QComboBox (previewGroupBox);
+    frame1ComboBox = new QComboBox (previewGroupBox);
+    frame2ComboBox = new QComboBox (previewGroupBox);
     addImageItems();
-    connect (frameComboBox, SIGNAL (currentIndexChanged(int)), this, SLOT (setFrame (int)));
+    connect (frame1ComboBox, SIGNAL (currentIndexChanged(int)), this, SLOT (setFrame1 (int)));
+    connect (frame2ComboBox, SIGNAL (currentIndexChanged(int)), this, SLOT (setFrame2 (int)));
 
-    QLabel      * frameLabel;
-    frameLabel = new QLabel(tr("Frame:"));
-    frameLabel -> setBuddy(frameComboBox);
+    QLabel      * frame1Label;
+    frame1Label = new QLabel(tr("Frame:"));
+    frame1Label -> setBuddy(frame1ComboBox);
+
+    QLabel      * frame2Label;
+    frame2Label = new QLabel(tr("Frame 2:"));
+    frame2Label -> setBuddy(frame2ComboBox);
 
     QWidget *generalLayoutWidget = new QWidget(previewGroupBox);
     QFormLayout *generalFormLayout = new QFormLayout(generalLayoutWidget);
     generalFormLayout -> setContentsMargins(0, 0, 0, 0);
-    generalFormLayout -> setWidget(0, QFormLayout::LabelRole, frameLabel);
-    generalFormLayout -> setWidget(0, QFormLayout::FieldRole, frameComboBox);
+    generalFormLayout -> setWidget(0, QFormLayout::LabelRole, frame1Label);
+    generalFormLayout -> setWidget(0, QFormLayout::FieldRole, frame1ComboBox);
+    generalFormLayout -> setWidget(1, QFormLayout::LabelRole, frame2Label);
+    generalFormLayout -> setWidget(1, QFormLayout::FieldRole, frame2ComboBox);
     /* End of  frame selection */
-
 
     createMeshPB  = new QPushButton ("Create Mesh", previewGroupBox);
     connect (createMeshPB, SIGNAL (clicked ()) , this, SLOT (createMesh()));
@@ -169,10 +210,19 @@ void Window::initControlWidget () {
     QRadioButton * displacementRB =  new QRadioButton("Displacement", previewGroupBox);
     QRadioButton * meshRB = new QRadioButton("Mesh", previewGroupBox);
     meshRB -> setChecked(true);
+    frame2ComboBox -> setDisabled(true);
 
     snapshotButton  = new QPushButton ("Save preview", previewGroupBox);
     connect (snapshotButton, SIGNAL (clicked ()) , this, SLOT (saveGLImage ()));
     
+    /* Mesh showing: Disabling image 2 selection */
+    connect(meshRB, SIGNAL(toggled(bool)), frame2ComboBox, SLOT(setDisabled(bool)));
+
+    ParameterHandler* params = ParameterHandler::Instance();
+    connect(meshRB, SIGNAL(toggled(bool)), this, SLOT(setMesh()));
+    connect(displacementRB, SIGNAL(toggled(bool)), this, SLOT(setDisplacement()));
+
+
     /* Add widgets to layout*/
     previewLayout -> addWidget (generalLayoutWidget);
     previewLayout -> addWidget (displacementRB);
@@ -183,7 +233,6 @@ void Window::initControlWidget () {
     /* Add widgets to left dock layout*/
     layout -> addWidget (previewGroupBox);
     layout -> addStretch (0);
-
 }
 
 /*!

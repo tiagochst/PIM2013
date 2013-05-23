@@ -1,7 +1,13 @@
 #ifndef _CAMERA_H__
 #define _CAMERA_H__
 
+#include <XnOpenNI.h>
+#include <XnLog.h>
+#include <XnCodecIDs.h>
 #include <XnCppWrapper.h>
+#include <XnPlatform.h>
+#include <GL/gl.h>
+#include <XnTypes.h>
 #include <XnOS.h>
 #include <GL/glut.h>
 #include <math.h>

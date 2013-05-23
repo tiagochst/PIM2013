@@ -6,11 +6,13 @@
 class ParameterHandler
 {    
 private:
-    int             m_frame;
+    int             m_frame1;
+    int             m_frame2;
 
 private:
     ParameterHandler ()
-        :   m_frame(0)
+      :   m_frame1(0),
+          m_frame2(0)
     {}
     ~ParameterHandler ()
     {}
@@ -22,11 +24,18 @@ public:
         return &_instance;
     }
 
-    void SetFrame (
+    void SetFrame1 (
         const int&             iFrame
     );
 
-    const int& GetFrame () const;
+    const int& GetFrame1 () const;
+
+    void SetFrame2 (
+        const int&             iFrame
+    );
+
+    const int& GetFrame2 () const;
+
 };
 
 #endif // PARAMETERHANDLER_H

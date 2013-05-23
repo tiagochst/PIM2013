@@ -153,6 +153,8 @@ int Camera::Display()
     rc = m_rContext.WaitAnyUpdateAll();
     CHECK_RC(rc,"Read failed");
 
+    captureSingleFrame();
+    
     m_depth.GetMetaData(m_depthMD);
     m_image.GetMetaData(m_imageMD);
 

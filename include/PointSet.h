@@ -17,6 +17,14 @@ public:
     void LoadPlyFile(const char* iFilename);
     void LoadFromFile(const std::string& iFilename);
     void WriteToFile(const std::string& iFilename);
+
+    void PushVertex ( const Vertex& iVertex );
 };
+
+inline void PointSet::PushVertex (
+    const Vertex& iVertex
+) {
+    m_vertices.push_back ( iVertex );
+}
 
 #endif

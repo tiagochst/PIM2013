@@ -10,13 +10,14 @@ private:
     std::vector<Vertex>     m_vertices;
     
 public:
-    PointSet(void);
-    PointSet(const std::string& iFilename);
-    ~PointSet(void);
+    PointSet ( void );
+    PointSet ( const std::string& iFilename );
+    ~PointSet ( void );
 
-    void LoadPlyFile(const char* iFilename);
-    void LoadFromFile(const std::string& iFilename);
-    void WriteToFile(const std::string& iFilename);
+    void LoadPlyFile ( const char* iFilename );
+    void LoadFromFile ( const std::string& iFilename );
+    void WritePlyFile ( const char* iFilename );
+    void WriteToFile ( const std::string& iFilename );
 
     void PushVertex ( const Vertex& iVertex );
 };

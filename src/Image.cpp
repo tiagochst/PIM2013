@@ -10,34 +10,12 @@
 #include "Config.h"
 #include <iomanip>
 
-inline bool IsOdd( const int iVal )
 {
-    return !(iVal & 0x1);
-}
-template<typename T>
-inline bool InRange( 
-    const T& iVal, 
-    const T& iMin, 
-    const T& iMax
-) {
-    return ( ( iVal >= iMin  ) && ( iVal <= iMax ) );
 }
 
-inline int abs( const int iVal )
 {
-    return (iVal < 0) ? -iVal : iVal;
 }
 
-template<typename T>
-inline T min( const T& a, const T& b )
-{
-    return ( (a <= b) ? a : b );    
-}
-template<typename T>
-inline T max( const T& a, const T& b )
-{
-    return ( (a >= b) ? a : b );    
-}
 
 Image::Image( const int& iWidth, const int& iHeight, const int& iGreyLevel )
     : m_height( iHeight ), 

@@ -48,6 +48,9 @@ Image::Image()
 }
 
 Image::Image( const std::string& iFilename )
+    : m_height( 1 ), 
+      m_width( 1 ), 
+      m_maxGreyLevel( 1 )
 {
     LoadFromFile( iFilename );
 }
@@ -68,61 +71,68 @@ void Image::LoadFromFile( const std::string& iFilename )
     /* Opening pgm file*/
     std::ifstream inFile( iFilename.c_str(), 
                             std::ifstream::in | std::ifstream::binary );
-
-    /* First line : version of pgm file*/
-    getline( inFile, inputLine );
-
-    if ( inputLine.compare( "P2" ) != 0 && inputLine.compare( "P5" ) != 0 ) {
+    if (inFile.is_open() && inFile.good()) {
+      /* First line : version of pgm file*/
+      getline( inFile, inputLine );
+      
+      if ( inputLine.compare( "P2" ) != 0 && inputLine.compare( "P5" ) != 0 ) {
         std::cerr   << "Version error " 
                     << iFilename.c_str()
                     << " Version: "
                     << inputLine 
                     << std::endl;
-
-    } 
-    if ( inputLine.compare( "P5" ) == 0 ) {
+	
+      } 
+      if ( inputLine.compare( "P5" ) == 0 ) {
         isBinary = 1;
-    }
-
-    /* Second line : comment */
-    getline( inFile, inputLine );
-
-    /* Third  line : size
-       Fourth line : grey level*/
-    inFile >> width >> height >> greyLevel ;
-
-    SetHeight( height );
-    SetWidth( width );
-    SetMaxGreyLevel( greyLevel );
-
-    /* resize matrix to receive the image */
-    m_figure.resize( m_height, m_width );
-    m_normalisedFigure.resize( m_height, m_width );
-
-    if ( isBinary ) {
+      }
+      
+      /* Second line : comment */
+      getline( inFile, inputLine );
+      
+      /* Third  line : size
+	 Fourth line : grey level*/
+      inFile >> width >> height >> greyLevel ;
+      
+      //SetHeight( height );
+      //SetWidth( width );
+      m_width = width;
+      m_height = height;
+      
+      /* resize matrix to receive the image */
+      m_figure.resize( m_height, m_width );
+      m_normalisedFigure.resize( m_height, m_width );
+      
+      //      SetMaxGreyLevel( greyLevel );
+      m_maxGreyLevel = greyLevel;
+      int aux = 0;
+      if ( isBinary ) {
         for ( i = 0; i < height; i++ )
-            for ( j = 0; j < width; j++ ) {
-                m_figure( i, j ) = static_cast<int>( inFile.get() );
-                m_normalisedFigure( i , j ) = (float)m_figure( i, j ) / (float)(greyLevel);
-            }
-
-    } else {
+	  for ( j = 0; j < width; j++ ) {
+	    m_figure( i, j ) = static_cast<int>( inFile.get() );
+	    m_normalisedFigure( i , j ) = (float)m_figure( i, j ) / (float)(greyLevel);
+	  }
+	
+      } else {
         ss << inFile.rdbuf();
-
+	
         for ( i = 0; i < height; i++ ) {
-            for ( j = 0; j < width; j++ ) {
-                ss >> m_figure( i, j );
-                m_normalisedFigure( i , j ) = (float)m_figure( i, j ) / (float)(greyLevel);
-            }
+	  for ( j = 0; j < width; j++ ) {
+	    ss >> m_figure( i, j );
+	    m_normalisedFigure( i , j ) = (float)m_figure( i, j ) / (float)(greyLevel);
+	  }
         }
+      }
+      SetMaxGreyLevel( greyLevel );
+      inFile.close();
     }
-
-    inFile.close();
+    else {
+      std::cerr << "File could not be opened" << std::endl; 
+    }
 }
 
 Image::~Image()
 {
-    // TODO Auto-generated destructor stub
 }
 
 void Image::CreateAsciiPgm( const std::string& iFilename )

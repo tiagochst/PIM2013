@@ -14,8 +14,7 @@
 class GLViewer : public QGLViewer  {
     Q_OBJECT
 public:
-    inline void reset(){init();}
-    
+    void reset();
     GLViewer ();
     virtual ~GLViewer ();
     

@@ -88,7 +88,12 @@ private :
     QPushButton  * snapshotButton;
     QComboBox    * frame1ComboBox;
     QComboBox    * frame2ComboBox;
-    QLabel       * myLabel;
+    QLabel       * img1;
+    QLabel       * img2;
+    QLabel       * dispX;
+    QLabel       * dispY;
+    QWidget      * gridLayoutWidget;
+    QGridLayout  * gridLayout;
     QWidget      * centralwidget;
 };
 

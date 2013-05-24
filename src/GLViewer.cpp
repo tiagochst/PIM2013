@@ -24,6 +24,15 @@ QString GLViewer::helpString() const {
 // -----------------------------------------------
 // Drawing functions
 // -----------------------------------------------
+void GLViewer::reset() {
+     ParameterHandler* params = ParameterHandler::Instance();
+     std::string frameID = std::to_string(params -> GetFrame1());
+    
+     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
+     m_frame.LoadFromFile(RES_IMG_PATH + "image_" + frameID + ".pgm");
+     m_depth.LoadFromFile(RES_IMG_PATH + "depth_" + frameID + ".pgm");
+
+}
 
 void GLViewer::init() {
 

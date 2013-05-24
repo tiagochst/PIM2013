@@ -9,7 +9,8 @@ void Window::setMesh(){
 }
 
 void Window::setDisplacement(){
-  setCentralWidget (myLabel);
+  setFrame2(0);
+  setCentralWidget (gridLayoutWidget);
 }
 
 /*!
@@ -32,9 +33,31 @@ void Window::setFrame2(int iFrame) {
     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
     std::string frameID = std::to_string(params -> GetFrame2());
 
-    myLabel = new QLabel;
-    myLabel -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
-    setCentralWidget(myLabel);    
+    img1 = new QLabel;
+    img1 -> setMaximumSize(QSize(320, 240));
+    img1 -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
+
+    img2 = new QLabel;
+    img2 -> setMaximumSize(QSize(320, 240));
+    img2 -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
+
+    dispX = new QLabel;
+    dispX -> setMaximumSize(QSize(320, 240));
+    dispX -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
+
+    dispY = new QLabel;
+    dispY -> setMaximumSize(QSize(320, 240));
+    dispY -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
+
+    gridLayoutWidget = new QWidget;
+    gridLayout = new QGridLayout(gridLayoutWidget);
+    gridLayout->setContentsMargins(0, 0, 0, 0);
+    gridLayout->addWidget(img1, 0, 0, 1, 1);
+    gridLayout->addWidget(img2, 1, 0, 1, 1);
+    gridLayout->addWidget(dispX, 0, 1, 1, 1);
+    gridLayout->addWidget(dispY, 1, 1, 1, 1);
+    setCentralWidget(gridLayoutWidget);    
+
 }
 
 /*!
@@ -97,13 +120,6 @@ Window::Window () : QMainWindow (NULL) {
         exit (1);
     }
     setCentralWidget (viewer);
-
-    ParameterHandler* params = ParameterHandler::Instance();
-    std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
-    std::string frameID = std::to_string(params -> GetFrame2());
-
-    myLabel = new QLabel;
-    myLabel -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
 
     /* Adding settings to upper menu */
     /* Adding quit and about buttons to upper menu */

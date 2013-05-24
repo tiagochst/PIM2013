@@ -14,6 +14,20 @@
 #include "Config.h"
 //#include "ui_mainInterface.Qt4.h"
 
+class QMyApplication : public QApplication {
+public:
+  QMyApplication(int argc, char**argv) : QApplication(argc,argv) {}
+  bool notify(QObject* receiver, QEvent* event) {
+    //    try {
+    return QApplication::notify(receiver,event);
+    // } catch (...) {
+    //std::cerr << "Unhandled exception caught" <<std::endl;
+    //}
+    //return false;
+  }
+
+};
+
 int KinectInit(int argc, char** argv)
 {
 
@@ -174,10 +188,9 @@ int main(int argc, char** argv) {
     }
 
     if ( c == 'u' ) {
-
-        QApplication program (argc, argv);
+        QMyApplication program (argc, argv);
         //setBoubekQTStyle (raymini);
-        QApplication::setStyle (new QPlastiqueStyle);
+        QMyApplication::setStyle (new QPlastiqueStyle);
         program.setAttribute(Qt::AA_DontUseNativeMenuBar,true);
         Window * progWindow = new Window ();
         progWindow->setWindowTitle ("PIM380: A facial reconstruction program.");

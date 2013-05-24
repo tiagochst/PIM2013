@@ -350,6 +350,7 @@ void Camera::captureSingleFrame()
 {
     Image camImg(m_imageMD.XRes(),m_imageMD.YRes(),255);
     Image camDepth(m_depthMD.XRes(),m_depthMD.YRes(),255); 
+    PointSet pointCloud;
 
     const XnRGB24Pixel* pImageRow = m_imageMD.RGB24Data();
     const XnDepthPixel* pDepthRow = m_depthMD.Data();
@@ -371,6 +372,22 @@ void Camera::captureSingleFrame()
                 camDepth.SetGreyLvl( y, x, m_pDepthHist[*pDepth] );
             }
             
+            Color c ( (int)pImage->nRed, (int)pImage->nGreen, (int)pImage->nBlue );
+            pointCloud.PushVertex (
+                Vertex (
+                    Vec3Df (
+                        (float)x / m_imageMD.YRes(),
+                        (float)( m_imageMD.YRes() - y) / m_imageMD.YRes(),
+                        (float)m_pDepthHist[*pDepth] / 255
+                    ),
+                    Vec3Df (
+                        1,
+                        0,
+                        0
+                    ),
+                    c
+                )
+            );
         }
 
         pImageRow += m_imageMD.XRes();
@@ -383,6 +400,9 @@ void Camera::captureSingleFrame()
 
     str_aux = Config::OutputPath() + "CapturedFrames/depth_"+ Int2Str(m_nbFrames)  +".pgm"; 
     camDepth.CreateAsciiPgm(str_aux);
+
+    str_aux = Config::OutputPath() + "CapturedFrames/pointset_"+ Int2Str(m_nbFrames)  +".ply"; 
+    pointCloud.WriteToFile(str_aux);
     
     /* Frame saved: increase ID*/
     m_nbFrames++;  

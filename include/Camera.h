@@ -9,6 +9,7 @@
 #include <sstream> 
 #include <string> 
 #include "Image.h"
+#include "PointSet.h"
 
 //----------------------------------------------------------
 // Defines

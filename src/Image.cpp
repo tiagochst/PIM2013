@@ -13,7 +13,13 @@
 {
 }
 
+Image::Image (
+    const std::string& iFilename
+)   :   m_height ( 1 ), 
+        m_width ( 1 ), 
+        m_maxGreyLevel ( 0 )
 {
+    LoadFromFile ( iFilename );
 }
 
 
@@ -23,11 +29,6 @@ Image::Image( const int& iWidth, const int& iHeight, const int& iGreyLevel )
       m_maxGreyLevel( iGreyLevel )
 {
     ResetMatrix();
-}
-
-Image::Image( const std::string& iFilename )
-{
-    LoadFromFile( iFilename );
 }
 
 
@@ -63,13 +64,8 @@ void Image::LoadFromFile( const std::string& iFilename )
        Fourth line : grey level*/
     inFile >> width >> height >> greyLevel ;
 
-    SetHeight( height );
-    SetWidth( width );
-    SetMaxGreyLevel( greyLevel );
-
-    /* resize matrix to receive the image */
-    m_figure.resize( m_height, m_width );
-    m_normalisedFigure.resize( m_height, m_width );
+    SetDimensions ( width, height );
+    SetMaxGreyLevel ( greyLevel );
 
     if ( isBinary ) {
         for ( i = 0; i < height; i++ )

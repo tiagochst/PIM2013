@@ -30,11 +30,6 @@ Image::Image( const std::string& iFilename )
     LoadFromFile( iFilename );
 }
 
-void Image::ResetMatrix()
-{
-    m_figure.resize( m_height, m_width );
-    m_normalisedFigure.resize( m_height, m_width );
-}
 
 void Image::LoadFromFile( const std::string& iFilename )
 {
@@ -122,74 +117,6 @@ void Image::CreateAsciiPgm( const std::string& iFilename )
     ostr.close();
 }
 
-void Image::SetGreyLvl( const int& iRow, const int& iCol, const int& iValue )
-{
-    if ( InRange( iCol, 0, m_width  - 1 ) &&
-         InRange( iRow, 0, m_height - 1 ) ) {
-        m_figure( iRow, iCol ) = iValue;
-        m_normalisedFigure( iRow, iCol ) = (float)iValue / (float)m_maxGreyLevel;
-    } else {
-        throw BadIndex( iCol, iRow );
-    }
-}
-void Image::SetNormed( const int& iRow, const int& iCol, const float& iValue )
-{
-    if ( InRange( iCol, 0, m_width  - 1 ) &&
-         InRange( iRow, 0, m_height - 1 ) ) {
-        m_figure( iRow, iCol ) = iValue * m_maxGreyLevel;
-        m_normalisedFigure( iRow, iCol ) = iValue;
-    } else {
-        throw BadIndex( iCol, iRow );
-    }
-}
-void Image::SetGreyLvl( const CartesianCoordinate& iPos, const int& iValue )
-{
-    SetGreyLvl( iPos.y, iPos.x, iValue );
-}
-void Image::SetNormed( const CartesianCoordinate& iPos, const float& iValue )
-{
-    SetNormed( iPos.y, iPos.x, iValue );
-}
-const int&   Image::GetGreyLvl( const int& iRow, const int& iCol ) const
-{
-    int row = abs(iRow);
-    int col = abs(iCol);
-    row = IsOdd(row / m_height) ? (row % m_height) : (m_height - (row % m_height) - 1);
-    col = IsOdd(col / m_width ) ? (col % m_width ) : (m_width  - (col % m_width ) - 1);
-    
-    return m_figure( row, col );
-
-    //if ( InRange(iRow, 0,  m_height - 1) && 
-    //     InRange(iCol, 0,  m_width  - 1) ) {
-    //    return m_figure( iRow, iCol );
-    //} else {
-    //    return 0;
-    //}
-}
-const int&   Image::GetGreyLvl( const CartesianCoordinate& iPos ) const
-{
-    return GetGreyLvl( iPos.y, iPos.x );
-}
-const float& Image::GetNormed( const int& iRow, const int& iCol ) const
-{
-    int row = abs(iRow);
-    int col = abs(iCol);
-    row = IsOdd(row / m_height) ? (row % m_height) : (m_height - (row % m_height) - 1);
-    col = IsOdd(col / m_width ) ? (col % m_width ) : (m_width  - (col % m_width ) - 1);
-
-    return m_normalisedFigure( row, col );
-
-    //if ( InRange(iRow, 0,  m_height - 1) && 
-    //     InRange(iCol, 0,  m_width  - 1) ) {
-    //    return m_normalisedFigure( iRow, iCol );
-    //} else {
-    //    return 0.0f;
-    //}
-}
-const float& Image::GetNormed( const CartesianCoordinate& iPos ) const
-{
-    return GetNormed( iPos.y, iPos.x );
-}
 
 float Image::Correlation( const Image& iOther ) const
 {
@@ -248,11 +175,6 @@ void Image::SubImage(
             oSubImage.SetGreyLvl( subCoord, GetGreyLvl( imgCoord ) );
         }
     }
-}
-
-CartesianCoordinate Image::Center() const 
-{
-    return CartesianCoordinate( m_width / 2, m_height / 2 );
 }
 
 Image Image::FourierTransform() const
@@ -528,36 +450,4 @@ void Image::RecalculateNormalised()
     }
 }
 
-void Image::SetHeight( const int& iHeight )
-{
-    m_height = iHeight;
-    ResetMatrix();
-}
-
-void Image::SetWidth( const int& iWidth )
-{
-    m_width = iWidth;
-    ResetMatrix();
-}
-
-void Image::SetMaxGreyLevel( const int& iGreyLevel )
-{
-    m_maxGreyLevel = iGreyLevel;
-    RecalculateNormalised();
-}
-
-int const& Image::GetHeight() const
-{
-    return m_height;
-}
-
-int const& Image::GetWidth() const
-{
-    return m_width;
-}
-
-int const& Image::GetMaxGreyLevel() const
-{
-    return m_maxGreyLevel;
-}
 

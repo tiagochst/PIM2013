@@ -123,13 +123,13 @@ int main(int argc, char** argv) {
         &window
     );
 
-    try {
-        Image::TrackPixels( frame0, frame1, 17, 17, 9, 9, dispX, dispY );
-        dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1x.pgm");
-        dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1y.pgm");
-    } catch (BadIndex bi) {
-        std::cout << bi.what();
-    }
+    //try {
+    //    Image::TrackPixels( frame0, frame1, 17, 17, 9, 9, dispX, dispY );
+    //    dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1x.pgm");
+    //    dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1y.pgm");
+    //} catch (BadIndex bi) {
+    //    std::cout << bi.what();
+    //}
     Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
     for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
         for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {

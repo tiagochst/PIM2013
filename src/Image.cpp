@@ -10,7 +10,15 @@
 #include "Config.h"
 #include <iomanip>
 
+Image::Image (
+    const int& iWidth,
+    const int& iHeight,
+    const int& iGreyLevel
+)   :   m_height ( iHeight ), 
+        m_width ( iWidth ), 
+        m_maxGreyLevel ( iGreyLevel )
 {
+    ResetMatrix ();
 }
 
 Image::Image (
@@ -22,29 +30,22 @@ Image::Image (
     LoadFromFile ( iFilename );
 }
 
-
-Image::Image( const int& iWidth, const int& iHeight, const int& iGreyLevel )
-    : m_height( iHeight ), 
-      m_width( iWidth ), 
-      m_maxGreyLevel( iGreyLevel )
-{
-    ResetMatrix();
-}
-
-
-void Image::LoadFromFile( const std::string& iFilename )
-{
+void Image::LoadFromFile (
+    const std::string& iFilename
+) {
     int width = 0, height = 0, greyLevel = 0, i = 0, j = 0;
     int isBinary = 0;
     std::stringstream ss;
     std::string inputLine = "";
 
     /* Opening pgm file*/
-    std::ifstream inFile( iFilename.c_str(), 
-                            std::ifstream::in | std::ifstream::binary );
+    std::ifstream inFile (
+        iFilename.c_str (), 
+        std::ifstream::in | std::ifstream::binary
+    );
 
     /* First line : version of pgm file*/
-    getline( inFile, inputLine );
+    getline ( inFile, inputLine );
 
     if ( inputLine.compare( "P2" ) != 0 && inputLine.compare( "P5" ) != 0 ) {
         std::cerr   << "Version error " 
@@ -133,93 +134,106 @@ float Image::Correlation( const Image& iOther ) const
     return correlation;
 }
 
-void Image::SubImage(
+void Image::SubImage (
     const Rectangle&    iRegion,
     Image&              oSubImage
 ) const {
-    SubImage(
-        iRegion.X(),
-        iRegion.Y(),
-        iRegion.Width(),
-        iRegion.Height(),
+    SubImage (
+        iRegion.X (),
+        iRegion.Y (),
+        iRegion.Width (),
+        iRegion.Height (),
         oSubImage
     );
 }
 
-void Image::SubImage(
+void Image::SubImage (
     const int&  iX,
     const int&  iY,
     const int&  iWidth,
     const int&  iHeight,
     Image&      oSubImage
 ) const {
-    if ( oSubImage.GetHeight() != iHeight ) {
-        oSubImage.SetHeight( iHeight );
+    if ( oSubImage.GetHeight () != iHeight ) {
+        oSubImage.SetHeight ( iHeight );
     }
-    if ( oSubImage.GetWidth() != iWidth ) {
-        oSubImage.SetWidth( iWidth );
+    if ( oSubImage.GetWidth () != iWidth ) {
+        oSubImage.SetWidth ( iWidth );
     }
-    if ( oSubImage.GetMaxGreyLevel() != m_maxGreyLevel ) {
-        oSubImage.SetMaxGreyLevel( m_maxGreyLevel );
+    if ( oSubImage.GetMaxGreyLevel () != m_maxGreyLevel ) {
+        oSubImage.SetMaxGreyLevel ( m_maxGreyLevel );
     }
 
     for ( int x = 0; x < iWidth; x++ ) {
         for ( int y = 0; y < iHeight; y++ ) {
-            CartesianCoordinate subCoord(      x,      y );
-            CartesianCoordinate imgCoord( iX + x, iY + y );
+            CartesianCoordinate subCoord (      x,      y );
+            CartesianCoordinate imgCoord ( iX + x, iY + y );
             
-            oSubImage.SetGreyLvl( subCoord, GetGreyLvl( imgCoord ) );
+            oSubImage.SetGreyLvl ( subCoord, GetGreyLvl ( imgCoord ) );
         }
     }
 }
 
-Image Image::FourierTransform() const
+Image Image::FourierTransform () const
 {
-    Image transform( m_width, m_height, 65535 );
+    Image transform ( m_width, m_height, 65535 );
 
     float maxVal = 0;
     for ( int x = 0; x < m_width; x++ ) {
         for ( int y = 0; y < m_height; y++ ) {
-            CartesianCoordinate transCoord( x, y );
+            CartesianCoordinate transCoord ( x, y );
+
             float ftVal = 0;
+            
             for ( int xx = 0; xx < m_width; xx++ ) {
                 for ( int yy = 0; yy < m_height; yy++ ) {
-                    CartesianCoordinate myCoord( xx, yy );
+                    CartesianCoordinate myCoord ( xx, yy );
 
-                    float myVal = GetNormed( myCoord ); 
+                    float myVal = GetNormed ( myCoord ); 
                     float arg = -2 * M_PI;
                     arg *= ( ( x * xx / m_width ) + ( y * yy / m_height ) );
                     
-                    float re = myVal * cos(arg); 
-                    float im = myVal * sin(arg); 
+                    float re = myVal * cos ( arg ); 
+                    float im = myVal * sin ( arg ); 
                     
-                    ftVal += sqrt(re*re + im*im); 
+                    ftVal += sqrt ( re * re + im * im ); 
                 }
             }    
-            transform.SetNormed( transCoord, ftVal ); 
+            transform.SetNormed ( transCoord, ftVal ); 
             
-            maxVal = max(ftVal, maxVal);
+            maxVal = max ( ftVal, maxVal );
         }
     }    
-    for ( int x = 0; x < m_width; x++ ) {
-        for ( int y = 0; y < m_height; y++ ) {
-            CartesianCoordinate c( x, y );
+    for (
+        int x = 0;
+        x < m_width;
+        x++
+    ) {
+        for (
+            int y = 0;
+            y < m_height;
+            y++
+        ) {
+            CartesianCoordinate c ( x, y );
 
-            transform.SetNormed( c, transform.GetNormed(c) / maxVal );
+            transform.SetNormed (
+                c,
+                transform.GetNormed ( c ) / maxVal
+            );
         }
     }
-    transform.RecalculateGreyLvl();
+    transform.RecalculateGreyLvl ();
 
     return transform;
 }
 
-float Image::TemplateMatch(
+float Image::TemplateMatch (
     const Image&            iMask,
     CartesianCoordinate&    oBestMatch,
     Image*                  oCorrelationMap
 ) const {
-    Rectangle window( 0, 0, m_width, m_height );
-    TemplateMatch(
+    Rectangle window ( 0, 0, m_width, m_height );
+    TemplateMatch (
         iMask,
         window,
         oBestMatch,

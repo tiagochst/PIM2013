@@ -40,7 +40,7 @@ void GLViewer::init() {
     std::string frameID = std::to_string(params -> GetFrame1());
     
     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
-    std::cout << "showing image" <<  frameID << std::endl;
+
     m_frame = Image(RES_IMG_PATH + "image_" + frameID + ".pgm");
     m_depth = Image(RES_IMG_PATH + "depth_" + frameID + ".pgm");
 

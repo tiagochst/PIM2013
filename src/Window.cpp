@@ -3,10 +3,11 @@
  #include <QGraphicsScene>
 using namespace std;
 
-void Window::setMesh(){
-
+void Window::setMesh(bool b){
+  ParameterHandler* params = ParameterHandler::Instance();
+  params -> SetMesh(b);
+  
   try {
-    delete viewer;
     viewer = new GLViewer;
   } catch (GLViewer::Exception e) {
     cerr << e.getMessage () << endl;
@@ -15,12 +16,13 @@ void Window::setMesh(){
   
   removeDockWidget(controlDockWidget); 
   setCentralWidget (viewer);
-  controlDockWidget ->setMaximumWidth(150 );
+  controlDockWidget -> setMaximumWidth(150 );
   restoreDockWidget ( controlDockWidget );
 }
 
-void Window::setDisplacement(){
-  setFrame2(0);
+void Window::setDisplacement(bool b){
+  ParameterHandler* params = ParameterHandler::Instance();
+  updateImages();
   setCentralWidget (gridLayoutWidget);
 }
 
@@ -31,15 +33,18 @@ void Window::setDisplacement(){
 void Window::setFrame1(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetFrame1(iFrame);
-
-    /* FIXME: Bug inside reset, maybe missing free */
-    viewer -> reset();
-    setCentralWidget (viewer);
+ 
+   if(params -> GetMesh()){
+      viewer -> reset();
+      setCentralWidget (viewer);
+    }
+    else{
+      updateImages();
+    }
 }
 
-void Window::setFrame2(int iFrame) {
+void Window::updateImages() {
     ParameterHandler* params = ParameterHandler::Instance();
-    params -> SetFrame2(iFrame);
     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
     std::string frameID1 = std::to_string(params -> GetFrame1());
     std::string frameID2 = std::to_string(params -> GetFrame2());
@@ -68,7 +73,12 @@ void Window::setFrame2(int iFrame) {
     gridLayout->addWidget(dispX, 1, 0, 1, 1);
     gridLayout->addWidget(dispY, 1, 1, 1, 1);
     setCentralWidget(gridLayoutWidget);    
+}
 
+void Window::setFrame2(int iFrame) {
+    ParameterHandler* params = ParameterHandler::Instance();
+    params -> SetFrame2(iFrame);
+    updateImages();
 }
 
 /*!
@@ -250,8 +260,8 @@ void Window::initControlWidget () {
     connect(meshRB, SIGNAL(toggled(bool)), frame2ComboBox, SLOT(setDisabled(bool)));
 
     ParameterHandler* params = ParameterHandler::Instance();
-    connect(meshRB, SIGNAL(toggled(bool)), this, SLOT(setMesh()));
-    connect(displacementRB, SIGNAL(toggled(bool)), this, SLOT(setDisplacement()));
+    connect(meshRB, SIGNAL(toggled(bool)), this, SLOT(setMesh(bool)));
+    connect(displacementRB, SIGNAL(toggled(bool)), this, SLOT(setDisplacement(bool)));
 
 
     /* Add widgets to layout*/

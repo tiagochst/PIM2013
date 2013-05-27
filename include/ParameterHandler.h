@@ -8,11 +8,13 @@ class ParameterHandler
 private:
     int             m_frame1;
     int             m_frame2;
+    bool            m_mesh;
 
 private:
     ParameterHandler ()
       :   m_frame1(0),
-          m_frame2(0)
+          m_frame2(0),
+          m_mesh(true)
     {}
     ~ParameterHandler ()
     {}
@@ -35,6 +37,10 @@ public:
     );
 
     const int& GetFrame2 () const;
+
+    void SetMesh (const bool& iMesh);
+
+    const bool& GetMesh () const;
 
 };
 

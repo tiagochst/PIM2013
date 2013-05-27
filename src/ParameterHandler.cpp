@@ -25,3 +25,14 @@ const int& ParameterHandler::GetFrame2 () const
     return m_frame2;
     
 }
+
+void ParameterHandler::SetMesh (
+     const bool& iMesh
+) {
+      m_mesh = iMesh;
+};
+
+const bool& ParameterHandler::GetMesh () const
+{
+      return m_mesh;
+};

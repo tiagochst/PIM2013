@@ -75,9 +75,10 @@ public slots :
     void saveGLImage ();
     void setFrame1(int iFrame);
     void setFrame2(int iFrame);
-    void setMesh();
-    void setDisplacement();
+    void setMesh(bool b);
+    void setDisplacement(bool b);
     void createDock();
+    void updateImages();
 
 private :
     void initControlWidget ();

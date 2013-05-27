@@ -269,7 +269,7 @@ void Window::initControlWidget () {
     createMeshPB  = new QPushButton ("Create Mesh", previewGroupBox);
     connect (createMeshPB, SIGNAL (clicked ()) , this, SLOT (createMesh()));
 
-    calcDispPB  = new QPushButton ("Calculate Displacement", previewGroupBox);
+    calcDispPB  = new QPushButton ("Calc Displacement", previewGroupBox);
     connect (calcDispPB, SIGNAL (clicked ()) , this, SLOT (calcDisp()));
 
     QRadioButton * displacementRB =  new QRadioButton("Displacement", previewGroupBox);

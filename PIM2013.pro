@@ -38,9 +38,9 @@ DESTDIR=./bin
 
 unix {
 
-  QMAKE_CFLAGS   += -O3 -fopenmp `pkg-config --cflags openni glu`
+  QMAKE_CFLAGS   += -fopenmp `pkg-config --cflags openni glu`
 
-  QMAKE_CXXFLAGS += -O3 -std=c++0x -fopenmp `pkg-config --cflags openni glu`
+  QMAKE_CXXFLAGS += -std=c++0x -fopenmp `pkg-config --cflags openni glu`
 
 
   LIBS += -lGLEW \

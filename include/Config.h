@@ -13,6 +13,7 @@ private:
     static std::string _dataPath;
     static std::string _outputPath;
     static std::string _configPath;
+    static std::string _capturedFramesPath;
 
 public:
     static void LoadConfigs(const std::string& iFilename);
@@ -21,6 +22,7 @@ public:
     static const std::string& DataPath();
     static const std::string& OutputPath();
     static const std::string& ConfigPath();
+    static const std::string& FramesPath();
 };
 
 #endif

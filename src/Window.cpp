@@ -36,7 +36,7 @@ void Window::setFrame1(int iFrame) {
 
 void Window::calcDisp() {
     ParameterHandler* params = ParameterHandler::Instance();
-    std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
+    std::string RES_IMG_PATH(Config::FramesPath());
     std::string frameID1 = std::to_string(params -> GetFrame1());
     std::string frameID2 = std::to_string(params -> GetFrame2());
 
@@ -57,7 +57,7 @@ void Window::calcDisp() {
 
 void Window::updateImages() {
     ParameterHandler* params = ParameterHandler::Instance();
-    std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
+    std::string RES_IMG_PATH(Config::FramesPath());
     std::string frameID1 = std::to_string(params -> GetFrame1());
     std::string frameID2 = std::to_string(params -> GetFrame2());
 
@@ -108,7 +108,7 @@ void Window::saveGLImage () {
  */
 void Window::addImageItems()
 {
-    static const std::string IMG_LIST_PATH(Config::OutputPath() + "CapturedFrames/list.txt");
+    static const std::string IMG_LIST_PATH(Config::FramesPath() + "list.txt");
 
     QFile imageList(IMG_LIST_PATH.c_str());
     QString fileName;
@@ -162,7 +162,7 @@ Window::Window ()
 {
 
     /* creates the list of images in the system*/
-    static const std::string IMAGE_LIST(" ls -B --ignore=list.txt " + Config::OutputPath() + "CapturedFrames/ >" + Config::OutputPath() + "CapturedFrames/list.txt");
+  static const std::string IMAGE_LIST(" ls -B --ignore=list.txt " + Config::FramesPath() + ">" + Config::FramesPath() + "list.txt");
 
     system(IMAGE_LIST.c_str());
    
@@ -291,7 +291,10 @@ void Window::initControlWidget () {
 
     QRadioButton * displacementRB =  new QRadioButton("Displacement", previewGroupBox);
     QRadioButton * meshRB = new QRadioButton("Mesh", previewGroupBox);
+
+    /*Default option*/
     meshRB -> setChecked(true);
+    calcDispPB -> setDisabled(true);
     frame2ComboBox -> setDisabled(true);
 
     snapshotButton  = new QPushButton ("Save preview", previewGroupBox);
@@ -299,6 +302,8 @@ void Window::initControlWidget () {
     
     /* Mesh showing: Disabling image 2 selection */
     connect(meshRB, SIGNAL(toggled(bool)), frame2ComboBox, SLOT(setDisabled(bool)));
+    connect(displacementRB, SIGNAL(toggled(bool)), snapshotButton, SLOT(setDisabled(bool)));
+    connect(meshRB, SIGNAL(toggled(bool)), calcDispPB, SLOT(setDisabled(bool)));
 
     ParameterHandler* params = ParameterHandler::Instance();
     connect(meshRB, SIGNAL(toggled(bool)), this, SLOT(setMesh(bool)));

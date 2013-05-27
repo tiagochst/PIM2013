@@ -6,6 +6,7 @@ std::string Config::_resourcesPath("");
 std::string Config::_dataPath("");
 std::string Config::_outputPath("");
 std::string Config::_configPath("");
+std::string Config::_capturedFramesPath("");
 
 void Config::LoadConfigs(const std::string& iFilename)
 {
@@ -44,6 +45,9 @@ void Config::LoadConfigs(const std::string& iFilename)
     if ( Config::_outputPath.empty() ) {
         Config::_outputPath = DataPath() + "Output/";
     }
+    if ( Config::_capturedFramesPath.empty() ) {
+        Config::_capturedFramesPath = OutputPath() +  "CapturedFrames/";
+    }
     if ( Config::_configPath.empty() ) {
         Config::_configPath = DataPath() + "Config/";
     }
@@ -63,6 +67,11 @@ const std::string& Config::DataPath()
 const std::string& Config::OutputPath()
 {
     return Config::_outputPath;
+}
+
+const std::string& Config::FramesPath()
+{
+    return Config::_capturedFramesPath;
 }
 const std::string& Config::ConfigPath()
 {

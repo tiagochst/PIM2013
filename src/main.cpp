@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
         program.setAttribute(Qt::AA_DontUseNativeMenuBar,true);
         Window * progWindow = new Window ();
         progWindow->setWindowTitle ("PIM380: A facial reconstruction program.");
-        progWindow->show();
+        progWindow -> showFullScreen();
         program.connect (&program, SIGNAL (lastWindowClosed()), &program, SLOT (quit()));
         
     return program.exec ();

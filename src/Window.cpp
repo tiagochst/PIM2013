@@ -43,6 +43,27 @@ void Window::setFrame1(int iFrame) {
     }
 }
 
+void Window::calcDisp() {
+    ParameterHandler* params = ParameterHandler::Instance();
+    std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
+    std::string frameID1 = std::to_string(params -> GetFrame1());
+    std::string frameID2 = std::to_string(params -> GetFrame2());
+ 
+    Image frame1(RES_IMG_PATH + "image_"+ frameID1 + ".pgm");
+    Image frame2(RES_IMG_PATH + "image_"+ frameID2 + ".pgm");
+    Image dispX( frame1.GetWidth(), frame1.GetHeight(), 255 );
+    Image dispY( frame1.GetWidth(), frame1.GetHeight(), 255 );
+    
+    try {
+      Image::TrackPixels(frame1, frame2, 17, 17, 9, 9, dispX, dispY );
+      dispX.CreateAsciiPgm(Config::OutputPath() + "TrackinF"+ frameID1 + "F"+ frameID2+"x.pgm");
+      dispY.CreateAsciiPgm(Config::OutputPath() + "TrackinF"+ frameID1 + "F"+ frameID2+"y.pgm");
+    } catch (BadIndex bi) {
+      std::cout << bi.what();
+    }
+  
+}
+
 void Window::updateImages() {
     ParameterHandler* params = ParameterHandler::Instance();
     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
@@ -248,6 +269,9 @@ void Window::initControlWidget () {
     createMeshPB  = new QPushButton ("Create Mesh", previewGroupBox);
     connect (createMeshPB, SIGNAL (clicked ()) , this, SLOT (createMesh()));
 
+    calcDispPB  = new QPushButton ("Calculate Displacement", previewGroupBox);
+    connect (calcDispPB, SIGNAL (clicked ()) , this, SLOT (calcDisp()));
+
     QRadioButton * displacementRB =  new QRadioButton("Displacement", previewGroupBox);
     QRadioButton * meshRB = new QRadioButton("Mesh", previewGroupBox);
     meshRB -> setChecked(true);
@@ -263,12 +287,12 @@ void Window::initControlWidget () {
     connect(meshRB, SIGNAL(toggled(bool)), this, SLOT(setMesh(bool)));
     connect(displacementRB, SIGNAL(toggled(bool)), this, SLOT(setDisplacement(bool)));
 
-
     /* Add widgets to layout*/
     previewLayout -> addWidget (generalLayoutWidget);
     previewLayout -> addWidget (displacementRB);
     previewLayout -> addWidget (meshRB);
     previewLayout -> addWidget (createMeshPB);
+    previewLayout -> addWidget (calcDispPB);
     previewLayout -> addWidget (snapshotButton);
 
     /* Add widgets to left dock layout*/

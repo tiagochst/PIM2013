@@ -78,6 +78,7 @@ public slots :
     void setMesh(bool b);
     void setDisplacement(bool b);
     void createDock();
+    void calcDisp();
     void updateImages();
 
 private :
@@ -87,6 +88,7 @@ private :
     QGroupBox    * controlWidget;    //!< The Left dock group box.
     GLViewer     * viewer;            //!< The GLViewer (central window)
     QPushButton  * createMeshPB;
+    QPushButton  * calcDispPB;
     QPushButton  * snapshotButton;
     QComboBox    * frame1ComboBox;
     QComboBox    * frame2ComboBox;

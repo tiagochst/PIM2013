@@ -15,6 +15,7 @@ class GLViewer : public QGLViewer  {
     Q_OBJECT
 public:
     void reset();
+    void init();
     GLViewer ();
     virtual ~GLViewer ();
     
@@ -32,7 +33,6 @@ public:
     //public slots :
     
 protected :
-    void init();
     void draw ();
     QString helpString() const;
 

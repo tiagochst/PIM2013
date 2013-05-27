@@ -4,8 +4,19 @@
 using namespace std;
 
 void Window::setMesh(){
-  viewer -> reset();
+
+  try {
+    delete viewer;
+    viewer = new GLViewer;
+  } catch (GLViewer::Exception e) {
+    cerr << e.getMessage () << endl;
+    exit (1);
+  }
+  
+  removeDockWidget(controlDockWidget); 
   setCentralWidget (viewer);
+  controlDockWidget ->setMaximumWidth(150 );
+  restoreDockWidget ( controlDockWidget );
 }
 
 void Window::setDisplacement(){
@@ -142,6 +153,12 @@ Window::Window () : QMainWindow (NULL) {
     connect(exitAct, SIGNAL(triggered()),
             qApp, SLOT(closeAllWindows()));
 
+    createDock();
+    statusBar()->showMessage("");
+
+}
+
+void Window::createDock () {
 
     /* Defining size policy of the windows */
     QSizePolicy sizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
@@ -149,17 +166,15 @@ Window::Window () : QMainWindow (NULL) {
     sizePolicy.setVerticalStretch(0);
 
     /* Left Doc: exection buttons */
-    QDockWidget * controlDockWidget = new QDockWidget (this);
+    controlDockWidget = new QDockWidget (this);
     initControlWidget ();
     controlDockWidget->setWidget (controlWidget);
     sizePolicy.setHeightForWidth(controlDockWidget->sizePolicy().hasHeightForWidth());
     controlDockWidget->setSizePolicy(sizePolicy);
     addDockWidget (Qt::LeftDockWidgetArea, controlDockWidget);
     controlDockWidget->setFeatures (QDockWidget::AllDockWidgetFeatures);
-    statusBar()->showMessage("");
 
 }
-
 Window::~Window () {
 
 }

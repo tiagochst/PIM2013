@@ -10,11 +10,13 @@
 #include "Config.h"
 #include <iomanip>
 
-Image::Image ()
-    : m_height ( 1 ), 
-      m_width ( 1 ), 
-      m_maxGreyLevel ( 1 )
+Image::Image()
+    :   m_height( 1 ), 
+        m_width( 1 ), 
+        m_maxGreyLevel( 1 )
 {
+    m_figure = Eigen::ArrayXXi::Zero(1, 1);
+    m_normalisedFigure =  Eigen::ArrayXXf::Zero(1 ,1); 
 }
 
 Image::Image (
@@ -25,6 +27,8 @@ Image::Image (
         m_width ( iWidth ), 
         m_maxGreyLevel ( iGreyLevel )
 {
+    m_figure = Eigen::ArrayXXi::Zero(1, 1);
+    m_normalisedFigure =  Eigen::ArrayXXf::Zero(1 ,1); 
     ResetMatrix ();
 }
 

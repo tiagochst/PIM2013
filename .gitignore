@@ -25,6 +25,7 @@ resources/Project/Data/Output/
 bin/
 .tmp
 .qglviewer.xml
+*.user
 
 # Vim temporary files
 *.swp

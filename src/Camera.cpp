@@ -40,6 +40,7 @@ void Camera::glutKeyboard (unsigned char key, int x, int y)
 //------------------------------------------------------------------
 Camera::Camera(xn::Context& context)
     :m_pTexMap(NULL),
+     m_help(0),
      m_nTexMapX(0),
      m_nTexMapY(0),
      m_eViewState(DEFAULT_DISPLAY_MODE),
@@ -152,6 +153,8 @@ int Camera::Display()
     rc = m_rContext.WaitAnyUpdateAll();
     CHECK_RC(rc,"Read failed");
 
+    captureSingleFrame();
+    
     m_depth.GetMetaData(m_depthMD);
     m_image.GetMetaData(m_imageMD);
 
@@ -284,6 +287,10 @@ int Camera::Display()
     // Subclass draw hook
     DisplayPostDraw();
 
+    if(m_help){
+        drawHelpScreen();
+    }
+    
     // Swap the OpenGL display buffers
     glutSwapBuffers();
 
@@ -291,6 +298,10 @@ int Camera::Display()
     
 }
 
+
+/*!
+ *  \brief  Treats an event of button pressed
+ */
 void Camera::OnKey(unsigned char key, int x, int y)
 {
     switch (key)
@@ -315,7 +326,12 @@ void Camera::OnKey(unsigned char key, int x, int y)
         captureSingleFrame();
         break;
     case '?':
-        drawHelpScreen();
+        if(m_help == 0){
+            m_help = 1;
+        }
+        else{
+            m_help = 0;
+        }
         break;
 
     }
@@ -338,29 +354,46 @@ std::string Camera::Int2Str(int nb){
 
 void Camera::captureSingleFrame()
 {
-    Image camImg(m_imageMD.XRes(),m_imageMD.YRes(),65535);
-    Image camDepth(m_depthMD.XRes(),m_depthMD.YRes(),65535); 
+    Image camImg  (m_imageMD.XRes(), m_imageMD.YRes(), 255);
+    Image camDepth(m_depthMD.XRes(), m_depthMD.YRes(), 255); 
+    PointSet pointCloud;
 
-    const XnRGB24Pixel* pImageRow = m_imageMD.RGB24Data();
-    const XnDepthPixel* pDepthRow = m_depthMD.Data();
+    const XnRGB24Pixel * pImageRow = m_imageMD.RGB24Data();
+    const XnDepthPixel * pDepthRow = m_depthMD.Data();
 
     for (XnUInt y = 0; y < m_imageMD.YRes(); ++y)
     {
-        const XnRGB24Pixel* pImage = pImageRow;
-        const XnDepthPixel* pDepth = pDepthRow;
+        const XnRGB24Pixel * pImage = pImageRow;
+        const XnDepthPixel * pDepth = pDepthRow;
         
         for (XnUInt x = 0; x < m_imageMD.XRes(); ++x, ++pImage, ++pDepth)
         {
             /* HDTV rgb to grayscale*/
-            camImg.Set( y, x, pImage->nRed *  0.2126f + \
-                              pImage->nBlue * 0.0722f + \
-                              pImage->nGreen * 0.7152f );
+            camImg.SetGreyLvl( y, x, pImage -> nRed   * 0.2126f + \
+                                     pImage -> nBlue  * 0.0722f + \
+                                     pImage -> nGreen * 0.7152f );
             /* HDTV rgb to grayscale*/
             if (*pDepth != 0)
             {
-                camDepth.Set( y, x, m_pDepthHist[*pDepth] );
+                camDepth.SetGreyLvl( y, x, m_pDepthHist[*pDepth] );
             }
             
+            Color c ( (int)pImage->nRed, (int)pImage->nGreen, (int)pImage->nBlue );
+            pointCloud.PushVertex (
+                Vertex (
+                    Vec3Df (
+                        (float)x / m_imageMD.YRes(),
+                        (float)( m_imageMD.YRes() - y) / m_imageMD.YRes(),
+                        (float)m_pDepthHist[*pDepth] / 255
+                    ),
+                    Vec3Df (
+                        1,
+                        0,
+                        0
+                    ),
+                    c
+                )
+            );
         }
 
         pImageRow += m_imageMD.XRes();
@@ -373,6 +406,9 @@ void Camera::captureSingleFrame()
 
     str_aux = Config::OutputPath() + "CapturedFrames/depth_"+ Int2Str(m_nbFrames)  +".pgm"; 
     camDepth.CreateAsciiPgm(str_aux);
+
+    str_aux = Config::OutputPath() + "CapturedFrames/pointset_"+ Int2Str(m_nbFrames)  +".ply"; 
+    pointCloud.WriteToFile(str_aux);
     
     /* Frame saved: increase ID*/
     m_nbFrames++;  
@@ -380,6 +416,10 @@ void Camera::captureSingleFrame()
 }
 
 
+/*!
+ *  \brief  Creates the help screen during the capture of images. Use the Key '?'
+ *          to call the menu
+ */
 void Camera::drawHelpScreen()
 {
 	int nXStartLocation = GL_WIN_SIZE_X/8;
@@ -410,21 +450,22 @@ void Camera::drawHelpScreen()
 	int nXLocation = nXStartLocation;
 	int nYLocation = nYStartLocation;
 	printHelp(nXLocation, &nYLocation);
-
 }
 
 
+/*!
+ *  \brief  Create the content of the help screen
+ */
 void Camera::printHelp(int nXLocation, int* pnYLocation)
 {
 	int nYLocation = *pnYLocation;
-
-	unsigned char aKeys[20];
-	const char* aDescs[20];
-	int nCount;
+	int nCount = 6;
+	unsigned char aKeys[6];
+	const char* aDescs[6];
 
         /* List of keys */
-        aKeys[0] = 'q';
-        aDescs[0] = "quit";
+        aKeys[0] = 27;
+        aDescs[0] = "Quit";
 
         aKeys[1] = 'p';
         aDescs[1] = "Save frame";
@@ -438,13 +479,15 @@ void Camera::printHelp(int nXLocation, int* pnYLocation)
         aKeys[4] = '3';
         aDescs[4] = "Kinect: Image Mode";
 
+        aKeys[5] = '?';
+        aDescs[5] = "Close help window";
         /* END List of keys */
 
 	glColor3f(0, 1, 0);
 	glRasterPos2i(nXLocation, nYLocation);
 	nYLocation += 30;
 
-	for (int i = 0; i < nCount; ++i, nYLocation += 22)
+	for (int i = 0; i < nCount; ++i, nYLocation += 35)
 	{
 		char buf[256];
 		switch (aKeys[i])
@@ -457,18 +500,23 @@ void Camera::printHelp(int nXLocation, int* pnYLocation)
 			break;
 		}
 
-		glColor3f(1, 0, 0);
+		glColor3f(1, 1, 1);
 		glRasterPos2i(nXLocation, nYLocation);
-		glPrintString(GLUT_BITMAP_HELVETICA_18, buf);
+		glPrintString(GLUT_BITMAP_TIMES_ROMAN_24, buf);
 
+                sprintf(buf, "%s", aDescs[i]);
+
+		glColor3f(0.5, 0.5, 1);
 		glRasterPos2i(nXLocation + 40, nYLocation);
-		glPrintString(GLUT_BITMAP_HELVETICA_18, aDescs[i]);
+		glPrintString(GLUT_BITMAP_TIMES_ROMAN_24, buf);
 	}
 
-	*pnYLocation = nYLocation + 20;
+	*pnYLocation = nYLocation + 40;
 }
 
-
+/*!
+ *  \brief  Print a string into the screen with a given font
+ */
 void Camera::glPrintString(void *font, const char *str)
 {
 	int i,l = strlen(str);

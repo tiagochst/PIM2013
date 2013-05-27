@@ -1,7 +1,13 @@
 #ifndef _CAMERA_H__
 #define _CAMERA_H__
 
+#include <XnOpenNI.h>
+#include <XnLog.h>
+#include <XnCodecIDs.h>
 #include <XnCppWrapper.h>
+#include <XnPlatform.h>
+#include <GL/gl.h>
+#include <XnTypes.h>
 #include <XnOS.h>
 #include <GL/glut.h>
 #include <math.h>
@@ -9,6 +15,7 @@
 #include <sstream> 
 #include <string> 
 #include "Image.h"
+#include "PointSet.h"
 
 //----------------------------------------------------------
 // Defines
@@ -42,6 +49,8 @@ enum DisplayModes_e
 
 class Camera
 {
+    int m_help; //! Show help screen
+
 public:
 	// Singleton
 	static Camera& CreateInstance(xn::Context& context);
@@ -51,7 +60,6 @@ public:
 	virtual XnStatus Run();	//Does not return
 	void captureSingleFrame();
 	std::string Int2Str(int nb);
-
 protected:
 	Camera(xn::Context& context);
 	virtual ~Camera();

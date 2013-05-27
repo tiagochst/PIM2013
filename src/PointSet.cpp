@@ -35,6 +35,74 @@ PointSet::PointSet(const std::string& iFilename) {
 }
 PointSet::~PointSet(void) {}
 
+void PointSet::WritePlyFile(const char* iFilename) {
+    int i,j;
+    PlyFile *plyFile;
+    int file_type;
+    float version;
+
+    /* open either an ascii PLY file for writing */
+    /* (the file will be called "test.ply" because the routines */
+    /*  enforce the .ply filename extension) */
+    size_t          pathLen = strlen(iFilename);
+    char*           filename = new char[pathLen + 1];
+    memcpy(filename, iFilename, (pathLen + 1) * sizeof(char));
+
+    char* elem_names[] = { "vertex" };
+
+    /* open a PLY file for reading */
+    plyFile = ply_open_for_writing(filename, 1, elem_names, PLY_ASCII, &version);
+    delete[] filename;
+    filename = 0;
+
+    /* describe what properties go into the vertex and face elements */
+    ply_element_count ( plyFile, "vertex", m_vertices.size () );
+
+    ply_describe_property ( plyFile, "vertex", &vertexProperties[0] );
+    ply_describe_property ( plyFile, "vertex", &vertexProperties[1] );
+    ply_describe_property ( plyFile, "vertex", &vertexProperties[2] );
+    ply_describe_property ( plyFile, "vertex", &vertexProperties[3] );
+    ply_describe_property ( plyFile, "vertex", &vertexProperties[4] );
+    ply_describe_property ( plyFile, "vertex", &vertexProperties[5] );
+    ply_describe_property ( plyFile, "vertex", &vertexProperties[6] );
+    ply_describe_property ( plyFile, "vertex", &vertexProperties[7] );
+    ply_describe_property ( plyFile, "vertex", &vertexProperties[8] );
+    ply_describe_property ( plyFile, "vertex", &vertexProperties[9] );
+
+    ply_put_comment (plyFile, "author: PIM2013");
+
+    /* we have described exactly what we will put in the file, so */
+    /* we are now done with the header info */
+    ply_header_complete ( plyFile );
+
+    /* set up and write the vertex elements */
+    ply_put_element_setup ( plyFile, "vertex" );
+    for (i = 0; i < m_vertices.size (); i++) {
+        Vertex v = m_vertices[i];
+
+        const Vec3Df&   position    =   v.GetPosition ();
+        const Vec3Df&   normal      =   v.GetNormal ();
+        const Color&    color       =   v.GetColor ();
+
+        VertexPOD vPOD;
+        vPOD.x      = position[0];
+        vPOD.y      = position[1];
+        vPOD.z      = position[2];
+        vPOD.nx     = normal[0];
+        vPOD.ny     = normal[1];
+        vPOD.nz     = normal[2];
+        vPOD.red    = color.Red ();
+        vPOD.green  = color.Green ();
+        vPOD.blue   = color.Blue ();
+        vPOD.alpha  = color.Alpha ();
+
+        ply_put_element ( plyFile, (void *) &vPOD );
+    }
+
+    /* close the PLY file */
+    ply_close ( plyFile );
+}
+
 void PointSet::LoadPlyFile(const char* iFilename) {
     PlyFile*        plyFile;
     int             nGlobalElems;
@@ -173,4 +241,10 @@ void PointSet::LoadFromFile(const std::string& iFilename) {
         LoadPlyFile(iFilename.c_str());
     }
 }
-void PointSet::WriteToFile(const std::string& iFilename) {}
+void PointSet::WriteToFile(const std::string& iFilename) {
+    unsigned int plyPos = iFilename.find(".ply");
+    if ( (plyPos != std::string::npos) && 
+            (plyPos == (iFilename.size() - 4)) ) {
+        WritePlyFile(iFilename.c_str());
+    }
+}

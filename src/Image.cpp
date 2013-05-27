@@ -1,118 +1,130 @@
 #include <iostream> // cout, cerr
 #include <fstream> // ifstream
 #include <sstream> // stringstream
+#include "omp.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include "Image.h"
 
-inline bool IsOdd( const int iVal )
+#include "Config.h"
+#include <iomanip>
+
+Image::Image ()
+    :   m_height ( 1 ), 
+        m_width ( 1 ), 
+        m_maxGreyLevel ( 1 ),
+        m_figure ( 0x0  ),
+        m_normalisedFigure ( 0x0 )
 {
-    return !(iVal & 0x1);
+    m_figure = new Eigen::MatrixXi ();
+    m_normalisedFigure = new Eigen::MatrixXf ();
+    ResetMatrix ();
 }
-template<typename T>
-inline bool InRange( 
-    const T& iVal, 
-    const T& iMin, 
-    const T& iMax
+
+Image::Image (
+    const int& iWidth,
+    const int& iHeight,
+    const int& iGreyLevel
+)   :   m_height ( iHeight ), 
+        m_width ( iWidth ), 
+        m_maxGreyLevel ( iGreyLevel ),
+        m_figure ( 0x0  ),
+        m_normalisedFigure ( 0x0 )
+{
+    m_figure = new Eigen::MatrixXi ();
+    m_normalisedFigure = new Eigen::MatrixXf ();
+    ResetMatrix ();
+}
+
+Image::Image (
+    const std::string& iFilename
+)   :   m_height ( 1 ), 
+        m_width ( 1 ), 
+        m_maxGreyLevel ( 1 ),
+        m_figure ( 0x0  ),
+        m_normalisedFigure ( 0x0 )
+{
+    LoadFromFile ( iFilename );
+}
+
+Image::~Image () {
+    ClearMatrix ();
+}
+
+void Image::LoadFromFile (
+    const std::string& iFilename
 ) {
-    return ( ( iVal >= iMin  ) && ( iVal <= iMax ) );
-}
-
-inline int abs( const int iVal )
-{
-    return (iVal < 0) ? -iVal : iVal;
-}
-
-template<typename T>
-inline T min(T a, T b)
-{
-    return ( (a <= b) ? a : b );    
-}
-template<typename T>
-inline T max(T a, T b)
-{
-    return ( (a >= b) ? a : b );    
-}
-
-Image::Image(const int iWidth, const int iHeight, const int iGreyLevel)
-    : m_height( iHeight ), 
-      m_width( iWidth ), 
-      m_maxGreyLevel( iGreyLevel )
-{
-    m_figure.resize( m_height, m_width );
-    m_normalisedFigure.resize( m_height, m_width );
-}
-
-Image::Image( const std::string& iFilename )
-{
-    LoadFromFile( iFilename );
-}
-
-void Image::LoadFromFile( const std::string& iFilename )
-{
     int width = 0, height = 0, greyLevel = 0, i = 0, j = 0;
     int isBinary = 0;
     std::stringstream ss;
     std::string inputLine = "";
 
     /* Opening pgm file*/
-    std::ifstream inFile( iFilename.c_str(), 
-                            std::ifstream::in | std::ifstream::binary );
+    std::ifstream inFile (
+        iFilename.c_str (), 
+        std::ifstream::in | std::ifstream::binary
+    );
 
-    /* First line : version of pgm file*/
-    getline( inFile, inputLine );
+    if (inFile.is_open() && inFile.good()) {
+        /* First line : version of pgm file*/
+        getline( inFile, inputLine );
 
-    if ( inputLine.compare( "P2" ) != 0 && inputLine.compare( "P5" ) != 0 ) {
-        std::cerr   << "Version error " 
-                    << iFilename.c_str() 
-                    << inputLine 
-                    << std::endl;
+        if (
+                inputLine.compare( "P2" ) != 0 
+            &&  inputLine.compare( "P5" ) != 0
+        ) {
+            std::cerr   << "Version error " 
+                        << iFilename.c_str()
+                        << " Version: "
+                        << inputLine 
+                        << std::endl;
 
-    } 
-    if ( inputLine.compare( "P5" ) == 0 ) {
-        isBinary = 1;
-    }
+        } 
+        if ( inputLine.compare( "P5" ) == 0 ) {
+            isBinary = 1;
+        }
 
-    /* Second line : comment */
-    getline( inFile, inputLine );
+        ClearMatrix ();
+        m_figure = new Eigen::MatrixXi ();
+        m_normalisedFigure = new Eigen::MatrixXf ();
 
-    /* Third  line : size
-       Fourth line : grey level*/
-    inFile >> width >> height >> greyLevel ;
+        /* Second line : comment */
+        getline( inFile, inputLine );
 
-    SetHeight( height );
-    SetWidth( width );
-    SetGreyLevel( greyLevel );
+        /* Third  line : size
+           Fourth line : grey level*/
+        inFile >> width >> height >> greyLevel ;
 
-    /* resize matrix to receive the image */
-    m_figure.resize( m_height, m_width );
-    m_normalisedFigure.resize( m_height, m_width );
+        //SetHeight( height );
+        //SetWidth( width );
+        SetDimensions ( width, height );
+        m_maxGreyLevel = greyLevel;
 
-    if ( isBinary ) {
-        for ( i = 0; i < height; i++ )
-            for ( j = 0; j < width; j++ ) {
-                m_figure( i, j ) = static_cast<int>( inFile.get() );
-                m_normalisedFigure( i , j ) = (float)m_figure( i, j ) / (float)(greyLevel);
+        if ( isBinary ) {
+            for ( i = 0; i < height; i++ ) {
+                for ( j = 0; j < width; j++ ) {
+                    int readValue = static_cast<int>( inFile.get() );
+
+                    SetGreyLvl ( i, j, readValue );
+                }
             }
+        } else {
+            ss << inFile.rdbuf();
 
-    } else {
-        ss << inFile.rdbuf();
+            for ( i = 0; i < height; i++ ) {
+                for ( j = 0; j < width; j++ ) {
+                    int readValue = 0;
+                    ss >> readValue;
 
-        for ( i = 0; i < height; i++ ) {
-            for ( j = 0; j < width; j++ ) {
-                ss >> m_figure( i, j );
-                m_normalisedFigure( i , j ) = (float)m_figure( i, j ) / (float)(greyLevel);
+                    SetGreyLvl ( i, j, readValue );
+                }
             }
         }
+        inFile.close();
+    } else {
+        std::cerr << "File could not be opened" << std::endl; 
     }
-
-    inFile.close();
-}
-
-Image::~Image()
-{
-    // TODO Auto-generated destructor stub
 }
 
 void Image::CreateAsciiPgm( const std::string& iFilename )
@@ -121,87 +133,18 @@ void Image::CreateAsciiPgm( const std::string& iFilename )
     std::ofstream ostr( iFilename.c_str() );
 
     /* writing header */
-    ostr << "P2 " << std::endl;
+    ostr << "P2" << std::endl;
     ostr << "# CREATOR: PIM380 PROJ" << std::endl;;
     ostr << m_width << " " << m_height << std::endl;
     ostr << m_maxGreyLevel << std::endl;
 
     for ( i = 0; i < m_height; i++ ) {
         for ( j = 0; j < m_width; j++ ) {
-            ostr << m_figure( i, j ) << std::endl;
+            ostr << GetGreyLvl ( i, j ) << std::endl;
         }
     }
 
     ostr.close();
-}
-
-void Image::Set( const int iRow, const int iCol, int iValue )
-{
-    if ( InRange( iCol, 0, m_width  - 1 ) &&
-         InRange( iRow, 0, m_height - 1 ) ) {
-        m_figure( iRow, iCol ) = iValue;
-        m_normalisedFigure( iRow, iCol ) = (float)iValue / (float)m_maxGreyLevel;
-    } else {
-        throw BadIndex();
-    }
-}
-void Image::Set( const int iRow, const int iCol, float iValue )
-{
-    if ( InRange( iCol, 0, m_width  - 1 ) &&
-         InRange( iRow, 0, m_height - 1 ) ) {
-        m_figure( iRow, iCol ) = iValue * m_maxGreyLevel;
-        m_normalisedFigure( iRow, iCol ) = iValue;
-    } else {
-        throw BadIndex();
-    }
-}
-void Image::Set( const CartesianCoordinate& iPos, int iValue )
-{
-    Set( iPos.y, iPos.x, iValue );
-}
-void Image::Set( const CartesianCoordinate& iPos, float iValue )
-{
-    Set( iPos.y, iPos.x, iValue );
-}
-const int   Image::Get( const int iRow, const int iCol ) const
-{
-    int row = abs(iRow);
-    int col = abs(iCol);
-    row = IsOdd(row / m_height) ? (row % m_height) : (m_height - (row % m_height) - 1);
-    col = IsOdd(col / m_width ) ? (col % m_width ) : (m_width  - (col % m_width ) - 1);
-    
-    return m_figure( row, col );
-
-    //if ( InRange(iRow, 0,  m_height - 1) && 
-    //     InRange(iCol, 0,  m_width  - 1) ) {
-    //    return m_figure( iRow, iCol );
-    //} else {
-    //    return 0;
-    //}
-}
-const int   Image::Get( const CartesianCoordinate& iPos ) const
-{
-    return Get( iPos.y, iPos.x );
-}
-const float Image::GetNormed( const int iRow, const int iCol ) const
-{
-    int row = abs(iRow);
-    int col = abs(iCol);
-    row = IsOdd(row / m_height) ? (row % m_height) : (m_height - (row % m_height) - 1);
-    col = IsOdd(col / m_width ) ? (col % m_width ) : (m_width  - (col % m_width ) - 1);
-
-    return m_normalisedFigure( row, col );
-
-    //if ( InRange(iRow, 0,  m_height - 1) && 
-    //     InRange(iCol, 0,  m_width  - 1) ) {
-    //    return m_normalisedFigure( iRow, iCol );
-    //} else {
-    //    return 0.0f;
-    //}
-}
-const float Image::GetNormed( const CartesianCoordinate& iPos ) const
-{
-    return GetNormed( iPos.y, iPos.x );
 }
 
 float Image::Correlation( const Image& iOther ) const
@@ -223,125 +166,298 @@ float Image::Correlation( const Image& iOther ) const
     return correlation;
 }
 
-Image Image::SubImage(
-    const int iX,
-    const int iY,
-    const int iWidth,
-    const int iHeight
+void Image::SubImage (
+    const Rectangle&    iRegion,
+    Image&              oSubImage
 ) const {
-    Image subImage( iWidth, iHeight, m_maxGreyLevel );
+    SubImage (
+        iRegion.X (),
+        iRegion.Y (),
+        iRegion.Width (),
+        iRegion.Height (),
+        oSubImage
+    );
+}
+
+void Image::SubImage (
+    const int&  iX,
+    const int&  iY,
+    const int&  iWidth,
+    const int&  iHeight,
+    Image&      oSubImage
+) const {
+    if ( oSubImage.GetHeight () != iHeight ) {
+        oSubImage.SetHeight ( iHeight );
+    }
+    if ( oSubImage.GetWidth () != iWidth ) {
+        oSubImage.SetWidth ( iWidth );
+    }
+    if ( oSubImage.GetMaxGreyLevel () != m_maxGreyLevel ) {
+        oSubImage.SetMaxGreyLevel ( m_maxGreyLevel );
+    }
 
     for ( int x = 0; x < iWidth; x++ ) {
         for ( int y = 0; y < iHeight; y++ ) {
-            CartesianCoordinate subCoord(      x,      y );
-            CartesianCoordinate imgCoord( iX + x, iY + y );
+            CartesianCoordinate subCoord (      x,      y );
+            CartesianCoordinate imgCoord ( iX + x, iY + y );
             
-            subImage.Set( subCoord, Get( imgCoord ) );
+            oSubImage.SetGreyLvl ( subCoord, GetGreyLvl ( imgCoord ) );
         }
     }
-
-    return subImage;
 }
 
-CartesianCoordinate Image::Center() const 
+Image Image::FourierTransform () const
 {
-    return CartesianCoordinate( m_width / 2, m_height / 2 );
-}
-
-Image Image::FourierTransform() const
-{
-    Image transform( m_width, m_height, 65535 );
+    Image transform ( m_width, m_height, 65535 );
 
     float maxVal = 0;
     for ( int x = 0; x < m_width; x++ ) {
         for ( int y = 0; y < m_height; y++ ) {
-            CartesianCoordinate transCoord( x, y );
+            CartesianCoordinate transCoord ( x, y );
+
             float ftVal = 0;
+            
             for ( int xx = 0; xx < m_width; xx++ ) {
                 for ( int yy = 0; yy < m_height; yy++ ) {
-                    CartesianCoordinate myCoord( xx, yy );
+                    CartesianCoordinate myCoord ( xx, yy );
 
-                    float myVal = GetNormed( myCoord ); 
+                    float myVal = GetNormed ( myCoord ); 
                     float arg = -2 * M_PI;
                     arg *= ( ( x * xx / m_width ) + ( y * yy / m_height ) );
                     
-                    float re = myVal * cos(arg); 
-                    float im = myVal * sin(arg); 
+                    float re = myVal * cos ( arg ); 
+                    float im = myVal * sin ( arg ); 
                     
-                    ftVal += sqrt(re*re + im*im); 
+                    ftVal += sqrt ( re * re + im * im ); 
                 }
             }    
-            transform.Set( transCoord, ftVal ); 
+            transform.SetNormed ( transCoord, ftVal ); 
             
-            maxVal = max(ftVal, maxVal);
+            maxVal = max ( ftVal, maxVal );
         }
     }    
-    for ( int x = 0; x < m_width; x++ ) {
-        for ( int y = 0; y < m_height; y++ ) {
-            CartesianCoordinate c( x, y );
+    for (
+        int x = 0;
+        x < m_width;
+        x++
+    ) {
+        for (
+            int y = 0;
+            y < m_height;
+            y++
+        ) {
+            CartesianCoordinate c ( x, y );
 
-            transform.Set( c, transform.GetNormed(c) / maxVal );
+            transform.SetNormed (
+                c,
+                transform.GetNormed ( c ) / maxVal
+            );
         }
     }
-    transform.Recalculate();
+    transform.RecalculateGreyLvl ();
 
     return transform;
 }
 
-Image Image::TemplateMatch(
+float Image::TemplateMatch (
     const Image&            iMask,
-    CartesianCoordinate&    oBestMatch
+    CartesianCoordinate&    oBestMatch,
+    Image*                  oCorrelationMap
+) const {
+    Rectangle window ( 0, 0, m_width, m_height );
+    TemplateMatch (
+        iMask,
+        window,
+        oBestMatch,
+        oCorrelationMap
+    );
+}
+
+float Image::TemplateMatch(
+    const Image&            iMask,
+    const Rectangle&        iSearchWindow,
+    CartesianCoordinate&    oBestMatch,
+    Image*                  oCorrelationMap
 ) const {
     const Image& me = (*this);
-    Image correlation( m_width, 
-                       m_height, 
-                       65535);
+    const Rectangle& sw( iSearchWindow );
+
+    if ( oCorrelationMap != NULL ) {
+        if ( oCorrelationMap->GetHeight() != sw.Height() ) {
+            oCorrelationMap->SetHeight( sw.Height() );
+        }
+        if ( oCorrelationMap->GetWidth() != sw.Width() ) {
+            oCorrelationMap->SetWidth( sw.Width() );
+        }
+        if ( oCorrelationMap->GetMaxGreyLevel() != m_maxGreyLevel ) {
+            oCorrelationMap->SetMaxGreyLevel( m_maxGreyLevel );
+        }
+    }
 
     int nMaskElems = iMask.m_width * iMask.m_width;
     
     float maskDenom = 0;
+    #pragma omp parallel for
     for ( int xx = 0; xx < iMask.GetWidth(); xx++ ) {
+        #pragma omp parallel for
         for ( int yy = 0; yy < iMask.GetHeight(); yy++ ) {
             CartesianCoordinate maskCoords( xx, yy );
             
             float maskVal = iMask.GetNormed( maskCoords );
             
+            #pragma omp critical
             maskDenom += maskVal * maskVal; 
         }
     }
-
+    
     float bestMatchVal = 0;
-    CartesianCoordinate c( iMask.GetWidth() / 2, iMask.GetHeight() / 2);
-    for ( int x = 0; x < correlation.GetWidth(); x++ ) {
-        for ( int y = 0; y < correlation.GetHeight(); y++ ) {
-            CartesianCoordinate corrCoords( x, y );
-
+    CartesianCoordinate maskCenter = iMask.Center();
+    #pragma omp parallel for
+    for ( int x = sw.X(); x < sw.Right(); x++ ) {
+        #pragma omp parallel for
+        for ( int y = sw.Y(); y < sw.Bottom(); y++ ) {
             float val = 0;
             float myDenom = 0;
-            for ( int xx = -c.x; xx <= c.x ; xx++ ) {
-                for ( int yy = -c.y; yy <= c.y; yy++ ) {
+            for ( int xx = -maskCenter.x; xx <= maskCenter.x ; xx++ ) {
+                for ( int yy = -maskCenter.y; yy <= maskCenter.y; yy++ ) {
                     CartesianCoordinate myCoords( x + xx, y + yy );
-                    CartesianCoordinate maskCoords( xx + c.x, yy + c.y );
+                    CartesianCoordinate maskCoords( xx + maskCenter.x,
+                                                    yy + maskCenter.y );
 
                     float myVal   = me.GetNormed( myCoords );
                     float maskVal = iMask.GetNormed( maskCoords );
 
                     myDenom += myVal * myVal; 
-                    
                     val += myVal * maskVal;
                 }
             }
             val /= sqrt(maskDenom * myDenom);
             
-            correlation.Set( corrCoords, val);
+            if ( oCorrelationMap != NULL ) {
+                CartesianCoordinate corrCoords( x - sw.X(), y - sw.Y() );
+
+                oCorrelationMap->SetNormed( corrCoords, val);
+            }
+            #pragma omp critical
             if ( val >= bestMatchVal ) {
                 bestMatchVal = val;
-                oBestMatch = corrCoords;
+                oBestMatch.x = x;
+                oBestMatch.y = y;
             }
         }
     }
 
-    return correlation;
+    return bestMatchVal;
+}
+
+void Image::TrackPixels(
+    const Image&        iRefImage,
+    const Image&        iTargetImage,
+    const int&          iWindowWidth,
+    const int&          iWindowHeight,
+    const int&          iNeighbourhoodWidth,
+    const int&          iNeighbourhoodHeight,
+    Image&              oDisplacementMapX,
+    Image&              oDisplacementMapY
+) {
+    if ( iRefImage.GetHeight() != iTargetImage.GetHeight() ||
+         iRefImage.GetWidth()  != iTargetImage.GetWidth() ) {
+        throw IncompatibleImages();
+    }
+
+    int minValX = 0, minValY = 0;
+    int maxValX = 0, maxValY = 0;
+    #pragma omp parallel for
+    for ( int x = 0; x < iRefImage.GetWidth(); x++ ) {
+        #pragma omp parallel for 
+        for ( int y = 0; y < iRefImage.GetHeight(); y++ ) {
+            CartesianCoordinate bestMatchL;
+            Image neighbourhoodL ( iNeighbourhoodWidth, iNeighbourhoodHeight, 65535 );
+            Image correlationMapL ( iWindowWidth, iWindowHeight, 65535 );
+
+            CartesianCoordinate bestMatchR;
+            Image neighbourhoodR ( iNeighbourhoodWidth, iNeighbourhoodHeight, 65535 );
+            Image correlationMapR ( iWindowWidth, iWindowHeight, 65535 );
+
+            CartesianCoordinate nCenter = neighbourhoodL.Center();
+            CartesianCoordinate wCenter ( iWindowWidth / 2, iWindowHeight / 2 );
+
+            Rectangle nRegionL( x - nCenter.x,
+                                y - nCenter.y, 
+                                iNeighbourhoodWidth,
+                                iNeighbourhoodHeight );
+            Rectangle nRegionR( x - nCenter.x + 1,
+                                y - nCenter.y, 
+                                iNeighbourhoodWidth,
+                                iNeighbourhoodHeight );
+            Rectangle wRegionL( x - wCenter.x,
+                                y - wCenter.y,
+                                iWindowWidth,
+                                iWindowHeight );
+            Rectangle wRegionR( x - wCenter.x + 1,
+                                y - wCenter.y,
+                                iWindowWidth,
+                                iWindowHeight );
+            iRefImage.SubImage( nRegionL, neighbourhoodL );
+            iRefImage.SubImage( nRegionR, neighbourhoodR );
+
+            iTargetImage.TemplateMatch( neighbourhoodL, wRegionL, bestMatchL, &correlationMapL );
+            iTargetImage.TemplateMatch( neighbourhoodR, wRegionR, bestMatchR, &correlationMapR );
+            
+            CartesianCoordinate bestMatch;
+
+            static const float inf = std::numeric_limits<float>::infinity();
+            float bestR = -inf;
+            float bestL = -inf;
+            for ( int i = 0; i < correlationMapL.GetWidth (); i++ ) {
+                for ( int j = 0; j < correlationMapL.GetHeight (); j++ ) {
+                    float leftVal  = correlationMapL.GetNormed ( j, i );
+                    float rightVal = correlationMapR.GetNormed ( j, i );
+    
+                    if (
+                            leftVal > bestL
+                        && rightVal > bestR
+                    ) {
+                        bestMatch.x = i + wRegionL.X();
+                        bestMatch.y = j + wRegionL.Y();                        
+
+                        bestL = leftVal;
+                        bestR = rightVal;
+                    }
+                }
+            }
+
+            int valX = 10 * (bestMatch.x - x);
+            int valY = 10 * (bestMatch.y - y);
+
+            
+            oDisplacementMapX.SetGreyLvl( y, x, valX );
+            oDisplacementMapY.SetGreyLvl( y, x, valY );
+
+            #pragma omp critical
+            {
+                minValX = min( valX, minValX );
+                maxValX = max( valX, maxValX );
+                minValY = min( valY, minValY );
+                maxValY = max( valY, maxValY );
+            }
+        }
+    }
+    maxValX += abs(minValX);
+    maxValY += abs(minValY);
+    oDisplacementMapX.SetMaxGreyLevel(maxValX);
+    oDisplacementMapY.SetMaxGreyLevel(maxValY);
+    #pragma omp parallel for
+    for ( int x = 0; x < iRefImage.GetWidth(); x++ ) {
+        #pragma omp parallel for
+        for ( int y = 0; y < iRefImage.GetHeight(); y++ ) {
+            int valX = oDisplacementMapX.GetGreyLvl( y, x );
+            int valY = oDisplacementMapY.GetGreyLvl( y, x );
+
+            oDisplacementMapX.SetGreyLvl( y, x, ( valX + abs(minValX) ) );
+            oDisplacementMapY.SetGreyLvl( y, x, ( valY + abs(minValY) ) );
+        }
+    }
 }
 
 Image Image::Difference( const Image& iOther ) const
@@ -351,50 +467,28 @@ Image Image::Difference( const Image& iOther ) const
 
     for ( int i = 0; i < m_height; i++ ) {
         for ( int j = 0; j < m_width; j++ ) {
-            int val = me.Get( i, j ) - iOther.Get( i, j );
-            difference.Set( i, j, abs( val ) );
+            int val = me.GetGreyLvl( i, j ) - iOther.GetGreyLvl( i, j );
+            difference.SetGreyLvl( i, j, abs( val ) );
         }
     }
     
     return difference;
 }
 
-void Image::Recalculate()
+void Image::RecalculateGreyLvl()
 {
     for ( int i = 0; i < m_height; i++ ) {
         for ( int j = 0; j < m_width; j++ ) {
-            m_figure( i, j ) = m_normalisedFigure( i, j ) * m_maxGreyLevel;
+            (*m_figure) ( i, j ) = (*m_normalisedFigure) ( i, j ) * m_maxGreyLevel;
         }
     }
 }
-
-void Image::SetHeight( const int iHeight )
+void Image::RecalculateNormalised()
 {
-    m_height = iHeight;
-}
-
-void Image::SetWidth( const int iWidth )
-{
-    m_width = iWidth;
-}
-
-void Image::SetGreyLevel( const int iGreyLevel )
-{
-    m_maxGreyLevel = iGreyLevel;
-}
-
-int const& Image::GetHeight() const
-{
-    return m_height;
-}
-
-int const& Image::GetWidth() const
-{
-    return m_width;
-}
-
-int const& Image::GetMaxGreyLevel() const
-{
-    return m_maxGreyLevel;
+    for ( int i = 0; i < m_height; i++ ) {
+        for ( int j = 0; j < m_width; j++ ) {
+            (*m_normalisedFigure) ( i, j ) = (float)(*m_figure) ( i, j ) / (float)m_maxGreyLevel;
+        }
+    }
 }
 

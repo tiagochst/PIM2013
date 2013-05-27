@@ -10,7 +10,7 @@ CXXFLAGS=
 CFLAGS=
 LDFLAGS=
 
-AC_CONFIG_COMMANDS([mkdir], [$MKDIR_P bin bin/CapturedFrames resources/Project/Data/Output  resources/Project/Data/Output/CapturedFrames])
+AC_CONFIG_COMMANDS([mkdir], [$MKDIR_P bin bin/CapturedFrames resources/Project/Data/Output  resources/Project/Data/Output/CapturedFrames doc])
 
 # Checks for programs.
 AC_PROG_AWK
@@ -21,11 +21,9 @@ AC_PROG_LN_S
 AC_PROG_RANLIB
 
 # Check for libraries 
-PKG_CHECK_MODULES(OPENCV,opencv)
+#PKG_CHECK_MODULES(OPENCV,opencv)
 PKG_CHECK_MODULES(OPENNI,openni)
 PKG_CHECK_MODULES(GLU,glu)
-PKG_CHECK_MODULES(GLU,gl)
-
 
 # Check for header files 
 # Check for typedefs, structures, and compilers characteristics

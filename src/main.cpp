@@ -1,82 +1,32 @@
+#include <QCoreApplication>
+#include <QApplication>
+#include "Window.h"
+#include <QDir>
+#include <QPixmap>
+#include <QSplashScreen>
+#include <QPlastiqueStyle>
+#include <QCleanlooksStyle>
+#include <string>
 #include <iostream>
 #include "Image.h"
 #include "PointSet.h"
 #include "Camera.h"
 #include "Config.h"
+//#include "ui_mainInterface.Qt4.h"
 
+class QMyApplication : public QApplication {
+public:
+  QMyApplication(int argc, char**argv) : QApplication(argc,argv) {}
+  bool notify(QObject* receiver, QEvent* event) {
+    //    try {
+    return QApplication::notify(receiver,event);
+    // } catch (...) {
+    //std::cerr << "Unhandled exception caught" <<std::endl;
+    //}
+    //return false;
+  }
 
-int KinectInit(int argc, char** argv);
-
-
-int main(int argc, char** argv) {
-    Config::LoadConfigs(Config::RootPath() + "settings");
-
-    static const std::string RES_PTSET_PATH(Config::ResourcesPath() + "PointSets/");
-    static const std::string RES_IMG_PATH(Config::ResourcesPath() + "Images/");
-
-    /* Class image test */
-    // Image myImage(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-ascci.pgm");
-
-    /* Class Ply test  */
-    //PointSet psAscii, psBinary;    
-    //psAscii.LoadFromFile(RES_PTSET_PATH + "frame000-ascii.ply");
-    //psBinary.LoadFromFile(RES_PTSET_PATH + "frame000-brut.ply");
- 
-    Image frame0(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
-    Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
-
-    CartesianCoordinate bestMatch;
-    Image smallMask(Config::DataPath() + "smallMask.pgm");
-    Image mask(Config::DataPath() + "mask.pgm");
-    Image bigMask(Config::DataPath() + "bigMask.pgm");
-    
-    Image smallMaskCorrelation = bigMask.TemplateMatch( smallMask, bestMatch );
-    std::cout << "Match found at (" << bestMatch.x << ", " 
-                                    << bestMatch.y << ")" << std::endl;
-    Image bigMaskCorrelation = bigMask.TemplateMatch( mask, bestMatch );
-    std::cout << "Match found at (" << bestMatch.x << ", " 
-                                    << bestMatch.y << ")" << std::endl;
-    Image frame1Correlation = frame1.TemplateMatch( mask, bestMatch );
-    std::cout << "Match found at (" << bestMatch.x << ", " 
-                                    << bestMatch.y << ")" << std::endl;
-    smallMaskCorrelation.CreateAsciiPgm(Config::OutputPath() + "smallMaskCorrelation.pgm");
-    bigMaskCorrelation.CreateAsciiPgm(Config::OutputPath() + "bigMaskCorrelation.pgm");
-    frame1Correlation.CreateAsciiPgm(Config::OutputPath() + "frame1Correlation.pgm");
-
-    Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
-    for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
-        for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {
-            int val = bigMask.Get( y - bigMask.GetHeight(), x - bigMask.GetWidth() );
-            
-            fullSpectre.Set( y, x, val );
-        }
-    }    
-    fullSpectre.CreateAsciiPgm(Config::OutputPath() + "fullSpectre.pgm");
-
-    //Image ft = frame0.FourierTransform();
-    //ft.CreateAsciiPgm(Config::OutputPath() + "Frame0FT.pgm");
-    
-    //Image corr01 = frame0.Correlation(frame1);
-    //Image corr10 = frame1.Correlation(frame0);
-    //corr01.CreateAsciiPgm("corr01");
-    //corr10.CreateAsciiPgm("corr10");
-
-    Image diff01 = frame0.Difference(frame1);
-    Image diff10 = frame1.Difference(frame0);
-    diff01.CreateAsciiPgm(Config::OutputPath() + "diff01.pgm");
-    diff10.CreateAsciiPgm(Config::OutputPath() + "diff10.pgm");
-
-    char c;
-    puts ("Select Mode: Kinect ('k') Other:('o')");
-    c=getchar();
-    if(c == 'k'){
-        KinectInit(argc, argv);
-    }
-    
-    
-    return 0;
-}
-
+};
 
 int KinectInit(int argc, char** argv)
 {
@@ -113,3 +63,133 @@ int KinectInit(int argc, char** argv)
     return 1;
     
 }
+
+void FindTemplateAndPrintMap(
+    const Image& iBaseImage,
+    const Image& iTemplate,
+    Image& oCorrelationMap,
+    CartesianCoordinate& oBestMatch,
+    float& oBestMatchVal,
+    const std::string& iMapFilename,
+    const Rectangle* iSearchWindow=NULL
+) {
+    if (iSearchWindow != NULL ) {
+        oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, *iSearchWindow, oBestMatch, &oCorrelationMap );
+    } else {
+        oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, oBestMatch, &oCorrelationMap );
+    }
+    std::cout   << "Possible match found at ("  << oBestMatch.x << ", " << oBestMatch.y << ") "
+                << "with correlation value of "   << oBestMatchVal
+                << std::endl;
+    oCorrelationMap.CreateAsciiPgm(Config::OutputPath() + iMapFilename);
+}
+
+int main(int argc, char** argv) {
+    Config::LoadConfigs(Config::RootPath() + "settings");
+
+    static const std::string RES_PTSET_PATH(Config::ResourcesPath() + "PointSets/");
+    static const std::string RES_IMG_PATH(Config::ResourcesPath() + "Images/");
+
+    /* Class image test */
+    // Image myImage(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-ascci.pgm");
+
+    /* Class Ply test  */
+    //PointSet psAscii, psBinary;    
+    //psAscii.LoadFromFile(RES_PTSET_PATH + "frame000-ascii.ply");
+    //psBinary.LoadFromFile(RES_PTSET_PATH + "frame000-brut.ply");
+ 
+    Image frame0(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
+    Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
+    Image dispX( frame0.GetWidth(), frame0.GetHeight(), 255 );
+    Image dispY( frame0.GetWidth(), frame0.GetHeight(), 255 );
+
+    Image smallMask(Config::DataPath() + "smallMask.pgm");
+    Image mask(Config::DataPath() + "mask.pgm");
+    Image bigMask(Config::DataPath() + "bigMask.pgm");
+    
+    Image correlationMap( 1, 1, 255 );
+    float correlationVal = 0.0f;
+    CartesianCoordinate bestMatch;
+
+    char c;
+    std::cout << "Select Mode: Kinect ('k') Image Traking('t') UI (u) Other:('o')" << std::endl;
+    std::cin  >> c; 
+
+    if ( c == 't' ) {
+        FindTemplateAndPrintMap(
+            bigMask,
+            smallMask,
+            correlationMap,
+            bestMatch,
+            correlationVal,
+            "smallMaskCorrelation.pgm"
+        );
+
+        FindTemplateAndPrintMap(
+            bigMask,
+            mask,
+            correlationMap,
+            bestMatch,
+            correlationVal,
+            "bigMaskCorrelation.pgm"
+        );
+        
+        FindTemplateAndPrintMap(
+            frame1,
+            mask,
+            correlationMap,
+            bestMatch,
+            correlationVal,
+            "frame1Correlation.pgm"
+        );
+
+        Rectangle window( 150, 150, 200, 200 );
+        FindTemplateAndPrintMap(
+            frame1,
+            mask,
+            correlationMap,
+            bestMatch,
+            correlationVal,
+            "frame1WindowedCorrelation.pgm",
+            &window
+        );
+        
+        try {
+            Image::TrackPixels( frame0, frame1, 17, 17, 9, 9, dispX, dispY );
+            dispX.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1x.pgm");
+            dispY.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1y.pgm");
+        } catch (BadIndex bi) {
+            std::cout << bi.what();
+        }
+
+        Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
+        for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
+            for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {
+                int val = bigMask.GetGreyLvl( y - bigMask.GetHeight(), x - bigMask.GetWidth() );
+                
+                fullSpectre.SetGreyLvl( y, x, val );
+            }
+        }    
+        fullSpectre.CreateAsciiPgm(Config::OutputPath() + "fullSpectre.pgm");
+    }
+    
+    if ( c == 'k' ) {
+        KinectInit(argc, argv);
+    }
+
+    if ( c == 'u' ) {
+        QMyApplication program (argc, argv);
+        //setBoubekQTStyle (raymini);
+        QMyApplication::setStyle (new QPlastiqueStyle);
+        program.setAttribute(Qt::AA_DontUseNativeMenuBar,true);
+        Window * progWindow = new Window ();
+        progWindow->setWindowTitle ("PIM380: A facial reconstruction program.");
+        progWindow -> showFullScreen();
+        program.connect (&program, SIGNAL (lastWindowClosed()), &program, SLOT (quit()));
+        
+    return program.exec ();
+    }
+    
+    return 0;
+}
+

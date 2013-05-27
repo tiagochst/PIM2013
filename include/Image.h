@@ -23,8 +23,8 @@ private:
     int                 m_height;
     int                 m_width;
     int                 m_maxGreyLevel;
-    Eigen::MatrixXi     m_figure;
-    Eigen::MatrixXf     m_normalisedFigure;
+    Eigen::MatrixXi*    m_figure;
+    Eigen::MatrixXf*    m_normalisedFigure;
 
 public:
     Image ();
@@ -148,6 +148,7 @@ public:
     );
 
 private:
+    void ClearMatrix ();
     void ResetMatrix ();
     void RecalculateGreyLvl ();
     void RecalculateNormalised ();
@@ -158,10 +159,22 @@ inline CartesianCoordinate Image::Center () const
     return CartesianCoordinate ( m_width / 2, m_height / 2 );
 }
 
+inline void Image::ClearMatrix ()
+{
+    if ( m_figure ) {
+        delete m_figure;
+        m_figure = 0x0;
+    }
+    if ( m_normalisedFigure ) {
+        delete m_normalisedFigure;
+        m_normalisedFigure = 0x0;
+    }
+}
+
 inline void Image::ResetMatrix ()
 {
-    m_figure.resize ( m_height, m_width );
-    m_normalisedFigure.resize ( m_height, m_width );
+    m_figure->resize ( m_height, m_width );
+    m_normalisedFigure->resize ( m_height, m_width );
 }
 
 inline void Image::SetDimensions (
@@ -218,8 +231,8 @@ inline void Image::SetGreyLvl (
             InRange ( iCol, 0, m_width  - 1 )
         &&  InRange ( iRow, 0, m_height - 1 )
     ) {
-        m_figure ( iRow, iCol ) = iValue;
-        m_normalisedFigure ( iRow, iCol ) = (float)iValue / (float)m_maxGreyLevel;
+        (*m_figure) ( iRow, iCol ) = iValue;
+        (*m_normalisedFigure) ( iRow, iCol ) = (float)iValue / (float)m_maxGreyLevel;
     } else {
         throw BadIndex( iCol, iRow );
     }
@@ -234,8 +247,8 @@ inline void Image::SetNormed (
             InRange ( iCol, 0, m_width  - 1 )
         &&  InRange ( iRow, 0, m_height - 1 )
     ) {
-        m_figure ( iRow, iCol ) = iValue * m_maxGreyLevel;
-        m_normalisedFigure ( iRow, iCol ) = iValue;
+        (*m_figure) ( iRow, iCol ) = iValue * m_maxGreyLevel;
+        (*m_normalisedFigure) ( iRow, iCol ) = iValue;
     } else {
         throw BadIndex ( iCol, iRow );
     }
@@ -265,7 +278,7 @@ inline const int& Image::GetGreyLvl (
     row = IsOdd (row / m_height) ? (row % m_height) : (m_height - (row % m_height) - 1);
     col = IsOdd (col / m_width ) ? (col % m_width ) : (m_width  - (col % m_width ) - 1);
     
-    return m_figure ( row, col );
+    return (*m_figure) ( row, col );
 }
 
 inline const int& Image::GetGreyLvl (
@@ -284,7 +297,7 @@ inline const float& Image::GetNormed (
     row = IsOdd(row / m_height) ? (row % m_height) : (m_height - (row % m_height) - 1);
     col = IsOdd(col / m_width ) ? (col % m_width ) : (m_width  - (col % m_width ) - 1);
 
-    return m_normalisedFigure ( row, col );
+    return (*m_normalisedFigure) ( row, col );
 }
 
 inline const float& Image::GetNormed (

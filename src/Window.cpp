@@ -7,23 +7,14 @@ void Window::setMesh(bool b){
   ParameterHandler* params = ParameterHandler::Instance();
   params -> SetMesh(b);
   
-  try {
-    viewer = new GLViewer;
-  } catch (GLViewer::Exception e) {
-    cerr << e.getMessage () << endl;
-    exit (1);
-  }
-  
-  removeDockWidget(controlDockWidget); 
-  setCentralWidget (viewer);
-  controlDockWidget -> setMaximumWidth(150 );
-  restoreDockWidget ( controlDockWidget );
+  viewer -> reset();
+  centerWidget->setCurrentIndex ( viewerIdx );
 }
 
-void Window::setDisplacement(bool b){
+void Window::setDisplacement(){
   ParameterHandler* params = ParameterHandler::Instance();
   updateImages();
-  setCentralWidget (gridLayoutWidget);
+  centerWidget->setCurrentIndex ( gridIdx );
 }
 
 /*!
@@ -33,13 +24,13 @@ void Window::setDisplacement(bool b){
 void Window::setFrame1(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetFrame1(iFrame);
- 
-   if(params -> GetMesh()){
-      viewer -> reset();
-      setCentralWidget (viewer);
+
+    if(params -> GetMesh()){
+        viewer -> reset();
+        centerWidget->setCurrentIndex ( gridIdx );
     }
     else{
-      updateImages();
+        updateImages();
     }
 }
 
@@ -48,20 +39,20 @@ void Window::calcDisp() {
     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
     std::string frameID1 = std::to_string(params -> GetFrame1());
     std::string frameID2 = std::to_string(params -> GetFrame2());
- 
+
     Image frame1(RES_IMG_PATH + "image_"+ frameID1 + ".pgm");
     Image frame2(RES_IMG_PATH + "image_"+ frameID2 + ".pgm");
     Image dispX( frame1.GetWidth(), frame1.GetHeight(), 255 );
     Image dispY( frame1.GetWidth(), frame1.GetHeight(), 255 );
-    
+
     try {
-      Image::TrackPixels(frame1, frame2, 17, 17, 9, 9, dispX, dispY );
-      dispX.CreateAsciiPgm(Config::OutputPath() + "TrackinF"+ frameID1 + "F"+ frameID2+"x.pgm");
-      dispY.CreateAsciiPgm(Config::OutputPath() + "TrackinF"+ frameID1 + "F"+ frameID2+"y.pgm");
+        Image::TrackPixels(frame1, frame2, 17, 17, 9, 9, dispX, dispY );
+        dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2+"x.pgm");
+        dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2+"y.pgm");
     } catch (BadIndex bi) {
-      std::cout << bi.what();
+        std::cout << bi.what();
     }
-  
+    updateImages ();
 }
 
 void Window::updateImages() {
@@ -70,30 +61,33 @@ void Window::updateImages() {
     std::string frameID1 = std::to_string(params -> GetFrame1());
     std::string frameID2 = std::to_string(params -> GetFrame2());
 
+    if (img1) delete img1;
     img1 = new QLabel;
     img1 -> setMaximumSize(QSize(320, 240));
     img1 -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str()))));
 
+    if (img2) delete img2;
     img2 = new QLabel;
     img2 -> setMaximumSize(QSize(320, 240));
     img2 -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID2 + ".pgm").c_str()))));
 
+    if (dispX) delete dispX;
     dispX = new QLabel;
     dispX -> setMaximumSize(QSize(320, 240));
-    dispX -> setPixmap(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackinF"+ frameID1 + "F"+ frameID2 + "x.pgm").c_str()))));
+    dispX -> setPixmap(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2 + "x.pgm").c_str()))));
 
+    if (dispY) delete dispY;
     dispY = new QLabel;
     dispY -> setMaximumSize(QSize(320, 240));
-    dispY -> setPixmap(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackinF"+ frameID1 + "F"+ frameID2 + "y.pgm").c_str()))));
+    dispY -> setPixmap(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2 + "y.pgm").c_str()))));
 
-    gridLayoutWidget = new QWidget;
+    if (gridLayout) delete gridLayout;
     gridLayout = new QGridLayout(gridLayoutWidget);
     gridLayout->setContentsMargins(0, 0, 0, 0);
     gridLayout->addWidget(img1, 0, 0, 1, 1);
     gridLayout->addWidget(img2, 0, 1, 1, 1);
     gridLayout->addWidget(dispX, 1, 0, 1, 1);
     gridLayout->addWidget(dispY, 1, 1, 1, 1);
-    setCentralWidget(gridLayoutWidget);    
 }
 
 void Window::setFrame2(int iFrame) {
@@ -148,7 +142,24 @@ void Window::addImageItems()
 /*!
  *  \brief  Creates the UI (upper menu, left and right dock and GLViewer)
  */
-Window::Window () : QMainWindow (NULL) {
+Window::Window ()
+    :   QMainWindow (NULL),
+        controlWidget(NULL),
+        viewer(NULL),
+        viewerIdx(0),
+        createMeshPB(NULL),
+        snapshotButton(NULL),
+        frame1ComboBox(NULL),
+        frame2ComboBox(NULL),
+        img1(NULL),
+        img2(NULL),
+        dispX(NULL),
+        dispY(NULL),
+        gridLayoutWidget(NULL),
+        gridIdx(0),
+        gridLayout(NULL),
+        centerWidget(NULL)
+{
 
     /* creates the list of images in the system*/
     static const std::string IMAGE_LIST(" ls -B --ignore=list.txt " + Config::OutputPath() + "CapturedFrames/ >" + Config::OutputPath() + "CapturedFrames/list.txt");
@@ -161,7 +172,13 @@ Window::Window () : QMainWindow (NULL) {
         cerr << e.getMessage () << endl;
         exit (1);
     }
-    setCentralWidget (viewer);
+    gridLayoutWidget = new QWidget ();
+
+    centerWidget = new QStackedWidget();
+    setCentralWidget (centerWidget);
+
+    viewerIdx = centerWidget->addWidget ( viewer );
+    gridIdx = centerWidget->addWidget ( gridLayoutWidget );
 
     /* Adding settings to upper menu */
     /* Adding quit and about buttons to upper menu */
@@ -285,7 +302,7 @@ void Window::initControlWidget () {
 
     ParameterHandler* params = ParameterHandler::Instance();
     connect(meshRB, SIGNAL(toggled(bool)), this, SLOT(setMesh(bool)));
-    connect(displacementRB, SIGNAL(toggled(bool)), this, SLOT(setDisplacement(bool)));
+    connect(displacementRB, SIGNAL(toggled(bool)), this, SLOT(setDisplacement()));
 
     /* Add widgets to layout*/
     previewLayout -> addWidget (generalLayoutWidget);

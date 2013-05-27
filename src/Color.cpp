@@ -22,9 +22,9 @@ Color::Color(const Color& iOther)
 Color& Color::operator=(const Color& iOther)
 {
     if ( this != &(iOther) ) {
-        m_R = iOther.m_R; 
-        m_G = iOther.m_G; 
-        m_B = iOther.m_B; 
+        m_R = iOther.m_R;
+        m_G = iOther.m_G;
+        m_B = iOther.m_B;
         m_A = iOther.m_A;
     }
     return (*this);

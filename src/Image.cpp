@@ -10,13 +10,16 @@
 #include "Config.h"
 #include <iomanip>
 
-Image::Image()
-    :   m_height( 1 ), 
-        m_width( 1 ), 
-        m_maxGreyLevel( 1 )
+Image::Image ()
+    :   m_height ( 1 ), 
+        m_width ( 1 ), 
+        m_maxGreyLevel ( 1 ),
+        m_figure ( 0x0  ),
+        m_normalisedFigure ( 0x0 )
 {
-    m_figure = Eigen::ArrayXXi::Zero(1, 1);
-    m_normalisedFigure =  Eigen::ArrayXXf::Zero(1 ,1); 
+    m_figure = new Eigen::MatrixXi ();
+    m_normalisedFigure = new Eigen::MatrixXf ();
+    ResetMatrix ();
 }
 
 Image::Image (
@@ -25,10 +28,12 @@ Image::Image (
     const int& iGreyLevel
 )   :   m_height ( iHeight ), 
         m_width ( iWidth ), 
-        m_maxGreyLevel ( iGreyLevel )
+        m_maxGreyLevel ( iGreyLevel ),
+        m_figure ( 0x0  ),
+        m_normalisedFigure ( 0x0 )
 {
-    m_figure = Eigen::ArrayXXi::Zero(1, 1);
-    m_normalisedFigure =  Eigen::ArrayXXf::Zero(1 ,1); 
+    m_figure = new Eigen::MatrixXi ();
+    m_normalisedFigure = new Eigen::MatrixXf ();
     ResetMatrix ();
 }
 
@@ -36,9 +41,15 @@ Image::Image (
     const std::string& iFilename
 )   :   m_height ( 1 ), 
         m_width ( 1 ), 
-        m_maxGreyLevel ( 0 )
+        m_maxGreyLevel ( 1 ),
+        m_figure ( 0x0  ),
+        m_normalisedFigure ( 0x0 )
 {
     LoadFromFile ( iFilename );
+}
+
+Image::~Image () {
+    ClearMatrix ();
 }
 
 void Image::LoadFromFile (
@@ -74,6 +85,10 @@ void Image::LoadFromFile (
             isBinary = 1;
         }
 
+        ClearMatrix ();
+        m_figure = new Eigen::MatrixXi ();
+        m_normalisedFigure = new Eigen::MatrixXf ();
+
         /* Second line : comment */
         getline( inFile, inputLine );
 
@@ -84,12 +99,14 @@ void Image::LoadFromFile (
         //SetHeight( height );
         //SetWidth( width );
         SetDimensions ( width, height );
+        m_maxGreyLevel = greyLevel;
 
         if ( isBinary ) {
             for ( i = 0; i < height; i++ ) {
                 for ( j = 0; j < width; j++ ) {
-                    m_figure( i, j ) = static_cast<int>( inFile.get() );
-                    m_normalisedFigure( i , j ) = (float)m_figure( i, j ) / (float)(greyLevel);
+                    int readValue = static_cast<int>( inFile.get() );
+
+                    SetGreyLvl ( i, j, readValue );
                 }
             }
         } else {
@@ -97,20 +114,17 @@ void Image::LoadFromFile (
 
             for ( i = 0; i < height; i++ ) {
                 for ( j = 0; j < width; j++ ) {
-                    ss >> m_figure( i, j );
-                    m_normalisedFigure( i , j ) = (float)m_figure( i, j ) / (float)(greyLevel);
+                    int readValue = 0;
+                    ss >> readValue;
+
+                    SetGreyLvl ( i, j, readValue );
                 }
             }
         }
         inFile.close();
-        m_maxGreyLevel = greyLevel;
     } else {
         std::cerr << "File could not be opened" << std::endl; 
     }
-}
-
-Image::~Image()
-{
 }
 
 void Image::CreateAsciiPgm( const std::string& iFilename )
@@ -126,7 +140,7 @@ void Image::CreateAsciiPgm( const std::string& iFilename )
 
     for ( i = 0; i < m_height; i++ ) {
         for ( j = 0; j < m_width; j++ ) {
-            ostr << m_figure( i, j ) << std::endl;
+            ostr << GetGreyLvl ( i, j ) << std::endl;
         }
     }
 
@@ -465,7 +479,7 @@ void Image::RecalculateGreyLvl()
 {
     for ( int i = 0; i < m_height; i++ ) {
         for ( int j = 0; j < m_width; j++ ) {
-            m_figure( i, j ) = m_normalisedFigure( i, j ) * m_maxGreyLevel;
+            (*m_figure) ( i, j ) = (*m_normalisedFigure) ( i, j ) * m_maxGreyLevel;
         }
     }
 }
@@ -473,9 +487,8 @@ void Image::RecalculateNormalised()
 {
     for ( int i = 0; i < m_height; i++ ) {
         for ( int j = 0; j < m_width; j++ ) {
-            m_normalisedFigure( i, j ) = (float)m_figure( i, j ) / (float)m_maxGreyLevel;
+            (*m_normalisedFigure) ( i, j ) = (float)(*m_figure) ( i, j ) / (float)m_maxGreyLevel;
         }
     }
 }
-
 

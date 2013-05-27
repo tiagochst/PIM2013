@@ -9,7 +9,12 @@
 
 using namespace std;
 
-GLViewer::GLViewer () : QGLViewer (), noAutoOpenGLDisplayMode(false) {
+GLViewer::GLViewer ()
+    :   QGLViewer (),
+        noAutoOpenGLDisplayMode(false),
+        m_frame (),
+        m_depth () 
+{
 }
 
 GLViewer::~GLViewer () {
@@ -31,7 +36,6 @@ void GLViewer::reset() {
      std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
      m_frame.LoadFromFile(RES_IMG_PATH + "image_" + frameID + ".pgm");
      m_depth.LoadFromFile(RES_IMG_PATH + "depth_" + frameID + ".pgm");
-
 }
 
 void GLViewer::init() {
@@ -40,9 +44,9 @@ void GLViewer::init() {
     std::string frameID = std::to_string(params -> GetFrame1());
     
     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
-
-    m_frame = Image(RES_IMG_PATH + "image_" + frameID + ".pgm");
-    m_depth = Image(RES_IMG_PATH + "depth_" + frameID + ".pgm");
+    std::cout << "showing image" <<  frameID << std::endl;
+    m_frame.LoadFromFile(RES_IMG_PATH + "image_" + frameID + ".pgm");
+    m_depth.LoadFromFile(RES_IMG_PATH + "depth_" + frameID + ".pgm");
 
   // Swap the CAMERA and FRAME state keys (NoButton and Control)
   // Save CAMERA binding first. See setHandlerKeyboardModifiers() documentation.
@@ -83,8 +87,10 @@ void GLViewer::init() {
     // setAxisIsDrawn();
 }
 
-static void drawPoints(Image frame, Image depth)
-{
+static void drawPoints (
+    const Image& frame,
+    const Image& depth
+) {
     int height = frame.GetHeight();
     int width = frame.GetWidth();
     float maxGreyLvl = frame.GetMaxGreyLevel ();

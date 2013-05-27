@@ -15,6 +15,7 @@
 #include <QtGui/QPushButton>
 #include <QtGui/QRadioButton>
 #include <QtGui/QWidget>
+#include <QtGui/QStackedWidget>
 #include <QMainWindow>
 #include <QToolBar>
 #include <QCheckBox>
@@ -76,7 +77,7 @@ public slots :
     void setFrame1(int iFrame);
     void setFrame2(int iFrame);
     void setMesh(bool b);
-    void setDisplacement(bool b);
+    void setDisplacement();
     void createDock();
     void calcDisp();
     void updateImages();
@@ -85,22 +86,23 @@ private :
     void initControlWidget ();
     void addImageItems();
 
-    QGroupBox    * controlWidget;    //!< The Left dock group box.
-    GLViewer     * viewer;            //!< The GLViewer (central window)
-    QPushButton  * createMeshPB;
-    QPushButton  * calcDispPB;
-    QPushButton  * snapshotButton;
-    QComboBox    * frame1ComboBox;
-    QComboBox    * frame2ComboBox;
-    QLabel       * img1;
-    QLabel       * img2;
-    QLabel       * dispX;
-    QLabel       * dispY;
-    QWidget      * gridLayoutWidget;
-    QGridLayout  * gridLayout;
-    QWidget      * centralwidget;
-    QDockWidget  * controlDockWidget;
-
+    QGroupBox       *   controlWidget;    //!< The Left dock group box.
+    GLViewer        *   viewer;           //!< The GLViewer (central window)
+    int                 viewerIdx;
+    QPushButton     *   createMeshPB;
+    QPushButton     *   calcDispPB;
+    QPushButton     *   snapshotButton;
+    QComboBox       *   frame1ComboBox;
+    QComboBox       *   frame2ComboBox;
+    QLabel          *   img1;
+    QLabel          *   img2;
+    QLabel          *   dispX;
+    QLabel          *   dispY;
+    QWidget         *   gridLayoutWidget;
+    int                 gridIdx;
+    QGridLayout     *   gridLayout;
+    QStackedWidget  *   centerWidget;
+    QDockWidget     *   controlDockWidget;
 };
 
 

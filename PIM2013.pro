@@ -5,7 +5,7 @@
 #-------------------------------------------------
 TEMPLATE = app
 TARGET   = main
-CONFIG  += qt opengl  warn_off xml console release thread
+CONFIG  += qt opengl warn_off xml console release thread
 QT      += core gui
 QT *= opengl xml
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -41,7 +41,6 @@ unix {
   QMAKE_CFLAGS   += -fopenmp `pkg-config --cflags openni glu`
 
   QMAKE_CXXFLAGS += -std=c++0x -fopenmp `pkg-config --cflags openni glu`
-
 
   LIBS += -lGLEW \
         -lQGLViewer \

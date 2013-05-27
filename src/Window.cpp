@@ -40,32 +40,32 @@ void Window::setFrame1(int iFrame) {
 void Window::setFrame2(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetFrame2(iFrame);
-    //    viewer -> reset();
     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
-    std::string frameID = std::to_string(params -> GetFrame2());
+    std::string frameID1 = std::to_string(params -> GetFrame1());
+    std::string frameID2 = std::to_string(params -> GetFrame2());
 
     img1 = new QLabel;
     img1 -> setMaximumSize(QSize(320, 240));
-    img1 -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
+    img1 -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str()))));
 
     img2 = new QLabel;
     img2 -> setMaximumSize(QSize(320, 240));
-    img2 -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
+    img2 -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID2 + ".pgm").c_str()))));
 
     dispX = new QLabel;
     dispX -> setMaximumSize(QSize(320, 240));
-    dispX -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
+    dispX -> setPixmap(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackinF"+ frameID1 + "F"+ frameID2 + "x.pgm").c_str()))));
 
     dispY = new QLabel;
     dispY -> setMaximumSize(QSize(320, 240));
-    dispY -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID + ".pgm").c_str()))));
+    dispY -> setPixmap(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackinF"+ frameID1 + "F"+ frameID2 + "y.pgm").c_str()))));
 
     gridLayoutWidget = new QWidget;
     gridLayout = new QGridLayout(gridLayoutWidget);
     gridLayout->setContentsMargins(0, 0, 0, 0);
     gridLayout->addWidget(img1, 0, 0, 1, 1);
-    gridLayout->addWidget(img2, 1, 0, 1, 1);
-    gridLayout->addWidget(dispX, 0, 1, 1, 1);
+    gridLayout->addWidget(img2, 0, 1, 1, 1);
+    gridLayout->addWidget(dispX, 1, 0, 1, 1);
     gridLayout->addWidget(dispY, 1, 1, 1, 1);
     setCentralWidget(gridLayoutWidget);    
 

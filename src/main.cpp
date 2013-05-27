@@ -112,11 +112,10 @@ int main(int argc, char** argv) {
     CartesianCoordinate bestMatch;
 
     char c;
-    puts ("Select Mode: Kinect ('k') Image Traking('t') UI (u) Other:('o')");
-    c = getchar();
+    std::cout << "Select Mode: Kinect ('k') Image Traking('t') UI (u) Other:('o')" << std::endl;
+    std::cin  >> c; 
 
     if ( c == 't' ) {
-   
         FindTemplateAndPrintMap(
             bigMask,
             smallMask,
@@ -124,7 +123,8 @@ int main(int argc, char** argv) {
             bestMatch,
             correlationVal,
             "smallMaskCorrelation.pgm"
-            );
+        );
+
         FindTemplateAndPrintMap(
             bigMask,
             mask,
@@ -132,7 +132,8 @@ int main(int argc, char** argv) {
             bestMatch,
             correlationVal,
             "bigMaskCorrelation.pgm"
-            );
+        );
+        
         FindTemplateAndPrintMap(
             frame1,
             mask,
@@ -140,7 +141,8 @@ int main(int argc, char** argv) {
             bestMatch,
             correlationVal,
             "frame1Correlation.pgm"
-            );
+        );
+
         Rectangle window( 150, 150, 200, 200 );
         FindTemplateAndPrintMap(
             frame1,
@@ -150,7 +152,7 @@ int main(int argc, char** argv) {
             correlationVal,
             "frame1WindowedCorrelation.pgm",
             &window
-            );
+        );
         
         try {
             Image::TrackPixels( frame0, frame1, 17, 17, 9, 9, dispX, dispY );
@@ -159,6 +161,7 @@ int main(int argc, char** argv) {
         } catch (BadIndex bi) {
             std::cout << bi.what();
         }
+
         Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
         for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
             for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {
@@ -168,19 +171,6 @@ int main(int argc, char** argv) {
             }
         }    
         fullSpectre.CreateAsciiPgm(Config::OutputPath() + "fullSpectre.pgm");
-        
-        //Image ft = frame0.FourierTransform();
-        //ft.CreateAsciiPgm(Config::OutputPath() + "Frame0FT.pgm");
-        
-        //Image corr01 = frame0.Correlation(frame1);
-        //Image corr10 = frame1.Correlation(frame0);
-        //corr01.CreateAsciiPgm("corr01");
-        //corr10.CreateAsciiPgm("corr10");
-        
-        Image diff01 = frame0.Difference(frame1);
-        Image diff10 = frame1.Difference(frame0);
-        diff01.CreateAsciiPgm(Config::OutputPath() + "diff01.pgm");
-        diff10.CreateAsciiPgm(Config::OutputPath() + "diff10.pgm");
     }
     
     if ( c == 'k' ) {
@@ -202,5 +192,4 @@ int main(int argc, char** argv) {
     
     return 0;
 }
-
 

@@ -18,8 +18,33 @@ public:
     ~Color(void);
     Color& operator=(const Color& iOther);
 
+    const float& Red () const;
+    const float& Green () const;
+    const float& Blue () const;
+    const float& Alpha () const;
+
 private:
     void ClampValues();
 };
+
+inline const float& Color::Red () 
+const {
+    return m_R;
+}
+
+inline const float& Color::Green () 
+const {
+    return m_G;
+}
+
+inline const float& Color::Blue () 
+const {
+    return m_B;
+}
+
+inline const float& Color::Alpha () 
+const {
+    return m_A;
+}
 
 #endif

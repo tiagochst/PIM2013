@@ -1,7 +1,17 @@
 #include <GL/glew.h>
 #include "Window.h"
- #include <QGraphicsScene>
+#include <sstream>
+#include <QGraphicsScene>
 using namespace std;
+
+template<typename T>
+std::string toString ( const T& val ) {
+    std::stringstream ss;
+
+    ss << val;
+
+    return ss.str ();
+}
 
 void Window::setMesh(bool b){
   ParameterHandler* params = ParameterHandler::Instance();
@@ -37,8 +47,8 @@ void Window::setFrame1(int iFrame) {
 void Window::calcDisp() {
     ParameterHandler* params = ParameterHandler::Instance();
     std::string RES_IMG_PATH(Config::FramesPath());
-    std::string frameID1 = std::to_string(params -> GetFrame1());
-    std::string frameID2 = std::to_string(params -> GetFrame2());
+    std::string frameID1 = toString(params -> GetFrame1());
+    std::string frameID2 = toString(params -> GetFrame2());
 
     Image frame1(RES_IMG_PATH + "image_"+ frameID1 + ".pgm");
     Image frame2(RES_IMG_PATH + "image_"+ frameID2 + ".pgm");
@@ -58,8 +68,8 @@ void Window::calcDisp() {
 void Window::updateImages() {
     ParameterHandler* params = ParameterHandler::Instance();
     std::string RES_IMG_PATH(Config::FramesPath());
-    std::string frameID1 = std::to_string(params -> GetFrame1());
-    std::string frameID2 = std::to_string(params -> GetFrame2());
+    std::string frameID1 = toString(params -> GetFrame1());
+    std::string frameID2 = toString(params -> GetFrame2());
 
     if (img1) delete img1;
     img1 = new QLabel;

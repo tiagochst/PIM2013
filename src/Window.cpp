@@ -71,26 +71,39 @@ void Window::updateImages() {
     std::string frameID1 = toString(params -> GetFrame1());
     std::string frameID2 = toString(params -> GetFrame2());
 
+   /* Reads image 1 */
     if (img1) delete img1;
     img1 = new QLabel;
     img1 -> setMaximumSize(QSize(320, 240));
-    img1 -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str()))));
+    QPixmap pic1(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str())));
+    if(!pic1.isNull())
+      img1 -> setPixmap(pic1.scaled(320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
+    /* Reads image 2 */
     if (img2) delete img2;
     img2 = new QLabel;
     img2 -> setMaximumSize(QSize(320, 240));
-    img2 -> setPixmap(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID2 + ".pgm").c_str()))));
+    QPixmap pic2(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID2 + ".pgm").c_str())));
+    if(!pic2.isNull())
+      img2 -> setPixmap(pic2.scaled(320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
+    /* Reads X displacement */
     if (dispX) delete dispX;
     dispX = new QLabel;
     dispX -> setMaximumSize(QSize(320, 240));
-    dispX -> setPixmap(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2 + "x.pgm").c_str()))));
+    QPixmap pic3(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackinF"+ frameID1 + "F"+ frameID2 + "x.pgm").c_str()))));
+    if(!pic3.isNull())
+      dispX -> setPixmap(pic3.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
+    /* Reads Y displacement */
     if (dispY) delete dispY;
     dispY = new QLabel;
     dispY -> setMaximumSize(QSize(320, 240));
-    dispY -> setPixmap(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2 + "y.pgm").c_str()))));
-
+    QPixmap pic4(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackinF"+ frameID1 + "F"+ frameID2 + "y.pgm").c_str()))));
+    if(!pic4.isNull())
+      dispY -> setPixmap(pic4.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+    
+    /* Set image in a 2x2 grid*/
     if (gridLayout) delete gridLayout;
     gridLayout = new QGridLayout(gridLayoutWidget);
     gridLayout->setContentsMargins(0, 0, 0, 0);
@@ -133,15 +146,15 @@ void Window::addImageItems()
     while(!in.atEnd())
     {
         fileName = in.readLine();
-        if(fileName.contains("image_") && fileName.endsWith(".pgm"))
+        if(fileName.endsWith(".pgm"))
         {
-            QStringList list = fileName.split("_"); // Slipt in image_ and ID.pgm
-            QStringList id = list.at(1).split("."); // Slipt in id and pgm
+            QStringList id = fileName.split("."); // Slipt in image_ and ID.pgm
 	    /* Show the ID in the combo box*/
-            frame1ComboBox -> addItem(id.at(0),QVariant::Char); 
-            frame2ComboBox -> addItem(id.at(0),QVariant::Char); 
+            frame1ComboBox -> addItem(id.at(0),QVariant::Char);
+            frame2ComboBox -> addItem(id.at(0),QVariant::Char);
         }
     }
+
 
     /* Close the file */
     imageList.close();
@@ -171,8 +184,10 @@ Window::Window ()
         centerWidget(NULL)
 {
 
+
+
     /* creates the list of images in the system*/
-  static const std::string IMAGE_LIST(" ls -B --ignore=list.txt " + Config::FramesPath() + ">" + Config::FramesPath() + "list.txt");
+  static const std::string IMAGE_LIST(" ls -B --ignore=list.txt --ignore=depth* --ignore=*.ply " + Config::FramesPath() + "| sed -r 's/^.{6}//' |sort -g >" + Config::FramesPath() + "list.txt");
 
     system(IMAGE_LIST.c_str());
    

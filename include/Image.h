@@ -4,6 +4,7 @@
 #include <string>
 #include "Eigen/Dense"
 #include "MathUtils.h"
+#include "Rectangle.h"
 
 class BadIndex {
     std::string m_what;

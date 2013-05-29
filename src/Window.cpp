@@ -16,16 +16,21 @@ std::string toString ( const T& val ) {
 void Window::setMesh(bool b){
   ParameterHandler* params = ParameterHandler::Instance();
   params -> SetMesh(b);
-  
-  viewer -> reset();
-  centerWidget->setCurrentIndex ( viewerIdx );
+
+  if(b){
+    std::cout << "setmesh" << std::endl;
+    viewer -> reset();
+    centerWidget->setCurrentIndex ( viewerIdx );
+  }
 }
 
-void Window::setDisplacement(){
-  ParameterHandler* params = ParameterHandler::Instance();
-  updateImages();
-  centerWidget->setCurrentIndex ( gridIdx );
+void Window::setDisplacement(bool b){
+  if(b){
+    updateImages();
+    centerWidget->setCurrentIndex ( gridIdx );
+  }
 }
+
 
 /*!
  *  \brief  Set the new scene selected from the box
@@ -37,7 +42,8 @@ void Window::setFrame1(int iFrame) {
 
     if(params -> GetMesh()){
         viewer -> reset();
-        centerWidget->setCurrentIndex ( gridIdx );
+	viewer -> updateGL();
+        centerWidget->setCurrentIndex (viewerIdx);
     }
     else{
         updateImages();
@@ -197,6 +203,7 @@ Window::Window ()
         cerr << e.getMessage () << endl;
         exit (1);
     }
+    //    connect(this, SIGNAL(frameChanged()), viewer,SLOT(update()));
     gridLayoutWidget = new QWidget ();
 
     centerWidget = new QStackedWidget();
@@ -332,7 +339,7 @@ void Window::initControlWidget () {
 
     ParameterHandler* params = ParameterHandler::Instance();
     connect(meshRB, SIGNAL(toggled(bool)), this, SLOT(setMesh(bool)));
-    connect(displacementRB, SIGNAL(toggled(bool)), this, SLOT(setDisplacement()));
+    connect(displacementRB, SIGNAL(toggled(bool)), this, SLOT(setDisplacement(bool)));
 
     /* Add widgets to layout*/
     previewLayout -> addWidget (generalLayoutWidget);

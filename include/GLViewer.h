@@ -30,8 +30,6 @@ public:
 
     bool noAutoOpenGLDisplayMode;
      
-    //public slots :
-    
 protected :
     void draw ();
     QString helpString() const;

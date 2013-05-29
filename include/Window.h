@@ -77,7 +77,7 @@ public slots :
     void setFrame1(int iFrame);
     void setFrame2(int iFrame);
     void setMesh(bool b);
-    void setDisplacement();
+    void setDisplacement(bool b);
     void createDock();
     void calcDisp();
     void updateImages();
@@ -103,6 +103,8 @@ private :
     QGridLayout     *   gridLayout;
     QStackedWidget  *   centerWidget;
     QDockWidget     *   controlDockWidget;
+
+
 };
 
 

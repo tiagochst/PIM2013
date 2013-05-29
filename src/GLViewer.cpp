@@ -46,7 +46,7 @@ void GLViewer::init() {
     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
     std::cout << "showing image" <<  frameID << std::endl;
     m_frame.LoadFromFile(RES_IMG_PATH + "image_" + frameID + ".pgm");
-    m_depth.LoadFromFile(RES_IMG_PATH + "depth_" + frameID + ".pgm");
+   m_depth.LoadFromFile(RES_IMG_PATH + "depth_" + frameID + ".pgm");
 
   // Swap the CAMERA and FRAME state keys (NoButton and Control)
   // Save CAMERA binding first. See setHandlerKeyboardModifiers() documentation.
@@ -80,11 +80,9 @@ void GLViewer::init() {
 
     // Add a manipulated frame to the viewer.
     setManipulatedFrame(new qglviewer::ManipulatedFrame());
-    
+
     restoreStateFromFile();
     
-    // Make world axis visible
-    // setAxisIsDrawn();
 }
 
 static void drawPoints (

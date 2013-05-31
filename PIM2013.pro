@@ -15,17 +15,23 @@ HEADERS              =  include/Window.h                \
                         include/GLViewer.h              \ 
                         include/Camera.h                \
                         include/Image.h                 \ 
+                        include/ImageBase.h             \ 
+                        include/SubImage.h              \ 
                         include/Color.h                 \ 
                         include/PlyFile.h               \ 
                         include/Config.h                \ 
                         include/PointSet.h              \ 
                         include/ParameterHandler.h      \
-                        include/Vertex.h    
+                        include/Vertex.h                \     
+                        include/Writer.h                \
+                        include/Tools.h
 
 SOURCES              =  src/Window.cpp                  \
                         src/GLViewer.cpp                \
                         src/Camera.cpp                  \ 
                         src/Image.cpp                   \ 
+                        src/ImageBase.cpp               \ 
+                        src/SubImage.cpp                \ 
                         src/Vertex.cpp                  \ 
                         src/Color.cpp                   \ 
                         src/Config.cpp                  \ 
@@ -42,28 +48,23 @@ QMAKE_CXXFLAGS      +=  -std=c++0x -fopenmp
 INCLUDEPATH         +=  './include'                     \ 
                         './external/common'     
 unix {
-
-    QMAKE_CFLAGS    +=  `pkg-config --cflags openni glu`
-    QMAKE_CXXFLAGS  +=  `pkg-config --cflags openni glu`
+    DESTDIR          =  ./bin/linux/
 
     LIBS            +=  -lGLEW                          \
                         -lQGLViewer                     \
                         -lgomp                          \
                         -lglut                          \
                         -lm                             \
-                        `pkg-config --libs openni glu`
+                        -lOpenNI                        \
+                        -lusb-1.0                       \
+                        -lGLU                           \
+                        -lGL
 
     INCLUDEPATH     +=  './external/linux'              \
                         '/usr/include/libusb-1.0'       \ 
                         '/usr/include/libdrm'           \ 
                         '/usr/include/ni/'              \ 
                         '/usr/include/openni'
-}
-unix:debug {
-    DESTDIR          =  ./bin/linux/debug
-}
-unix:release {
-    DESTDIR          =  ./bin/linux/release
 }
 
 win32 {

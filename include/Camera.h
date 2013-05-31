@@ -16,6 +16,12 @@
 #include <string> 
 #include "Image.h"
 #include "PointSet.h"
+#include <QObject>
+#include "Tools.h"
+#include "Writer.h"
+#include "Config.h"
+#include <iostream>
+#include <QThread>
 
 //----------------------------------------------------------
 // Defines
@@ -48,32 +54,44 @@ enum DisplayModes_e
 };
 
 class Camera
+    :   public QObject
 {
+    Q_OBJECT
+
     int m_help; //! Show help screen
 
 public:
 	// Singleton
 	static Camera& CreateInstance(xn::Context& context);
 	static void DestroyInstance(Camera& instance);
+	static Camera& Instance();
 
+    virtual XnStatus Setup ( int argc, char **argv );
 	virtual XnStatus Init(int argc, char **argv);
 	virtual XnStatus Run();	//Does not return
-	void captureSingleFrame();
-	std::string Int2Str(int nb);
+
+    void BuildTextureMaps ();
+    bool WaitUpdateCamera ();
+    void ReadFrame (
+        Image*      oBrightness,
+        Image*      oDepth,
+        PointSet*   oPoints
+    );
+
+    void captureSingleFrame();
+
 protected:
 	Camera(xn::Context& context);
 	virtual ~Camera();
 
 	virtual int Display();
-	virtual void DisplayPostDraw(){};
+    virtual void DisplayPostDraw(){}
 	// Overload to draw over the screen image
 
 	virtual void OnKey(unsigned char key, int x, int y);
 
 	virtual XnStatus InitOpenGL(int argc, char **argv);
 	void InitOpenGLHooks();
-
-	static Camera& Instance();
 
 	xn::Context&		m_rContext;
 	xn::DepthGenerator	m_depth;

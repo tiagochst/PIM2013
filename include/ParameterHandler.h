@@ -10,11 +10,17 @@ private:
     int             m_frame2;
     bool            m_mesh;
 
+    unsigned int    m_wSize;
+    unsigned int    m_nSize;
+
+
 private:
     ParameterHandler ()
-      :   m_frame1(0),
-          m_frame2(0),
-          m_mesh(true)
+        :   m_frame1(0),
+            m_frame2(0),
+            m_mesh(true),
+            m_wSize ( 7 ),
+            m_nSize ( 9 )
     {}
     ~ParameterHandler ()
     {}
@@ -42,6 +48,36 @@ public:
 
     const bool& GetMesh () const;
 
+    const unsigned int& GetWindowSize () const;
+    const void SetWindowSize (
+        const unsigned int& iWindowSize
+    );
+
+    const unsigned int& GetNeighbourhoodSize () const;
+    const void SetNeighbourhoodSize (
+        const unsigned int& iNeighbourhoodSize
+    );
 };
+
+inline const unsigned int& ParameterHandler::GetWindowSize ()
+const {
+    return m_wSize;
+}
+inline const void ParameterHandler::SetWindowSize (
+    const unsigned int& iWindowSize
+) {
+    m_wSize = iWindowSize;
+}
+
+inline const unsigned int& ParameterHandler::GetNeighbourhoodSize ()
+const {
+    return m_nSize;
+}
+inline const void ParameterHandler::SetNeighbourhoodSize (
+    const unsigned int& iNeighbourhoodSize
+) {
+    m_nSize = iNeighbourhoodSize;
+}
+
 
 #endif // PARAMETERHANDLER_H

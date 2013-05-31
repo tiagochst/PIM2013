@@ -20,6 +20,8 @@ public:
     void WriteToFile ( const std::string& iFilename );
 
     void PushVertex ( const Vertex& iVertex );
+
+    void Draw () const;
 };
 
 inline void PointSet::PushVertex (

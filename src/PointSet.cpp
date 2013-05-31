@@ -1,6 +1,8 @@
 #include "PointSet.h"
 #include "PlyFile.h"
 #include <string>
+#include <GL/gl.h>
+#include <GL/glu.h>
 
 typedef struct VertexPOD {
     float           x, y, z; // Position
@@ -247,4 +249,20 @@ void PointSet::WriteToFile(const std::string& iFilename) {
             (plyPos == (iFilename.size() - 4)) ) {
         WritePlyFile(iFilename.c_str());
     }
+}
+
+void PointSet::Draw () const {
+
+    glBegin ( GL_POINTS );
+    for ( int vtx = 0; vtx < m_vertices.size (); vtx++ ) {
+        const Vertex& v = m_vertices[vtx];
+
+        const Color& c = v.GetColor ();
+        const Vec3Df& pos = v.GetPosition();
+
+        glColor4f ( c.Red(), c.Green(), c.Blue(), c.Alpha() );
+        glVertex3f ( pos[0], pos[1], pos[2] );
+    }
+    glEnd();
+
 }

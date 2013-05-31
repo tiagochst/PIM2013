@@ -8,37 +8,45 @@
 #include <QCleanlooksStyle>
 #include <string>
 #include <iostream>
+#include "MathUtils.h"
 #include "Image.h"
+#include "ImageBase.h"
+#include "SubImage.h"
 #include "PointSet.h"
 #include "Camera.h"
 #include "Config.h"
 //#include "ui_mainInterface.Qt4.h"
 
-class QMyApplication : public QApplication {
+class QMyApplication
+    :   public QApplication
+{
 public:
-  QMyApplication(int argc, char**argv) : QApplication(argc,argv) {}
-  bool notify(QObject* receiver, QEvent* event) {
-    //    try {
-    return QApplication::notify(receiver,event);
-    // } catch (...) {
-    //std::cerr << "Unhandled exception caught" <<std::endl;
-    //}
-    //return false;
-  }
-
+    QMyApplication(int argc, char**argv) : QApplication(argc,argv) {}
+    bool notify(QObject* receiver, QEvent* event) {
+        //    try {
+        return QApplication::notify(receiver,event);
+        // } catch (...) {
+        //std::cerr << "Unhandled exception caught" <<std::endl;
+        //}
+        //return false;
+    }
 };
 
-int KinectInit(int argc, char** argv)
+/* Class Camera test: Kinect's  */
+xn::Context        g_context;
+xn::ScriptNode  g_scriptNode;
+xn::EnumerationErrors errors;
+int KinectSetup(int argc, char**argv)
 {
-
-    /* Class Camera test: Kinect's  */
-    xn::Context        g_context;
-    xn::ScriptNode  g_scriptNode;
-    xn::EnumerationErrors errors;
     XnStatus                  rc;
     
     /* Create a context with default settings */
-    rc = g_context.InitFromXmlFile( ( Config::ConfigPath() + SAMPLE_XML_PATH ).c_str(), g_scriptNode, &errors);
+    rc = g_context.InitFromXmlFile (
+        ( Config::ConfigPath() + SAMPLE_XML_PATH ).c_str(),
+        g_scriptNode,
+        &errors
+    );
+
     /* Verify if device is connected */
     if (rc == XN_STATUS_NO_NODE_PRESENT)
     {
@@ -53,15 +61,24 @@ int KinectInit(int argc, char** argv)
     }
     
     Camera& viewer = Camera::CreateInstance(g_context);
-    
+
+    return rc;
+}
+
+int KinectInit(int argc, char** argv)
+{
+    XnStatus rc = KinectSetup ( argc, argv );
+    CHECK_RC(rc,"Kinect Setup");
+
+    Camera& viewer = Camera::Instance();
+
     rc = viewer.Init(argc, argv);
     CHECK_RC(rc,"Viewer Init");
-    
+
     rc = viewer.Run();
     CHECK_RC(rc,"Viewer run");
 
     return 1;
-    
 }
 
 void FindTemplateAndPrintMap(
@@ -155,9 +172,22 @@ int main(int argc, char** argv) {
         );
         
         try {
-            Image::TrackPixels( frame0, frame1, 17, 17, 9, 9, dispX, dispY );
-            dispX.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1x.pgm");
-            dispY.CreateAsciiPgm(Config::OutputPath() + "TrackinF0F1y.pgm");
+            ParameterHandler* params = ParameterHandler::Instance ();
+            const unsigned int& wSize = params->GetWindowSize ();
+            const unsigned int& nSize = params->GetNeighbourhoodSize ();
+
+            ImageBase::TrackPixels (
+                frame0,
+                frame1,
+                wSize,
+                wSize,
+                nSize,
+                nSize,
+                dispX,
+                dispY
+            );
+            dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1x.pgm");
+            dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1y.pgm");
         } catch (BadIndex bi) {
             std::cout << bi.what();
         }
@@ -178,16 +208,22 @@ int main(int argc, char** argv) {
     }
 
     if ( c == 'u' ) {
+        XnStatus rc = KinectSetup ( argc, argv );
+        CHECK_RC(rc, "Error setting up Kinect Camera");
+
+        Camera& cam = Camera::Instance ();
+        cam.Setup(argc, argv);
+
         QMyApplication program (argc, argv);
-        //setBoubekQTStyle (raymini);
-        QMyApplication::setStyle (new QPlastiqueStyle);
+
+        QMyApplication::setStyle ( new QPlastiqueStyle() );
         program.setAttribute(Qt::AA_DontUseNativeMenuBar,true);
         Window * progWindow = new Window ();
         progWindow->setWindowTitle ("PIM380: A facial reconstruction program.");
-        progWindow -> showFullScreen();
+        progWindow -> show();
         program.connect (&program, SIGNAL (lastWindowClosed()), &program, SLOT (quit()));
         
-    return program.exec ();
+        return program.exec ();
     }
     
     return 0;

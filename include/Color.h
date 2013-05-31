@@ -23,9 +23,22 @@ public:
     const float& Blue () const;
     const float& Alpha () const;
 
+    int Brightness () const;
+
 private:
     void ClampValues();
 };
+
+inline int Color::Brightness ()
+const {
+    return (int)(
+        255 * (
+                m_R * 0.2126f
+            +   m_G * 0.7152f
+            +   m_B * 0.0722f
+        )
+    );
+}
 
 inline const float& Color::Red () 
 const {

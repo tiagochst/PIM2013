@@ -3,9 +3,7 @@
 *  from Copyright (C) 2011 PrimeSense Ltd.                             *
 ******************************************************************/
 
-#include "Config.h"
 #include "Camera.h"
-#include <iostream>
 
 using namespace xn;
 
@@ -33,18 +31,16 @@ void Camera::glutKeyboard (unsigned char key, int x, int y)
     Instance().OnKey(key, x, y);
 }
 
-
-
 //-----------------------------------------------------------------
 // Method Definitions
 //------------------------------------------------------------------
 Camera::Camera(xn::Context& context)
-    :m_pTexMap(NULL),
-     m_help(0),
-     m_nTexMapX(0),
-     m_nTexMapY(0),
-     m_eViewState(DEFAULT_DISPLAY_MODE),
-     m_rContext(context)
+    :   m_pTexMap(NULL),
+        m_help(0),
+        m_nTexMapX(0),
+        m_nTexMapY(0),
+        m_eViewState(DEFAULT_DISPLAY_MODE),
+        m_rContext(context)
 {}
 
 Camera::~Camera()
@@ -72,8 +68,7 @@ Camera& Camera::Instance()
     return *sm_pInstance;
 }
 
-XnStatus Camera::Init(int argc, char **argv)
-{
+XnStatus Camera::Setup ( int argc, char **argv ) {
     XnStatus rc;
 
     /* Verify Depth node in xml */
@@ -89,18 +84,23 @@ XnStatus Camera::Init(int argc, char **argv)
     m_image.GetMetaData(m_imageMD);
 
     /* Hybrid mode isn't supported in this sample */
-    if (m_imageMD.FullXRes() != m_depthMD.FullXRes() || m_imageMD.FullYRes() != m_depthMD.FullYRes())
-    {
+    if (
+            m_imageMD.FullXRes() != m_depthMD.FullXRes()
+        ||  m_imageMD.FullYRes() != m_depthMD.FullYRes()
+    ) {
         printf ("The device depth and image resolution must be equal!\n");
         return 1;
     }
 
     /* RGB is the only image format supported. */
-    if (m_imageMD.PixelFormat() != XN_PIXEL_FORMAT_RGB24)
-    {
+    if (
+        m_imageMD.PixelFormat() != XN_PIXEL_FORMAT_RGB24
+    ) {
         printf("The device image format must be RGB24\n");
         return 1;
     }
+
+    m_depth.GetAlternativeViewPointCap().SetViewPoint(m_image);
 
     /* Texture map init */
     m_nTexMapX = MIN_CHUNKS_SIZE(m_depthMD.FullXRes(), TEXTURE_SIZE);
@@ -109,6 +109,14 @@ XnStatus Camera::Init(int argc, char **argv)
     
     /* Initiate a frame with number 0 */
     m_nbFrames = 0;
+
+    return rc;
+}
+
+XnStatus Camera::Init(int argc, char **argv)
+{
+    XnStatus rc = Setup(argc, argv);
+    CHECK_RC(rc, "Error setting up kinect camera");
     
     return InitOpenGL(argc, argv);
 }
@@ -145,33 +153,13 @@ void Camera::InitOpenGLHooks()
     glutIdleFunc(glutIdle);
 }
 
-int Camera::Display()
-{
-    XnStatus rc = XN_STATUS_OK;
-
-     /* Read a new frame */
-    rc = m_rContext.WaitAnyUpdateAll();
-    CHECK_RC(rc,"Read failed");
-
-    //captureSingleFrame();
+bool Camera::WaitUpdateCamera () {
+    XnStatus rc = m_rContext.WaitAnyUpdateAll ();
+    CHECK_RC ( rc, "Read failed" );
     
-    m_depth.GetMetaData(m_depthMD);
-    m_image.GetMetaData(m_imageMD);
-
+    m_depth.GetMetaData ( m_depthMD );
+    m_image.GetMetaData ( m_imageMD );
     const XnDepthPixel* pDepth = m_depthMD.Data();
-    const XnUInt8* pImage = m_imageMD.Data();
-
-    unsigned int nImageScale = GL_WIN_SIZE_X / m_depthMD.FullXRes();
-
-    // Copied from Camera
-    // Clear the OpenGL buffers
-    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Setup the OpenGL viewpoint
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, GL_WIN_SIZE_X, GL_WIN_SIZE_Y, 0, -1.0, 1.0);
 
     // Calculate the accumulative histogram (the yellow display...)
     xnOSMemSet(m_pDepthHist, 0, MAX_DEPTH*sizeof(float));
@@ -200,8 +188,12 @@ int Camera::Display()
         }
     }
 
-    xnOSMemSet(m_pTexMap, 0, m_nTexMapX*m_nTexMapY*sizeof(XnRGB24Pixel));
+    return ( rc == XN_STATUS_OK );
+}
 
+void Camera::BuildTextureMaps () {
+    // Initialize memory to 0.
+    xnOSMemSet(m_pTexMap, 0, m_nTexMapX*m_nTexMapY*sizeof(XnRGB24Pixel));
 
     // check if we need to draw image frame to texture
     if (m_eViewState == DISPLAY_MODE_OVERLAY ||
@@ -209,12 +201,12 @@ int Camera::Display()
     {
         const XnRGB24Pixel* pImageRow = m_imageMD.RGB24Data();
         XnRGB24Pixel* pTexRow = m_pTexMap + m_imageMD.YOffset() * m_nTexMapX;
-        
+
         for (XnUInt y = 0; y < m_imageMD.YRes(); ++y)
         {
             const XnRGB24Pixel* pImage = pImageRow;
             XnRGB24Pixel* pTex = pTexRow + m_imageMD.XOffset();
-            
+
             for (XnUInt x = 0; x < m_imageMD.XRes(); ++x, ++pImage, ++pTex)
             {
                 *pTex = *pImage;
@@ -251,13 +243,29 @@ int Camera::Display()
             pTexRow += m_nTexMapX;
         }
     }
+}
+
+int Camera::Display()
+{
+    // Copied from Camera
+    // Clear the OpenGL buffers
+    glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Setup the OpenGL viewpoint
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, GL_WIN_SIZE_X, GL_WIN_SIZE_Y, 0, -1.0, 1.0);
+
+    WaitUpdateCamera ();
+
+    BuildTextureMaps ();
     
     // Create the OpenGL texture map
     glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP_SGIS, GL_TRUE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_nTexMapX, m_nTexMapY, 0, GL_RGB, GL_UNSIGNED_BYTE, m_pTexMap);
-
 
     // Display the OpenGL texture map
     glColor4f(1,1,1,1);
@@ -314,11 +322,13 @@ void Camera::OnKey(unsigned char key, int x, int y)
         break;
     case '2':
         m_eViewState = DISPLAY_MODE_DEPTH;
-        m_depth.GetAlternativeViewPointCap().ResetViewPoint();
+        m_depth.GetAlternativeViewPointCap().SetViewPoint(m_image);
+        //m_depth.GetAlternativeViewPointCap().ResetViewPoint();
         break;
     case '3':
         m_eViewState = DISPLAY_MODE_IMAGE;
-        m_depth.GetAlternativeViewPointCap().ResetViewPoint();
+        m_depth.GetAlternativeViewPointCap().SetViewPoint(m_image);
+        //m_depth.GetAlternativeViewPointCap().ResetViewPoint();
         break;
         /*Save depth and image to a pgm file*/    
     case 'p':
@@ -346,75 +356,114 @@ void Camera::ScalePoint(XnPoint3D& point)
     point.Y /= m_depthMD.YRes();
 }
 
-std::string Camera::Int2Str(int nb){
-    std::ostringstream ss;
-    ss << nb;
-    return ss.str();
-}
+void Camera::ReadFrame (
+    Image*      oBrightness,
+    Image*      oDepth,
+    PointSet*   oPoints
+) {
+    const int   width   = m_imageMD.XRes();
+    const int   height  = m_imageMD.YRes();
 
-void Camera::captureSingleFrame()
-{
-    Image camImg  (m_imageMD.XRes(), m_imageMD.YRes(), 255);
-    Image camDepth(m_depthMD.XRes(), m_depthMD.YRes(), 255); 
-    PointSet pointCloud;
+    if ( oBrightness ) {
+        oBrightness->SetDimensions (
+            width,
+            height
+        );
+        oBrightness->SetMaxGreyLevel ( 255 );
+    }
+    if ( oDepth ) {
+        oDepth->SetDimensions (
+            width,
+            height
+        );
+        oDepth->SetMaxGreyLevel ( 256 );
+    }
 
-    const XnRGB24Pixel * pImageRow = m_imageMD.RGB24Data();
-    const XnDepthPixel * pDepthRow = m_depthMD.Data();
+    const XnRGB24Pixel* pImageRow = m_imageMD.RGB24Data();
+    const XnDepthPixel* pDepthRow = m_depthMD.Data();
 
-    for (XnUInt y = 0; y < m_imageMD.YRes(); ++y)
+    for (XnUInt y = 0; y < height; ++y)
     {
-        const XnRGB24Pixel * pImage = pImageRow;
-        const XnDepthPixel * pDepth = pDepthRow;
+        const XnRGB24Pixel* pImage = pImageRow;
+        const XnDepthPixel* pDepth = pDepthRow;
         
-        for (XnUInt x = 0; x < m_imageMD.XRes(); ++x, ++pImage, ++pDepth)
+        for (XnUInt x = 0; x < width; ++x, ++pImage, ++pDepth)
         {
-            /* HDTV rgb to grayscale*/
-            camImg.SetGreyLvl( y, x, pImage -> nRed   * 0.2126f + \
-                                     pImage -> nBlue  * 0.0722f + \
-                                     pImage -> nGreen * 0.7152f );
+            Color c (
+                (int)pImage->nRed,
+                (int)pImage->nGreen,
+                (int)pImage->nBlue
+            );
+            int depthVal = 0;
+
             /* HDTV rgb to grayscale*/
             if (*pDepth != 0)
             {
-                camDepth.SetGreyLvl( y, x, m_pDepthHist[*pDepth] );
+                depthVal = m_pDepthHist[*pDepth];
+            }
+
+            /* HDTV rgb to grayscale*/
+            if ( oBrightness ) {
+                oBrightness->SetGreyLvl (
+                    y,
+                    x,
+                    c.Brightness ()
+                );
             }
             
-            Color c ( (int)pImage->nRed, (int)pImage->nGreen, (int)pImage->nBlue );
-            pointCloud.PushVertex (
-                Vertex (
-                    Vec3Df (
-                        (float)x / m_imageMD.YRes(),
-                        (float)( m_imageMD.YRes() - y) / m_imageMD.YRes(),
-                        (float)m_pDepthHist[*pDepth] / 255
-                    ),
-                    Vec3Df (
-                        1,
-                        0,
-                        0
-                    ),
-                    c
-                )
-            );
+            if ( oDepth ) {
+                oDepth->SetGreyLvl (
+                    y,
+                    x,
+                    depthVal
+                );
+            }
+            
+            if ( oPoints ) {
+                oPoints->PushVertex (
+                    Vertex (
+                        Vec3Df (
+                            (float)( width  - x ) / width,
+                            (float)( height - y ) / height,
+                            (float)( depthVal   ) / 256.f
+                        ),
+                        Vec3Df (
+                            1,
+                            0,
+                            0
+                        ),
+                        c
+                    )
+                );
+            }
         }
 
         pImageRow += m_imageMD.XRes();
         pDepthRow += m_depthMD.XRes();
-
     }
-
-    std::string str_aux = Config::OutputPath() + "CapturedFrames/image_"+ Int2Str(m_nbFrames)  +".pgm";
-    camImg.CreateAsciiPgm(str_aux);
-
-    str_aux = Config::OutputPath() + "CapturedFrames/depth_"+ Int2Str(m_nbFrames)  +".pgm"; 
-    camDepth.CreateAsciiPgm(str_aux);
-
-    str_aux = Config::OutputPath() + "CapturedFrames/pointset_"+ Int2Str(m_nbFrames)  +".ply"; 
-    pointCloud.WriteToFile(str_aux);
-    
-    /* Frame saved: increase ID*/
-    m_nbFrames++;  
-    
 }
 
+void Camera::captureSingleFrame()
+{
+    Image*      camImg = new Image ();
+    Image*      camDepth = new Image ();
+    PointSet*   pointCloud = new PointSet ();
+
+    ReadFrame (
+        camImg,
+        camDepth,
+        pointCloud
+    );
+
+    QThread* thread = new QThread();
+    Writer* worker = new Writer(m_nbFrames++, camImg, camDepth, pointCloud);
+    worker->moveToThread (thread);
+    connect(thread, SIGNAL(started()), worker, SLOT(write()));
+    connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
+    connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+    thread->start();
+}
 
 /*!
  *  \brief  Creates the help screen during the capture of images. Use the Key '?'

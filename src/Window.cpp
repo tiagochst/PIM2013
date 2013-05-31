@@ -2,6 +2,7 @@
 #include "Window.h"
 #include <sstream>
 #include <QGraphicsScene>
+#include "Camera.h"
 using namespace std;
 
 template<typename T>
@@ -42,8 +43,7 @@ void Window::setFrame1(int iFrame) {
 
     if(params -> GetMesh()){
         viewer -> reset();
-	viewer -> updateGL();
-        centerWidget->setCurrentIndex (viewerIdx);
+        viewer -> updateGL();
     }
     else{
         updateImages();
@@ -52,17 +52,30 @@ void Window::setFrame1(int iFrame) {
 
 void Window::calcDisp() {
     ParameterHandler* params = ParameterHandler::Instance();
+
+    const unsigned int& wSize = params->GetWindowSize ();
+    const unsigned int& nSize = params->GetNeighbourhoodSize ();
+
     std::string RES_IMG_PATH(Config::FramesPath());
     std::string frameID1 = toString(params -> GetFrame1());
     std::string frameID2 = toString(params -> GetFrame2());
 
     Image frame1(RES_IMG_PATH + "image_"+ frameID1 + ".pgm");
     Image frame2(RES_IMG_PATH + "image_"+ frameID2 + ".pgm");
-    Image dispX( frame1.GetWidth(), frame1.GetHeight(), 255 );
-    Image dispY( frame1.GetWidth(), frame1.GetHeight(), 255 );
+    Image dispX( frame1.GetWidth(), frame1.GetHeight(), wSize );
+    Image dispY( frame1.GetWidth(), frame1.GetHeight(), wSize );
 
     try {
-        Image::TrackPixels(frame1, frame2, 17, 17, 9, 9, dispX, dispY );
+        Image::TrackPixels (
+            frame1,
+            frame2,
+            wSize,
+            wSize,
+            nSize,
+            nSize,
+            dispX,
+            dispY
+        );
         dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2+"x.pgm");
         dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2+"y.pgm");
     } catch (BadIndex bi) {
@@ -121,7 +134,7 @@ void Window::updateImages() {
 
 void Window::setFrame2(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
-    params -> SetFrame2(iFrame);
+    params->SetFrame2(iFrame);
     updateImages();
 }
 
@@ -141,7 +154,7 @@ void Window::addImageItems()
 
     QFile imageList(IMG_LIST_PATH.c_str());
     QString fileName;
-    
+
     /* Verify if the file readable*/
     if(!imageList.open(QIODevice::ReadOnly ))
         return;
@@ -154,10 +167,11 @@ void Window::addImageItems()
         fileName = in.readLine();
         if(fileName.endsWith(".pgm"))
         {
-            QStringList id = fileName.split("."); // Slipt in image_ and ID.pgm
-	    /* Show the ID in the combo box*/
-            frame1ComboBox -> addItem(id.at(0),QVariant::Char);
-            frame2ComboBox -> addItem(id.at(0),QVariant::Char);
+            QStringList list = fileName.split("_"); // Slipt in image_ and ID.pgm
+            QStringList id = list.at(1).split("."); // Slipt in id and pgm
+            /* Show the ID in the combo box*/
+            frame1ComboBox -> addItem(id.at(0),QVariant::Char); 
+            frame2ComboBox -> addItem(id.at(0),QVariant::Char); 
         }
     }
 
@@ -165,7 +179,7 @@ void Window::addImageItems()
     /* Close the file */
     imageList.close();
     return;
-    
+
 }
 
 /*!
@@ -193,10 +207,10 @@ Window::Window ()
 
 
     /* creates the list of images in the system*/
-  static const std::string IMAGE_LIST(" ls -B --ignore=list.txt --ignore=depth* --ignore=*.ply " + Config::FramesPath() + "| sed -r 's/^.{6}//' |sort -g >" + Config::FramesPath() + "list.txt");
+    static const std::string IMAGE_LIST(" ls -B --ignore=list.txt --ignore=depth* --ignore=*.ply " + Config::FramesPath() + "| sed -r 's/^.{6}//' |sort -g >" + Config::FramesPath() + "list.txt");
 
     system(IMAGE_LIST.c_str());
-   
+
     try {
         viewer = new GLViewer;
     } catch (GLViewer::Exception e) {
@@ -271,10 +285,10 @@ void Window::GLViewerHelp () {
  */
 void Window::about () {
     QMessageBox::about (this, 
-                        "About This Program", 
-                        "<b>PIM380</b>"
-                        "<br> by <i>Vinicius Dias Gardelli</i> "
-                        "<br> and <i>Tiago Chedraoui Silva</i>.");
+            "About This Program", 
+            "<b>PIM380</b>"
+            "<br> by <i>Vinicius Dias Gardelli</i> "
+            "<br> and <i>Tiago Chedraoui Silva</i>.");
 }
 
 
@@ -290,7 +304,7 @@ void Window::initControlWidget () {
 
     QGroupBox * previewGroupBox = new QGroupBox ("Preview", controlWidget);
     QVBoxLayout * previewLayout = new QVBoxLayout (previewGroupBox);
-    
+
     /* Creating tables for frame selection */
     frame1ComboBox = new QComboBox (previewGroupBox);
     frame2ComboBox = new QComboBox (previewGroupBox);
@@ -331,7 +345,7 @@ void Window::initControlWidget () {
 
     snapshotButton  = new QPushButton ("Save preview", previewGroupBox);
     connect (snapshotButton, SIGNAL (clicked ()) , this, SLOT (saveGLImage ()));
-    
+
     /* Mesh showing: Disabling image 2 selection */
     connect(meshRB, SIGNAL(toggled(bool)), frame2ComboBox, SLOT(setDisabled(bool)));
     connect(displacementRB, SIGNAL(toggled(bool)), snapshotButton, SLOT(setDisabled(bool)));

@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
                     << frame0.Correlation ( frame0 )
                     << std::endl;
         std::cout   << "Correlation between frames F0 and F1: "
-                    << frame1.Correlation ( frame1 )
+                    << frame0.Correlation ( frame1 )
                     << std::endl;
         std::cout   << "Error score between frames F0 and F0: "
                     << ImageBase::CalculateErrorScore ( frame0, frame0 )

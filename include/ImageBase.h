@@ -7,7 +7,11 @@
 struct CartesianCoordinate;
 class Rectangle;
 class Image;
+#ifndef IMG_EQ_SIMG
 class SubImage;
+#else
+typedef Image SubImage;
+#endif
 
 class BadIndex {
     std::string m_what;
@@ -120,6 +124,11 @@ public:
         const int&          iNeighbourhoodHeight,
         ImageBase&          oDisplacementMapX,
         ImageBase&          oDisplacementMapY
+    );
+
+    static float CalculateErrorScore (
+        ImageBase&          iImageA,
+        ImageBase&          iImageB
     );
 
 };

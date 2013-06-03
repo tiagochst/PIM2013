@@ -1,8 +1,10 @@
+#include <iostream>
 #include <fstream>
 #include "Image.h"
 #include "SubImage.h"
 #include "ImageBase.h"
 #include "MathUtils.h"
+#include "Rectangle.h"
 
 void ImageBase::CreateAsciiPgm (
     const std::string&  iFilename
@@ -35,6 +37,51 @@ inline CartesianCoordinate ImageBase::Center () const
     );
 }
 
+float ImageBase::CalculateErrorScore (
+    ImageBase&      iImageA,
+    ImageBase&      iImageB
+) {
+    assert ( iImageA.GetWidth  () == iImageB.GetWidth  () );
+    assert ( iImageA.GetHeight () == iImageB.GetHeight () );
+
+    const unsigned int& SAMPLING_STEP   = 20;
+    const unsigned int& NH_SZ           = 9;
+
+    float globalScore = 0.f;
+    const unsigned int& height  = iImageA.GetHeight ();
+    const unsigned int& width   = iImageA.GetWidth  ();
+    for ( int y = NH_SZ / 2; y < height - NH_SZ / 2; y += SAMPLING_STEP ) {
+        for ( int x = NH_SZ / 2; x < width - NH_SZ / 2; x += SAMPLING_STEP ) {
+            float localScore    = 0.f;
+            float denomA        = 0.f;
+            float denomB        = 0.f;
+
+            for ( int yy = -NH_SZ / 2; yy <= NH_SZ / 2; yy++ ) {
+                for ( int xx = -NH_SZ / 2; xx <= NH_SZ / 2; xx++ ) {
+                    const float valA = iImageA.GetGreyLvl ( y + yy, x + xx );
+                    const float valB = iImageB.GetGreyLvl ( y + yy, x + xx );
+
+                    denomA      += ( valA * valA );
+                    denomB      += ( valB * valB );
+                    localScore  += ( valA * valB );
+                }
+            }
+            if ( denomA && denomB ) {
+                localScore /= sqrt ( denomA * denomB );
+            } else if ( !denomA && !denomB ) {
+                localScore = 1.f; 
+            } else {
+                localScore = 0.f;
+            }
+
+            globalScore += ( 1.f - localScore );
+        }
+    }
+
+    return ( globalScore );
+}
+
+
 float ImageBase::TemplateMatch (
     const ImageBase&        iMask,
     CartesianCoordinate&    oBestMatch,
@@ -55,7 +102,6 @@ float ImageBase::TemplateMatch(
     CartesianCoordinate&    oBestMatch,
     ImageBase*              oCorrelationMap
 ) const {
-    const ImageBase& me = (*this);
     const Rectangle& sw( iSearchWindow );
 
     if ( oCorrelationMap != NULL ) {
@@ -65,28 +111,28 @@ float ImageBase::TemplateMatch(
         if ( oCorrelationMap->GetWidth() != sw.Width() ) {
             oCorrelationMap->SetWidth( sw.Width() );
         }
-        if ( oCorrelationMap->GetMaxGreyLevel() != GetMaxGreyLevel() ) {
-            oCorrelationMap->SetMaxGreyLevel( GetMaxGreyLevel() );
-        }
+        //if ( oCorrelationMap->GetMaxGreyLevel() != GetMaxGreyLevel() ) {
+            oCorrelationMap->SetMaxGreyLevel( 255 );
+        //}
     }
+    oBestMatch.x = oBestMatch.y = -1;
 
-    int nMaskElems = iMask.GetWidth () * iMask.GetWidth ();
-    
     float maskDenom = 0;
     #pragma omp parallel for
     for ( int xx = 0; xx < iMask.GetWidth(); xx++ ) {
         #pragma omp parallel for
         for ( int yy = 0; yy < iMask.GetHeight(); yy++ ) {
-            CartesianCoordinate maskCoords( xx, yy );
-            
-            float maskVal = iMask.GetNormed( maskCoords );
+            float maskVal = iMask.GetGreyLvl (
+                yy,
+                xx
+            );
             
             #pragma omp critical
-            maskDenom += maskVal * maskVal; 
+            maskDenom += ( maskVal * maskVal ); 
         }
     }
     
-    float bestMatchVal = 0;
+    float bestMatchVal = -1;
     CartesianCoordinate maskCenter = iMask.Center();
     #pragma omp parallel for
     for ( int x = sw.X(); x < sw.Right(); x++ ) {
@@ -94,28 +140,41 @@ float ImageBase::TemplateMatch(
         for ( int y = sw.Y(); y < sw.Bottom(); y++ ) {
             float val = 0;
             float myDenom = 0;
-            for ( int xx = -maskCenter.x; xx <= maskCenter.x ; xx++ ) {
-                for ( int yy = -maskCenter.y; yy <= maskCenter.y; yy++ ) {
-                    CartesianCoordinate myCoords( x + xx, y + yy );
-                    CartesianCoordinate maskCoords( xx + maskCenter.x,
-                                                    yy + maskCenter.y );
-
-                    float myVal   = me.GetNormed( myCoords );
-                    float maskVal = iMask.GetNormed( maskCoords );
+            for ( int xx = 0; xx < iMask.GetWidth () ; xx++ ) {
+                for ( int yy = 0; yy < iMask.GetHeight (); yy++ ) {
+                    float myVal   = GetGreyLvl (
+                        y + yy - maskCenter.y,
+                        x + xx - maskCenter.x
+                    );
+                    float maskVal = iMask.GetGreyLvl (
+                        yy,
+                        xx
+                    );
 
                     myDenom += myVal * myVal; 
                     val     += myVal * maskVal;
                 }
             }
-            val /= sqrt ( maskDenom * myDenom );
+            if ( maskDenom && myDenom ) {
+                val /= sqrt ( maskDenom * myDenom );
+            } else if ( !maskDenom && !myDenom ) {
+                val = 1.f; 
+            } else {
+                val = 0.f;
+            }
             
             if ( oCorrelationMap != NULL ) {
-                CartesianCoordinate corrCoords( x - sw.X(), y - sw.Y() );
-
-                oCorrelationMap->SetNormed( corrCoords, val);
+                oCorrelationMap->SetGreyLvl (
+                    y - sw.Y(), 
+                    x - sw.X(),
+                    val * 255
+                );
             }
             #pragma omp critical
-            if ( val >= bestMatchVal ) {
+            if (
+                    val >= bestMatchVal
+                &&  val >= 0.85f
+            ) {
                 bestMatchVal = val;
                 oBestMatch.x = x;
                 oBestMatch.y = y;
@@ -136,7 +195,9 @@ float ImageBase::Correlation (
         throw IncompatibleImages();
     }
 
-    float correlation = 0;
+    float correlation   = 0.f;
+    float myDenom       = 0.f;
+    float otherDenom    = 0.f;
     for (
         int x = 0;
         x < GetWidth ();
@@ -149,12 +210,23 @@ float ImageBase::Correlation (
         ) {
             CartesianCoordinate c ( x, y );
 
-            correlation += GetNormed ( c ) 
-                         * iOther.GetNormed ( c );
+            const float myVal       = GetGreyLvl (
+                y,
+                x
+            );
+            const float otherVal    = iOther.GetGreyLvl (
+                y,
+                x
+            );
+
+            myDenom     += ( myVal * myVal );
+            otherDenom  += ( otherVal * otherVal );
+            correlation += ( otherVal * myVal );
         } 
     } 
-    
-    return correlation;
+    correlation /= sqrt ( myDenom * otherDenom );
+
+    return ( correlation );
 }
 
 void ImageBase::GetSubImage (
@@ -178,8 +250,24 @@ void ImageBase::GetSubImage (
     SubImage&   oSubImage
 ) {
     oSubImage.SetDimensions ( iWidth, iHeight );
+#ifdef IMG_EQ_SIMG
+    oSubImage.SetMaxGreyLevel ( GetMaxGreyLevel () );
+
+    for ( int i = iX; i < iX + iWidth; i++ ) {
+        for ( int j = iY; j < iY + iHeight; j++ ) {
+            int value = GetGreyLvl ( j, i );
+            oSubImage.SetGreyLvl (
+                j - iY,
+                i - iX,
+                value
+            );        
+        }
+    }
+
+#else
     oSubImage.SetOffset ( iX, iY );
     oSubImage.SetParent ( this );
+#endif
 }
 
 void ImageBase::TrackPixels(
@@ -199,7 +287,13 @@ void ImageBase::TrackPixels(
         throw IncompatibleImages();
     }
 
+    oDisplacementMapX.SetMaxGreyLevel ( iWindowWidth );
+    oDisplacementMapY.SetMaxGreyLevel ( iWindowHeight );
+
+    const int& maxAbsDispX = iWindowWidth / 2;
+    const int& maxAbsDispY = iWindowHeight / 2; 
     CartesianCoordinate nCenter ( iNeighbourhoodWidth / 2, iNeighbourhoodHeight / 2 ); 
+    CartesianCoordinate wCenter ( iWindowWidth / 2, iWindowHeight / 2 );
 
     SubImage neighbourhoodL;
     SubImage neighbourhoodR;
@@ -208,6 +302,11 @@ void ImageBase::TrackPixels(
     for ( int x = 0; x < iRefImage.GetWidth(); x++ ) {
         #pragma omp parallel for private (neighbourhoodR, neighbourhoodL) 
         for ( int y = 0; y < iRefImage.GetHeight(); y++ ) {
+            CartesianCoordinate bestMatchL;
+            CartesianCoordinate bestMatchR;
+            Image correlationMapL;
+            Image correlationMapR; 
+
             iRefImage.GetSubImage (
                 x - nCenter.x,
                 y - nCenter.y,
@@ -223,14 +322,6 @@ void ImageBase::TrackPixels(
                 neighbourhoodR
             );
 
-            CartesianCoordinate bestMatchL;
-            Image correlationMapL ( iWindowWidth, iWindowHeight, 65535 );
-
-            CartesianCoordinate bestMatchR;
-            Image correlationMapR ( iWindowWidth, iWindowHeight, 65535 );
-
-            CartesianCoordinate wCenter ( iWindowWidth / 2, iWindowHeight / 2 );
-
             Rectangle wRegionL( x - wCenter.x,
                                 y - wCenter.y,
                                 iWindowWidth,
@@ -240,52 +331,48 @@ void ImageBase::TrackPixels(
                                 iWindowWidth,
                                 iWindowHeight );
 
-            iTargetImage.TemplateMatch( neighbourhoodL, wRegionL, bestMatchL, &correlationMapL );
-            iTargetImage.TemplateMatch( neighbourhoodR, wRegionR, bestMatchR, &correlationMapR );
+            iTargetImage.TemplateMatch (
+                neighbourhoodL,
+                wRegionL,
+                bestMatchL,
+                &correlationMapL
+            );
+            iTargetImage.TemplateMatch (
+                neighbourhoodR,
+                wRegionR,
+                bestMatchR,
+                &correlationMapR
+            );
             
-            CartesianCoordinate bestMatch;
-
             static const float inf = std::numeric_limits<float>::infinity();
             float bestR = -inf;
             float bestL = -inf;
+            int valX = maxAbsDispX + 1;
+            int valY = maxAbsDispY + 1;
             for ( int i = 0; i < correlationMapL.GetWidth (); i++ ) {
                 for ( int j = 0; j < correlationMapL.GetHeight (); j++ ) {
-                    float leftVal  = correlationMapL.GetNormed ( j, i );
-                    float rightVal = correlationMapR.GetNormed ( j, i );
+                    float leftVal  = correlationMapL.GetGreyLvl ( j, i );
+                    float rightVal = correlationMapR.GetGreyLvl ( j, i );
     
                     if (
-                            leftVal > bestL
-                        && rightVal > bestR
+                            leftVal >= 0.85f
+                        &&  leftVal >= bestL
+                        && rightVal >  bestR
                     ) {
-                        bestMatch.x = i + wRegionL.X();
-                        bestMatch.y = j + wRegionL.Y();                        
+                        valX = i + wRegionL.X() - x;
+                        valY = j + wRegionL.Y() - y;
 
                         bestL = leftVal;
                         bestR = rightVal;
                     }
                 }
             }
-
-            int valX = (bestMatch.x - x);
-            int valY = (bestMatch.y - y);
             
-            oDisplacementMapX.SetGreyLvl( y, x, valX );
-            oDisplacementMapY.SetGreyLvl( y, x, valY );
-        }
-    }
-
-    const int& maxAbsDispX = oDisplacementMapX.GetMaxGreyLevel () / 2;
-    const int& maxAbsDispY = oDisplacementMapY.GetMaxGreyLevel () / 2;
-    #pragma omp parallel for
-    for ( int x = 0; x < iRefImage.GetWidth(); x++ ) {
-        #pragma omp parallel for
-        for ( int y = 0; y < iRefImage.GetHeight(); y++ ) {
-
-            int valX = oDisplacementMapX.GetGreyLvl( y, x );
-            int valY = oDisplacementMapY.GetGreyLvl( y, x );
-
+            valX = (valX >= 0) ? valX + 1 : valX;
+            valY = (valY >= 0) ? valY + 1 : valY;
             oDisplacementMapX.SetGreyLvl( y, x, ( valX + maxAbsDispX ) );
             oDisplacementMapY.SetGreyLvl( y, x, ( valY + maxAbsDispY ) );
         }
     }
 }
+

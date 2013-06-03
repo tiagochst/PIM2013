@@ -71,7 +71,6 @@ public:
 	virtual XnStatus Run();	//Does not return
 
     void BuildTextureMaps ();
-    bool WaitUpdateCamera ();
     void ReadFrame (
         Image*      oBrightness,
         Image*      oDepth,
@@ -79,6 +78,12 @@ public:
     );
 
     void captureSingleFrame();
+
+signals:
+    void captureFinished();
+
+public slots:
+    void WaitUpdateCamera ();
 
 protected:
 	Camera(xn::Context& context);

@@ -4,6 +4,8 @@
 ******************************************************************/
 
 #include "Camera.h"
+#include "ParameterHandler.h"
+#include "FileWriterServices.h"
 
 using namespace xn;
 
@@ -153,10 +155,10 @@ void Camera::InitOpenGLHooks()
     glutIdleFunc(glutIdle);
 }
 
-bool Camera::WaitUpdateCamera () {
+void Camera::WaitUpdateCamera () {
     XnStatus rc = m_rContext.WaitAnyUpdateAll ();
-    CHECK_RC ( rc, "Read failed" );
-    
+    //CHECK_RC ( rc, "Read failed" );
+
     m_depth.GetMetaData ( m_depthMD );
     m_image.GetMetaData ( m_imageMD );
     const XnDepthPixel* pDepth = m_depthMD.Data();
@@ -188,7 +190,10 @@ bool Camera::WaitUpdateCamera () {
         }
     }
 
-    return ( rc == XN_STATUS_OK );
+    ParameterHandler* params = ParameterHandler::Instance ();
+    if ( params->GetCaptureMode() == true ) {
+        captureSingleFrame ();
+    }
 }
 
 void Camera::BuildTextureMaps () {
@@ -305,7 +310,6 @@ int Camera::Display()
     return 0;
     
 }
-
 
 /*!
  *  \brief  Treats an event of button pressed
@@ -445,6 +449,8 @@ void Camera::ReadFrame (
 
 void Camera::captureSingleFrame()
 {
+    ParameterHandler* params = ParameterHandler::Instance();
+
     Image*      camImg = new Image ();
     Image*      camDepth = new Image ();
     PointSet*   pointCloud = new PointSet ();
@@ -455,14 +461,29 @@ void Camera::captureSingleFrame()
         pointCloud
     );
 
-    QThread* thread = new QThread();
-    Writer* worker = new Writer(m_nbFrames++, camImg, camDepth, pointCloud);
-    worker->moveToThread (thread);
-    connect(thread, SIGNAL(started()), worker, SLOT(write()));
-    connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
-    connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
-    thread->start();
+    //QThread* thread = new QThread();
+    //Writer* worker = new Writer(m_nbFrames++, camImg, camDepth, pointCloud);
+    //worker->moveToThread (thread);
+    //connect(thread, SIGNAL(started()), worker, SLOT(write()));
+    //connect(worker, SIGNAL(finished()), thread, SLOT(quit()));
+    //connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
+    //connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+    //thread->start();
+    FileWriterServices* fws = FileWriterServices::Instance ();
+    if ( m_nbFrames == 0 ) {
+        fws->StartCapture ();
+    }
+    fws->RegisterFrame (
+        m_nbFrames++,
+        camImg,
+        camDepth,
+        pointCloud
+    );
+
+    if ( m_nbFrames == params->GetNumCaptureFrames() ) {
+        params->SetCaptureMode ( false );
+        m_nbFrames = 0;
+    }
 }
 
 /*!

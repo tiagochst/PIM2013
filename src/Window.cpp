@@ -2,7 +2,9 @@
 #include "Window.h"
 #include <sstream>
 #include <QGraphicsScene>
+#include <QImage>
 #include "Camera.h"
+#include "FileWriterServices.h"
 using namespace std;
 
 template<typename T>
@@ -12,6 +14,38 @@ std::string toString ( const T& val ) {
     ss << val;
 
     return ss.str ();
+}
+
+void Window::startCapture() {
+    ParameterHandler* params = ParameterHandler::Instance();
+    params->SetCaptureMode ( true );
+    startCaptureButton->setEnabled ( false );
+    controlWidget->setEnabled ( false );
+    progressDialog = new QProgressDialog (
+        QString ("Processing..."),
+        QString ("Cancel"),
+        0,
+        100 
+    );
+    FileWriterServices* fws = FileWriterServices::Instance ();
+    connect (
+                   fws, SIGNAL (       Progress ( int ) ),
+        progressDialog, SLOT   (       setValue ( int ) )
+    );
+    connect (
+                   fws, SIGNAL (            Finished () ),
+                  this, SLOT   ( enableCaptureButton () )
+    );
+    progressDialog->show ();
+}
+
+void Window::enableCaptureButton () {
+    startCaptureButton->setEnabled ( true );
+    controlWidget->setEnabled ( true );
+    if ( progressDialog ) {
+        delete progressDialog;
+        progressDialog = 0x0;
+    }
 }
 
 void Window::setMesh(bool b){
@@ -31,7 +65,6 @@ void Window::setDisplacement(bool b){
     centerWidget->setCurrentIndex ( gridIdx );
   }
 }
-
 
 /*!
  *  \brief  Set the new scene selected from the box
@@ -244,11 +277,19 @@ Window::Window ()
     QAction *exitAct = new QAction(tr("E&xit"), this);
     fileMenu->addAction(exitAct);
     connect(exitAct, SIGNAL(triggered()),
+            this, SLOT (exitPreprocess()));
+
+    connect(this, SIGNAL(exiting()),
             qApp, SLOT(closeAllWindows()));
 
     createDock();
     statusBar()->showMessage("");
 
+}
+
+void Window::exitPreprocess () {
+    FileWriterServices::DeleteInstance ();
+    emit ( exiting () );
 }
 
 void Window::createDock () {
@@ -343,24 +384,49 @@ void Window::initControlWidget () {
     frame2ComboBox -> setDisabled(true);
 
     snapshotButton  = new QPushButton ("Save preview", previewGroupBox);
-    connect (snapshotButton, SIGNAL (clicked ()) , this, SLOT (saveGLImage ()));
+    startCaptureButton = new QPushButton ("Start Capture", previewGroupBox);
+    connect (
+            snapshotButton, SIGNAL (      clicked () ),
+                      this, SLOT   (  saveGLImage () )
+    );
+    connect (
+        startCaptureButton, SIGNAL (      clicked () ),
+                      this, SLOT   ( startCapture () )
+    );
 
     /* Mesh showing: Disabling image 2 selection */
     connect(meshRB, SIGNAL(toggled(bool)), frame2ComboBox, SLOT(setDisabled(bool)));
     connect(displacementRB, SIGNAL(toggled(bool)), snapshotButton, SLOT(setDisabled(bool)));
     connect(meshRB, SIGNAL(toggled(bool)), calcDispPB, SLOT(setDisabled(bool)));
+    connect(displacementRB, SIGNAL(toggled(bool)),
+            startCaptureButton, SLOT(setDisabled(bool)));
 
     ParameterHandler* params = ParameterHandler::Instance();
     connect(meshRB, SIGNAL(toggled(bool)), this, SLOT(setMesh(bool)));
     connect(displacementRB, SIGNAL(toggled(bool)), this, SLOT(setDisplacement(bool)));
 
+    cameraTimer = new QTimer();
+    Camera* cam = &(Camera::Instance());
+    connect (
+        cameraTimer, SIGNAL (          timeout () ),
+                cam, SLOT   ( WaitUpdateCamera () )
+    );
+    connect (
+        cameraTimer, SIGNAL (          timeout () ),
+             viewer, SLOT   (           update () )
+    );
+    cameraTimer->start(16);
+
+    FileWriterServices* fws = FileWriterServices::Instance ();
+
     /* Add widgets to layout*/
-    previewLayout -> addWidget (generalLayoutWidget);
-    previewLayout -> addWidget (displacementRB);
-    previewLayout -> addWidget (meshRB);
-    previewLayout -> addWidget (createMeshPB);
-    previewLayout -> addWidget (calcDispPB);
-    previewLayout -> addWidget (snapshotButton);
+    previewLayout->addWidget (generalLayoutWidget);
+    previewLayout->addWidget (displacementRB);
+    previewLayout->addWidget (meshRB);
+    previewLayout->addWidget (createMeshPB);
+    previewLayout->addWidget (calcDispPB);
+    previewLayout->addWidget (snapshotButton);
+    previewLayout->addWidget (startCaptureButton);
 
     /* Add widgets to left dock layout*/
     layout -> addWidget (previewGroupBox);

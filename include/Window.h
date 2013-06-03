@@ -53,6 +53,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <QTextStream>
+#include <QProgressDialog>
 #include "Config.h"
 #include "ParameterHandler.h"
 
@@ -68,8 +69,11 @@ class Window : public QMainWindow {
 public:
     Window();
     virtual ~Window();
-    
-public slots :
+
+signals:
+    void exiting ();
+
+public slots:
     void about ();
     void createMesh();
     void GLViewerHelp ();
@@ -81,6 +85,9 @@ public slots :
     void createDock();
     void calcDisp();
     void updateImages();
+    void startCapture();
+    void enableCaptureButton();
+    void exitPreprocess();
 
 private :
     void initControlWidget ();
@@ -92,6 +99,7 @@ private :
     QPushButton     *   createMeshPB;
     QPushButton     *   calcDispPB;
     QPushButton     *   snapshotButton;
+    QPushButton     *   startCaptureButton;
     QComboBox       *   frame1ComboBox;
     QComboBox       *   frame2ComboBox;
     QLabel          *   img1;
@@ -103,7 +111,9 @@ private :
     QGridLayout     *   gridLayout;
     QStackedWidget  *   centerWidget;
     QDockWidget     *   controlDockWidget;
+    QTimer          *   cameraTimer;
 
+    QProgressDialog *   progressDialog;
 
 };
 

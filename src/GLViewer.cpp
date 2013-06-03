@@ -169,13 +169,11 @@ void GLViewer::draw () {
 
     PointSet* ps = new PointSet ();
     Camera& cam = Camera::Instance ();
-    if ( cam.WaitUpdateCamera () ) {
-        cam.ReadFrame (
-            0x0,
-            0x0,
-            ps
-        );
-    }
+    cam.ReadFrame (
+        0x0,
+        0x0,
+        ps
+    );
 
     ps->Draw ();
     delete ps;

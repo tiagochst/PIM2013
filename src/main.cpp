@@ -15,6 +15,7 @@
 #include "PointSet.h"
 #include "Camera.h"
 #include "Config.h"
+#include "Rectangle.h"
 //#include "ui_mainInterface.Qt4.h"
 
 class QMyApplication
@@ -82,8 +83,8 @@ int KinectInit(int argc, char** argv)
 }
 
 void FindTemplateAndPrintMap(
-    const Image& iBaseImage,
-    const Image& iTemplate,
+    const ImageBase& iBaseImage,
+    const ImageBase& iTemplate,
     Image& oCorrelationMap,
     CartesianCoordinate& oBestMatch,
     float& oBestMatchVal,
@@ -120,6 +121,22 @@ int main(int argc, char** argv) {
     Image dispX( frame0.GetWidth(), frame0.GetHeight(), 255 );
     Image dispY( frame0.GetWidth(), frame0.GetHeight(), 255 );
 
+    SubImage figure;
+    SubImage patch;
+    frame0.GetSubImage (
+        200,
+        140,
+        150,
+        250,
+        figure
+    );
+    figure.GetSubImage (
+        50,
+        50,
+        50,
+        50,
+        patch
+    );
     Image smallMask(Config::DataPath() + "smallMask.pgm");
     Image mask(Config::DataPath() + "mask.pgm");
     Image bigMask(Config::DataPath() + "bigMask.pgm");
@@ -133,6 +150,41 @@ int main(int argc, char** argv) {
     std::cin  >> c; 
 
     if ( c == 't' ) {
+        figure.CreateAsciiPgm (
+            Config::OutputPath() + "figure.pgm"
+        );
+        patch.CreateAsciiPgm (
+            Config::OutputPath() + "patch.pgm"
+        );
+
+        std::cout   << "Correlation between frames F0 and F0: "
+                    << frame0.Correlation ( frame0 )
+                    << std::endl;
+        std::cout   << "Correlation between frames F0 and F1: "
+                    << frame1.Correlation ( frame1 )
+                    << std::endl;
+        std::cout   << "Error score between frames F0 and F0: "
+                    << ImageBase::CalculateErrorScore ( frame0, frame0 )
+                    << std::endl;
+        std::cout   << "Error score between frames F0 and F1: "
+                    << ImageBase::CalculateErrorScore ( frame0, frame1 )
+                    << std::endl;
+        FindTemplateAndPrintMap(
+            frame0,
+            figure,
+            correlationMap,
+            bestMatch,
+            correlationVal,
+            "frame0figureCorrelation.pgm"
+        );
+        FindTemplateAndPrintMap(
+            figure,
+            patch,
+            correlationMap,
+            bestMatch,
+            correlationVal,
+            "figurePatchCorrelation.pgm"
+        );
         FindTemplateAndPrintMap(
             bigMask,
             smallMask,
@@ -175,6 +227,8 @@ int main(int argc, char** argv) {
             ParameterHandler* params = ParameterHandler::Instance ();
             const unsigned int& wSize = params->GetWindowSize ();
             const unsigned int& nSize = params->GetNeighbourhoodSize ();
+            dispX.SetMaxGreyLevel ( wSize );
+            dispY.SetMaxGreyLevel ( wSize );
 
             ImageBase::TrackPixels (
                 frame0,

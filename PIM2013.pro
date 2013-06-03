@@ -24,7 +24,8 @@ HEADERS              =  include/Window.h                \
                         include/ParameterHandler.h      \
                         include/Vertex.h                \     
                         include/Writer.h                \
-                        include/Tools.h
+                        include/Tools.h \
+    include/FileWriterServices.h
 
 SOURCES              =  src/Window.cpp                  \
                         src/GLViewer.cpp                \
@@ -38,7 +39,8 @@ SOURCES              =  src/Window.cpp                  \
                         src/PointSet.cpp                \
                         src/main.cpp                    \
                         src/ParameterHandler.cpp        \
-                        src/PlyFile.c
+                        src/PlyFile.c \
+    src/FileWriterServices.cpp
 
 MOC_DIR              =  .tmp
 OBJECTS_DIR          =  .tmp
@@ -47,6 +49,8 @@ QMAKE_CFLAGS        +=  -fopenmp
 QMAKE_CXXFLAGS      +=  -std=c++0x -fopenmp
 INCLUDEPATH         +=  './include'                     \ 
                         './external/common'     
+
+#DEFINES             +=  IMG_EQ_SIMG
 unix {
     DESTDIR          =  ./bin/linux/
 
@@ -100,3 +104,5 @@ win32:release{
     LIBS            +=  -lQGLViewer2
 
 }
+
+FORMS +=

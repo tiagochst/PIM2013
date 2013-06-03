@@ -13,14 +13,18 @@ private:
     unsigned int    m_wSize;
     unsigned int    m_nSize;
 
+    bool            m_captureMode;
+    unsigned int    m_numCaptureFrames;
+
 
 private:
     ParameterHandler ()
-        :   m_frame1(0),
-            m_frame2(0),
-            m_mesh(true),
-            m_wSize ( 7 ),
-            m_nSize ( 9 )
+        :   m_frame1 ( 0 ),
+            m_frame2 ( 0 ),
+            m_mesh ( true ),
+            m_wSize ( 9 ),
+            m_nSize ( 9 ),
+            m_numCaptureFrames ( 35 )
     {}
     ~ParameterHandler ()
     {}
@@ -31,6 +35,13 @@ public:
         static ParameterHandler _instance;
         return &_instance;
     }
+
+    void SetCaptureMode (
+        const bool&     iCaptureMode
+    );
+    const bool& GetCaptureMode () const;
+
+    const unsigned int& GetNumCaptureFrames () const;
 
     void SetFrame1 (
         const int&             iFrame

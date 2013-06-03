@@ -1,3 +1,5 @@
+#ifndef IMG_EQ_SIMG
+
 #include <cassert>
 #include "MathUtils.h"
 #include "ImageBase.h"
@@ -105,13 +107,13 @@ const int& SubImage::GetGreyLvl (
 ) const {
     assert ( m_parent != (ImageBase*)0x0 );
 
-    int row = abs ( iRow + m_region.Y() );
-    int col = abs ( iCol + m_region.X() );
+    int row = abs ( iRow );
+    int col = abs ( iCol );
 
     row = IsOdd (row / GetHeight ()) ? (row % GetHeight ()) : (GetHeight () - (row % GetHeight ()) - 1);
     col = IsOdd (col / GetWidth () ) ? (col % GetWidth () ) : (GetWidth ()  - (col % GetWidth () ) - 1);
-    
-    return m_parent->GetGreyLvl ( row, col );
+
+    return m_parent->GetGreyLvl ( row + m_region.Y(), col + m_region.X() );
 }
 inline const float& SubImage::GetNormed (
     const CartesianCoordinate& iPos
@@ -124,13 +126,13 @@ inline const float& SubImage::GetNormed (
 ) const {
     assert ( m_parent != (ImageBase*)0x0 );
 
-    int row = abs ( iRow + m_region.Y() );
-    int col = abs ( iCol + m_region.X() );
+    int row = abs ( iRow );
+    int col = abs ( iCol );
 
     row = IsOdd (row / GetHeight ()) ? (row % GetHeight ()) : (GetHeight () - (row % GetHeight ()) - 1);
     col = IsOdd (col / GetWidth () ) ? (col % GetWidth () ) : (GetWidth ()  - (col % GetWidth () ) - 1);
     
-    return m_parent->GetNormed ( row, col );
+    return m_parent->GetNormed ( row + m_region.Y(), col + m_region.X() );
 }
 
 inline void SubImage::SetGreyLvl (
@@ -164,4 +166,6 @@ inline void SubImage::SetNormed (
 ) {
     SetNormed ( iPos.y, iPos.x, iValue );
 }
+
+#endif // IMG_EQ_SIMG
 

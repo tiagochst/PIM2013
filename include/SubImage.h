@@ -1,4 +1,15 @@
+#ifdef IMG_EQ_SIMG
+
 #ifndef _SUBIMAGE_H_
+#define _SUBIMAGE_H_
+
+#include "Image.h"
+
+typedef Image   SubImage;
+
+#endif
+
+#elif !defined(_SUBIMAGE_H_)
 #define _SUBIMAGE_H_
 
 #include "Rectangle.h"

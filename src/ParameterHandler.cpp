@@ -1,5 +1,20 @@
 #include "ParameterHandler.h"
 
+void ParameterHandler::SetCaptureMode (
+    const bool&     iCaptureMode
+) {
+    m_captureMode = iCaptureMode;
+}
+const bool& ParameterHandler::GetCaptureMode ()
+const {
+    return m_captureMode;
+}
+
+const unsigned int& ParameterHandler::GetNumCaptureFrames ()
+const {
+    return m_numCaptureFrames;
+}
+
 void ParameterHandler::SetFrame1 (
     const int&             iFrame
 ) {

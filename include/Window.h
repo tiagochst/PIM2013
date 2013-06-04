@@ -19,19 +19,15 @@
 #include <QMainWindow>
 #include <QToolBar>
 #include <QCheckBox>
-#include <QGroupBox>
 #include <QSlider>
 #include <QLCDNumber>
 #include <QSpinBox>
 #include <QImage>
 #include <QCheckBox>
 #include <QDockWidget>
-#include <QGroupBox>
-#include <QButtonGroup>
 #include <QMenuBar>
 #include <QApplication>
 #include <QLayout>
-#include <QLabel>
 #include <QProgressBar>
 #include <QColorDialog>
 #include <QPixmap>
@@ -54,6 +50,8 @@
 #include <cstdlib>
 #include <QTextStream>
 #include <QProgressDialog>
+#include <QtGui/QLabel>
+#include <QtGui/QListWidget>
 #include "Config.h"
 #include "ParameterHandler.h"
 #include "Camera.h"
@@ -87,24 +85,45 @@ public slots:
     void setDisplacement(bool b);
     void createDock();
     void calcDisp();
+    void setAnchor(bool b);
     void updateImages();
     void startCapture();
     void enableCaptureButton();
     void exitPreprocess();
+    void addNewAnchorItem();
+    void removeAnchorItem();
 
 private :
     void initControlWidget ();
+    void initAnchorSelection ();
+    void addAnchorListItems();
     void addImageItems();
+    void saveAnchors();
 
     QGroupBox       *   controlWidget;    //!< The Left dock group box.
-    GLViewer        *   viewer;           //!< The GLViewer (central window)
-    int                 viewerIdx;
+    QStackedWidget  *   centerWidget;
+    QDockWidget     *   controlDockWidget;
+
+    /* Left dock buttons */
     QPushButton     *   createMeshPB;
     QPushButton     *   calcDispPB;
     QPushButton     *   snapshotButton;
     QPushButton     *   startCaptureButton;
     QComboBox       *   frame1ComboBox;
     QComboBox       *   frame2ComboBox;
+    QRadioButton    *   displacementRB;
+    QRadioButton    *   meshRB;
+    QRadioButton    *   anchorRB;
+    QWidget         *   generalLayoutWidget ;
+    QFormLayout     *   generalFormLayout;
+
+    /* Mesh widgets*/
+    GLViewer        *   viewer;           //!< The GLViewer (central window)
+    int                 viewerIdx;
+    QTimer          *   cameraTimer;
+    QProgressDialog *   progressDialog;
+
+    /* Displacement widgets */
     QLabel          *   img1;
     QLabel          *   img2;
     QLabel          *   dispX;
@@ -112,11 +131,16 @@ private :
     QWidget         *   gridLayoutWidget;
     int                 gridIdx;
     QGridLayout     *   gridLayout;
-    QStackedWidget  *   centerWidget;
-    QDockWidget     *   controlDockWidget;
-    QTimer          *   cameraTimer;
 
-    QProgressDialog *   progressDialog;
+    /* Anchor selection widgets*/
+    QListWidget     *   anchorList;
+    QListWidget     *   candidateAnchorList;
+    QPushButton     *   addAnchor;
+    QPushButton     *   removeAnchor;
+//    QLabel          *   anchor;
+//    QLabel          *   anchorCandidate;
+    QWidget         *   anchorSelection;
+    int                 anchorIdx;
 
 };
 

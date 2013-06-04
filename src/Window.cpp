@@ -64,6 +64,92 @@ void Window::setDisplacement(bool b){
   }
 }
 
+void Window::addAnchorListItems(){
+  //TODO: abri arquivo ler quais sao anchor e comparar com lista de frames colocar na esquedar ou direita 
+
+    static const std::string IMG_LIST_PATH(Config::FramesPath() + "list.txt");
+    static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchor.txt");
+    
+    QFile imageList(IMG_LIST_PATH.c_str());
+    QFile anchorSavedList(ANCHOR_LIST_PATH.c_str());
+    
+    QString fileName;
+    QString anchorID;
+    
+    /* Verify if the file with frames is readable*/
+    if(!imageList.open(QIODevice::ReadOnly )) return;
+    
+    /* Verify if the file with anchor frames is readable*/
+    if(!anchorSavedList.open(QIODevice::ReadOnly )){
+      
+      QTextStream in(& imageList);
+      
+      while(!in.atEnd())
+	{
+	  fileName = in.readLine();
+	  if(fileName.endsWith(".pgm"))
+	    {
+            QStringList id = fileName.split("."); // Slipt in ID and pgm
+            /* Show the ID in the combo box*/
+	    candidateAnchorList->addItem(id.at(0));
+	    }
+	}
+      
+    }
+    else {
+
+      QTextStream in(& imageList);
+      QTextStream anchor(& anchorSavedList);
+      
+      if(!anchor.atEnd())
+	anchorID = anchor.readLine();
+      
+      while(!in.atEnd())
+	{
+	  fileName = in.readLine();
+	  if(fileName.endsWith(".pgm"))
+	    {
+	      QStringList id = fileName.split("."); // Slipt in ID and pgm
+	      /* Show the ID in the combo box*/
+	      if(id.at(0).compare(anchorID)){ 
+		anchorList->addItem(id.at(0));
+		anchorID = anchor.readLine();
+	      }
+	      else{
+		candidateAnchorList->addItem(id.at(0));
+	      }
+	    }
+	}
+        
+    }
+}
+
+void Window::saveAnchors(){
+  //TODO: Create a file with the items in anchorList
+}
+
+void Window::initAnchorSelection(){
+
+
+  if (candidateAnchorList) delete candidateAnchorList;
+  candidateAnchorList = new QListWidget(anchorSelection);
+  candidateAnchorList -> setGeometry(QRect(50, 220, 151, 192));
+
+  if (anchorList) delete anchorList;
+  anchorList = new QListWidget(anchorSelection);
+  anchorList -> setGeometry(QRect(320, 220, 141, 192));
+
+  addAnchorListItems();
+  anchorList->setSortingEnabled(false);
+}
+
+void Window::setAnchor(bool b){
+  if(b){
+    initAnchorSelection();
+    centerWidget -> setCurrentIndex ( anchorIdx);
+  }
+}
+
 /*!
  *  \brief  Set the new scene selected from the box
  *  \param  scene Number of the scene
@@ -79,6 +165,21 @@ void Window::setFrame1(int iFrame) {
     else{
         updateImages();
     }
+}
+
+void Window::addNewAnchorItem(){
+
+  /* Get selected Item */
+  int row = candidateAnchorList -> currentRow();
+  QListWidgetItem * selectedFrame = candidateAnchorList ->  takeItem(row);
+  QString qs = selectedFrame -> text();
+
+  anchorList->addItem(selectedFrame -> text());
+
+}
+
+void Window::removeAnchorItem(){
+  //  anchorList->addItem(id.at(0));
 }
 
 void Window::calcDisp() {
@@ -156,11 +257,11 @@ void Window::updateImages() {
     /* Set image in a 2x2 grid*/
     if (gridLayout) delete gridLayout;
     gridLayout = new QGridLayout(gridLayoutWidget);
-    gridLayout->setContentsMargins(0, 0, 0, 0);
-    gridLayout->addWidget(img1, 0, 0, 1, 1);
-    gridLayout->addWidget(img2, 0, 1, 1, 1);
-    gridLayout->addWidget(dispX, 1, 0, 1, 1);
-    gridLayout->addWidget(dispY, 1, 1, 1, 1);
+    gridLayout -> setContentsMargins(0, 0, 0, 0);
+    gridLayout -> addWidget( img1, 0, 0, 1, 1);
+    gridLayout -> addWidget( img2, 0, 1, 1, 1);
+    gridLayout -> addWidget(dispX, 1, 0, 1, 1);
+    gridLayout -> addWidget(dispY, 1, 1, 1, 1);
 }
 
 void Window::setFrame2(int iFrame) {
@@ -217,13 +318,18 @@ void Window::addImageItems()
  */
 Window::Window ()
     :   QMainWindow (NULL),
+        centerWidget(NULL),
         controlWidget(NULL),
+        createMeshPB(NULL),
+        calcDispPB(NULL),
+        snapshotButton(NULL),
+	startCaptureButton(NULL),
+        frame1ComboBox(NULL),
+	frame2ComboBox(NULL),
         viewer(NULL),
         viewerIdx(0),
-        createMeshPB(NULL),
-        snapshotButton(NULL),
-        frame1ComboBox(NULL),
-        frame2ComboBox(NULL),
+	cameraTimer(NULL),
+	progressDialog(NULL),
         img1(NULL),
         img2(NULL),
         dispX(NULL),
@@ -231,10 +337,15 @@ Window::Window ()
         gridLayoutWidget(NULL),
         gridIdx(0),
         gridLayout(NULL),
-        centerWidget(NULL)
+        anchorList(NULL),
+        candidateAnchorList(NULL),
+        addAnchor(NULL),
+        removeAnchor(NULL),
+//        anchor(NULL),
+//        anchorCandidate(NULL),
+        anchorSelection(NULL),
+        anchorIdx(0)
 {
-
-
 
     /* creates the list of images in the system*/
     static const std::string IMAGE_LIST(" ls -B --ignore=list.txt --ignore=depth* --ignore=*.ply " + Config::FramesPath() + "| sed -r 's/^.{6}//' |sort -g >" + Config::FramesPath() + "list.txt");
@@ -248,37 +359,50 @@ Window::Window ()
         exit (1);
     }
     //    connect(this, SIGNAL(frameChanged()), viewer,SLOT(update()));
-    gridLayoutWidget = new QWidget ();
+    gridLayoutWidget = new QWidget (this);
+    anchorSelection  = new QWidget (this);
 
     centerWidget = new QStackedWidget();
     setCentralWidget (centerWidget);
 
-    viewerIdx = centerWidget->addWidget ( viewer );
-    gridIdx = centerWidget->addWidget ( gridLayoutWidget );
+    viewerIdx = centerWidget -> addWidget (           viewer );
+    gridIdx   = centerWidget -> addWidget ( gridLayoutWidget );
+    anchorIdx = centerWidget -> addWidget (   anchorSelection );
 
     /* Adding settings to upper menu */
     /* Adding quit and about buttons to upper menu */
     QMenu *fileMenu = menuBar()->addMenu(tr("&Help"));
 
     QAction *glViewerHelp = new QAction(tr("&GLViewer Help"), this);
-    fileMenu->addAction(glViewerHelp);
-    connect(glViewerHelp, SIGNAL(triggered()),
-            viewer, SLOT(help()));
+    fileMenu -> addAction(glViewerHelp);
+
+    connect(
+            glViewerHelp, SIGNAL( triggered() ),
+                  viewer, SLOT  (      help() )
+    );
 
     QAction *openAct = new QAction(tr("&About..."), this);
-    fileMenu->addAction(openAct);
-    connect(openAct, SIGNAL(triggered()),
-            this, SLOT(about()));
+    fileMenu -> addAction(openAct);
 
-    fileMenu->addSeparator();
+    connect(
+               openAct, SIGNAL( triggered() ),
+               this   , SLOT  (     about() )
+    );
+
+    fileMenu -> addSeparator();
 
     QAction *exitAct = new QAction(tr("E&xit"), this);
-    fileMenu->addAction(exitAct);
-    connect(exitAct, SIGNAL(triggered()),
-            this, SLOT (exitPreprocess()));
+    fileMenu -> addAction(exitAct);
 
-    connect(this, SIGNAL(exiting()),
-            qApp, SLOT(closeAllWindows()));
+    connect(
+            exitAct, SIGNAL(      triggered() ),
+               this, SLOT  ( exitPreprocess() )
+    );
+
+    connect(
+              this, SIGNAL(         exiting() ),
+              qApp, SLOT  ( closeAllWindows() )
+    );
 
     createDock();
     statusBar()->showMessage("");
@@ -340,23 +464,21 @@ void Window::initControlWidget () {
     controlWidget = new QGroupBox ();
     QVBoxLayout * layout = new QVBoxLayout (controlWidget);
 
-    QGroupBox * previewGroupBox = new QGroupBox ("Preview", controlWidget);
-    QVBoxLayout * previewLayout = new QVBoxLayout (previewGroupBox);
+    QGroupBox *  previewGroupBox = new QGroupBox   ("Preview", controlWidget);
+    QVBoxLayout *   previewLayout = new QVBoxLayout (previewGroupBox);
 
     /* Creating tables for frame selection */
     frame1ComboBox = new QComboBox (previewGroupBox);
     frame2ComboBox = new QComboBox (previewGroupBox);
     addImageItems();
 
-    QLabel      * frame1Label;
-    frame1Label = new QLabel(tr("Frame:"));
+    QLabel          *   frame1Label = new QLabel(tr("Frame:"));
     frame1Label -> setBuddy(frame1ComboBox);
 
-    QLabel      * frame2Label;
-    frame2Label = new QLabel(tr("Frame 2:"));
+    QLabel          *   frame2Label = new QLabel(tr("Frame 2:"));
     frame2Label -> setBuddy(frame2ComboBox);
 
-    QWidget *generalLayoutWidget = new QWidget(previewGroupBox);
+    QWidget *generalLayoutWidget   = new QWidget(previewGroupBox);
     QFormLayout *generalFormLayout = new QFormLayout(generalLayoutWidget);
     generalFormLayout -> setContentsMargins(0, 0, 0, 0);
     generalFormLayout -> setWidget(0, QFormLayout::LabelRole, frame1Label);
@@ -370,8 +492,20 @@ void Window::initControlWidget () {
     snapshotButton     = new QPushButton ("Save preview", previewGroupBox);
     startCaptureButton = new QPushButton ("Start Capture", previewGroupBox);
 
-    QRadioButton * displacementRB =  new QRadioButton("Displacement", previewGroupBox);
-    QRadioButton * meshRB = new QRadioButton("Mesh", previewGroupBox);
+    QButtonGroup * modeButtonGroup = new QButtonGroup (previewGroupBox);
+    modeButtonGroup->setExclusive (true);
+    displacementRB =  new QRadioButton("Displacement", previewGroupBox);
+    meshRB   = new QRadioButton("Mesh", previewGroupBox);
+    anchorRB = new QRadioButton("Anchor", previewGroupBox);
+    modeButtonGroup->addButton (displacementRB);
+    modeButtonGroup->addButton (meshRB);
+    modeButtonGroup->addButton (anchorRB);
+
+    /* Anchor buttons*/
+    addAnchor    = new QPushButton (">",anchorSelection);
+    removeAnchor = new QPushButton ("<",anchorSelection);
+    addAnchor    -> setGeometry(QRect(240, 260, 41, 31));
+    removeAnchor -> setGeometry(QRect(240, 300, 41, 31));
 
     /********** Connections ***********/
 
@@ -454,14 +588,36 @@ void Window::initControlWidget () {
     /* Description: Change of situation 
                     Displacement selected -> update screen */
     connect(
-            displacementRB, SIGNAL(         toggled (bool) ),
-                      this, SLOT  ( setDisplacement (bool) )
+            displacementRB, SIGNAL (         toggled (bool) ),
+                      this, SLOT   ( setDisplacement (bool) )
+    );
+
+
+    /*** Situation: Anchor selection *****/
+
+    /* Description: Calculate displacement */
+    connect (
+                addAnchor, SIGNAL (      clicked  () ), 
+                     this, SLOT   (      addNewAnchorItem () )
+    );
+
+    /* Description: Calculate displacement */
+    connect (
+             removeAnchor, SIGNAL (      clicked  () ), 
+                     this, SLOT   (      removeAnchorItem () )
+    );
+
+    /* Description: Change of situation 
+                    Displacement selected -> update screen */
+    connect(
+	           anchorRB, SIGNAL (         toggled (bool) ),
+                       this, SLOT   (       setAnchor (bool) )
     );
 
 
     /*** Initial situation: Default options ***/
-    meshRB -> setChecked(true);
-    calcDispPB -> setDisabled(true);
+    meshRB         -> setChecked(true);
+    calcDispPB     -> setDisabled(true);
     frame2ComboBox -> setDisabled(true);
 
 
@@ -487,14 +643,17 @@ void Window::initControlWidget () {
       meshRB -> setChecked(false);
       meshRB -> setDisabled(true);
       displacementRB -> setChecked(true);
+      anchorRB -> setChecked(false);
       setDisplacement(true);
     }
+
     FileWriterServices* fws = FileWriterServices::Instance ();
 
     /* Add widgets to layout*/
     previewLayout->addWidget (generalLayoutWidget);
     previewLayout->addWidget (displacementRB);
     previewLayout->addWidget (meshRB);
+    previewLayout->addWidget (anchorRB);
     previewLayout->addWidget (createMeshPB);
     previewLayout->addWidget (calcDispPB);
     previewLayout->addWidget (snapshotButton);

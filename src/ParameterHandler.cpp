@@ -10,6 +10,16 @@ const {
     return m_captureMode;
 }
 
+void ParameterHandler::SetCamera (
+    const bool&     iCamera
+) {
+    m_cameraFound = iCamera;
+}
+const bool& ParameterHandler::GetCamera ()
+const {
+    return m_cameraFound;
+}
+
 const unsigned int& ParameterHandler::GetNumCaptureFrames ()
 const {
     return m_numCaptureFrames;

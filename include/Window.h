@@ -56,6 +56,9 @@
 #include <QProgressDialog>
 #include "Config.h"
 #include "ParameterHandler.h"
+#include "Camera.h"
+#include "FileWriterServices.h"
+
 
 /*!
  *  \brief A class that creates the User Interface. 

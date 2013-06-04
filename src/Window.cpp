@@ -3,8 +3,7 @@
 #include <sstream>
 #include <QGraphicsScene>
 #include <QImage>
-#include "Camera.h"
-#include "FileWriterServices.h"
+
 using namespace std;
 
 template<typename T>
@@ -53,7 +52,6 @@ void Window::setMesh(bool b){
   params -> SetMesh(b);
 
   if(b){
-    std::cout << "setmesh" << std::endl;
     viewer -> reset();
     centerWidget->setCurrentIndex ( viewerIdx );
   }
@@ -367,56 +365,122 @@ void Window::initControlWidget () {
     generalFormLayout -> setWidget(0, QFormLayout::FieldRole, frame1ComboBox);
     generalFormLayout -> setWidget(1, QFormLayout::LabelRole, frame2Label);
     generalFormLayout -> setWidget(1, QFormLayout::FieldRole, frame2ComboBox);
-    /* End of  frame selection */
 
+    /* Creation of left buttons*/
     createMeshPB  = new QPushButton ("Create Mesh", previewGroupBox);
-    connect (createMeshPB, SIGNAL (clicked ()) , this, SLOT (createMesh()));
-
     calcDispPB  = new QPushButton ("Calc Displacement", previewGroupBox);
-    connect (calcDispPB, SIGNAL (clicked ()) , this, SLOT (calcDisp()));
 
     QRadioButton * displacementRB =  new QRadioButton("Displacement", previewGroupBox);
     QRadioButton * meshRB = new QRadioButton("Mesh", previewGroupBox);
 
-    /*Default option*/
-    meshRB -> setChecked(true);
-    calcDispPB -> setDisabled(true);
-    frame2ComboBox -> setDisabled(true);
-
     snapshotButton  = new QPushButton ("Save preview", previewGroupBox);
     startCaptureButton = new QPushButton ("Start Capture", previewGroupBox);
+
+
+    /********** Connections ***********/
+
+    /*** Situation: Mesh showing *****/
+    /* Description: TODO */
+    connect (
+             createMeshPB, SIGNAL (       clicked () ),
+                     this, SLOT   (    createMesh () )
+    );
+
+    /* Description: Print screen */
     connect (
             snapshotButton, SIGNAL (      clicked () ),
                       this, SLOT   (  saveGLImage () )
     );
+
+    /* Description: Capture Frames */
     connect (
         startCaptureButton, SIGNAL (      clicked () ),
                       this, SLOT   ( startCapture () )
     );
 
-    /* Mesh showing: Disabling image 2 selection */
-    connect(meshRB, SIGNAL(toggled(bool)), frame2ComboBox, SLOT(setDisabled(bool)));
-    connect(displacementRB, SIGNAL(toggled(bool)), snapshotButton, SLOT(setDisabled(bool)));
-    connect(meshRB, SIGNAL(toggled(bool)), calcDispPB, SLOT(setDisabled(bool)));
-    connect(displacementRB, SIGNAL(toggled(bool)),
-            startCaptureButton, SLOT(setDisabled(bool)));
+    /* Description: Disabling image 2 selection */
+    connect(
+                    meshRB, SIGNAL (     toggled (bool) ), 
+            frame2ComboBox, SLOT   ( setDisabled (bool) )
+    );
 
+    /* Description: Disabling calculate displacement push button */
+    connect(
+                    meshRB, SIGNAL (       toggled (bool) ), 
+                calcDispPB, SLOT   (   setDisabled (bool) )
+    );
+
+    /* Description: Change of situation 
+                    Mesh selected -> update screen */
+    connect(
+                    meshRB, SIGNAL( toggled (bool) ), 
+		      this, SLOT  ( setMesh (bool) )
+    );
+
+    /*** Situation: Displacement showing *****/
+    /* Description: Calculate displacement */
+    connect (
+               calcDispPB, SIGNAL (      clicked  () ), 
+                     this, SLOT   (      calcDisp () )
+    );
+
+    /* Description: Disabling Mesh snapshot */
+    connect(
+            displacementRB, SIGNAL (      toggled (bool) ),
+            snapshotButton, SLOT   (  setDisabled (bool) )
+    );
+
+  
+    /* Description: Disabling capture button */
+    connect(
+                displacementRB, SIGNAL (     toggled (bool) ),
+            startCaptureButton, SLOT   ( setDisabled (bool) )
+    );
+
+    /* Description: Disabling create mesh */
+    connect(
+               displacementRB, SIGNAL (     toggled (bool) ),
+                 createMeshPB, SLOT   ( setDisabled (bool) )
+    );
+
+    /* Description: Change of situation 
+                    Displacement selected -> update screen */
+    connect(
+            displacementRB, SIGNAL(         toggled (bool) ),
+                      this, SLOT  ( setDisplacement (bool) )
+    );
+
+
+    /*** Initial situation: Default options ***/
+    meshRB -> setChecked(true);
+    calcDispPB -> setDisabled(true);
+    frame2ComboBox -> setDisabled(true);
+
+
+    /* Verify if a camera is connect */
     ParameterHandler* params = ParameterHandler::Instance();
-    connect(meshRB, SIGNAL(toggled(bool)), this, SLOT(setMesh(bool)));
-    connect(displacementRB, SIGNAL(toggled(bool)), this, SLOT(setDisplacement(bool)));
+    if(params -> GetCamera()){
 
-    cameraTimer = new QTimer();
-    Camera* cam = &(Camera::Instance());
-    connect (
-        cameraTimer, SIGNAL (          timeout () ),
-                cam, SLOT   ( WaitUpdateCamera () )
-    );
-    connect (
-        cameraTimer, SIGNAL (          timeout () ),
-             viewer, SLOT   (           update () )
-    );
-    cameraTimer->start(16);
+      cameraTimer = new QTimer();
+      Camera* cam = &(Camera::Instance());
 
+      connect (
+	       cameraTimer, SIGNAL (          timeout () ),
+	       cam, SLOT   ( WaitUpdateCamera () )
+	       );
+      connect (
+	       cameraTimer, SIGNAL (          timeout () ),
+	       viewer, SLOT   (           update () )
+	       );
+      cameraTimer->start(16);
+    }
+    else {
+      /* No device found: disable glviewer */
+      meshRB -> setChecked(false);
+      meshRB -> setDisabled(true);
+      displacementRB -> setChecked(true);
+      setDisplacement(true);
+    }
     FileWriterServices* fws = FileWriterServices::Instance ();
 
     /* Add widgets to layout*/

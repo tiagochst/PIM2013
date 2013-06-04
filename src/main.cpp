@@ -16,6 +16,7 @@
 #include "Camera.h"
 #include "Config.h"
 #include "Rectangle.h"
+#include "ParameterHandler.h"
 //#include "ui_mainInterface.Qt4.h"
 
 class QMyApplication
@@ -146,7 +147,7 @@ int main(int argc, char** argv) {
     CartesianCoordinate bestMatch;
 
     char c;
-    std::cout << "Select Mode: Kinect ('k') Image Traking('t') UI (u) Other:('o')" << std::endl;
+    std::cout << "Select Mode: Kinect ('k') Image Tracking('t') UI (u) Other:('o')" << std::endl;
     std::cin  >> c; 
 
     if ( c == 't' ) {
@@ -263,10 +264,14 @@ int main(int argc, char** argv) {
 
     if ( c == 'u' ) {
         XnStatus rc = KinectSetup ( argc, argv );
-        CHECK_RC(rc, "Error setting up Kinect Camera");
+        //CHECK_RC(rc, "Error setting up Kinect Camera");
 
-        Camera& cam = Camera::Instance ();
-        cam.Setup(argc, argv);
+	if (rc == XN_STATUS_OK){
+	  ParameterHandler* params = ParameterHandler::Instance();
+	  params -> SetCamera(true);
+	  Camera& cam = Camera::Instance ();
+	  cam.Setup(argc, argv);
+	}
 
         QMyApplication program (argc, argv);
 

@@ -13,6 +13,8 @@ private:
     unsigned int    m_wSize;
     unsigned int    m_nSize;
 
+
+    bool            m_cameraFound;
     bool            m_captureMode;
     unsigned int    m_numCaptureFrames;
 
@@ -24,6 +26,7 @@ private:
             m_mesh ( true ),
             m_wSize ( 9 ),
             m_nSize ( 9 ),
+            m_cameraFound (false),
             m_numCaptureFrames ( 35 )
     {}
     ~ParameterHandler ()
@@ -58,6 +61,10 @@ public:
     void SetMesh (const bool& iMesh);
 
     const bool& GetMesh () const;
+
+    void SetCamera (const bool& iCamera);
+
+    const bool& GetCamera () const;
 
     const unsigned int& GetWindowSize () const;
     const void SetWindowSize (

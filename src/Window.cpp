@@ -347,8 +347,6 @@ void Window::initControlWidget () {
     frame1ComboBox = new QComboBox (previewGroupBox);
     frame2ComboBox = new QComboBox (previewGroupBox);
     addImageItems();
-    connect (frame1ComboBox, SIGNAL (currentIndexChanged(int)), this, SLOT (setFrame1 (int)));
-    connect (frame2ComboBox, SIGNAL (currentIndexChanged(int)), this, SLOT (setFrame2 (int)));
 
     QLabel      * frame1Label;
     frame1Label = new QLabel(tr("Frame:"));
@@ -367,15 +365,13 @@ void Window::initControlWidget () {
     generalFormLayout -> setWidget(1, QFormLayout::FieldRole, frame2ComboBox);
 
     /* Creation of left buttons*/
-    createMeshPB  = new QPushButton ("Create Mesh", previewGroupBox);
-    calcDispPB  = new QPushButton ("Calc Displacement", previewGroupBox);
+    createMeshPB       = new QPushButton ("Create Mesh", previewGroupBox);
+    calcDispPB         = new QPushButton ("Calc Displacement", previewGroupBox);
+    snapshotButton     = new QPushButton ("Save preview", previewGroupBox);
+    startCaptureButton = new QPushButton ("Start Capture", previewGroupBox);
 
     QRadioButton * displacementRB =  new QRadioButton("Displacement", previewGroupBox);
     QRadioButton * meshRB = new QRadioButton("Mesh", previewGroupBox);
-
-    snapshotButton  = new QPushButton ("Save preview", previewGroupBox);
-    startCaptureButton = new QPushButton ("Start Capture", previewGroupBox);
-
 
     /********** Connections ***********/
 
@@ -443,6 +439,18 @@ void Window::initControlWidget () {
                  createMeshPB, SLOT   ( setDisabled (bool) )
     );
 
+    /* Description: Changing Frame 1 */
+    connect (
+               frame1ComboBox, SIGNAL ( currentIndexChanged (int) ), 
+                         this, SLOT   (           setFrame1 (int) )
+    );
+
+    /* Description: Changing Frame 2 */
+    connect (
+               frame2ComboBox, SIGNAL ( currentIndexChanged (int) ), 
+                         this, SLOT   (           setFrame2 (int) )
+    );
+
     /* Description: Change of situation 
                     Displacement selected -> update screen */
     connect(
@@ -466,11 +474,11 @@ void Window::initControlWidget () {
 
       connect (
 	       cameraTimer, SIGNAL (          timeout () ),
-	       cam, SLOT   ( WaitUpdateCamera () )
+	               cam, SLOT   ( WaitUpdateCamera () )
 	       );
       connect (
 	       cameraTimer, SIGNAL (          timeout () ),
-	       viewer, SLOT   (           update () )
+	       viewer     , SLOT   (           update () )
 	       );
       cameraTimer->start(16);
     }

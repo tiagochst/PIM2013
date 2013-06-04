@@ -24,8 +24,8 @@ HEADERS              =  include/Window.h                \
                         include/ParameterHandler.h      \
                         include/Vertex.h                \     
                         include/Writer.h                \
-                        include/Tools.h \
-    include/FileWriterServices.h
+                        include/Tools.h                 \
+                        include/FileWriterServices.h
 
 SOURCES              =  src/Window.cpp                  \
                         src/GLViewer.cpp                \
@@ -39,8 +39,8 @@ SOURCES              =  src/Window.cpp                  \
                         src/PointSet.cpp                \
                         src/main.cpp                    \
                         src/ParameterHandler.cpp        \
-                        src/PlyFile.c \
-    src/FileWriterServices.cpp
+                        src/PlyFile.c                   \
+                        src/FileWriterServices.cpp
 
 MOC_DIR              =  .tmp
 OBJECTS_DIR          =  .tmp

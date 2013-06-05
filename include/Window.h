@@ -59,6 +59,30 @@
 
 
 /*!
+ *  \brief A class used to treats the reference frame for
+ *         automatic anchoring frames. 
+ */
+class AnchorLabel : public QLabel
+{
+Q_OBJECT
+
+signals:
+   void mousePressed();
+
+public:
+    AnchorLabel( const QString& text, QWidget* parent = 0);
+    AnchorLabel( QWidget* parent = 0);
+    ~AnchorLabel(){}
+
+public slots:
+	void slotClicked();	
+
+protected:
+    void mousePressEvent( QMouseEvent* ev );
+};
+
+
+/*!
  *  \brief A class that creates the User Interface. 
  *
  *  Contains:
@@ -85,20 +109,24 @@ public slots:
     void setDisplacement(bool b);
     void createDock();
     void calcDisp();
-    void setAnchor(bool b);
+    void setManuAnchor(bool b);
+    void setAutoAnchor(bool b);
     void updateImages();
     void startCapture();
     void enableCaptureButton();
     void exitPreprocess();
     void addNewAnchorItem();
     void removeAnchorItem();
-    void updateAnchorPreview();
+    void updateManuAnchorPreview();
+    void updateAutoAnchorPreview();
 
 private :
     void initControlWidget ();
-    void initAnchorSelection ();
+    void initManuAnchorSelection ();
+    void initAutoAnchorSelection ();
     void addAnchorListItems();
     void addImageItems();
+    void loadAnchorFrames();
     void saveAnchors();
 
     QGroupBox       *   controlWidget;    //!< The Left dock group box.
@@ -114,7 +142,8 @@ private :
     QComboBox       *   frame2ComboBox;
     QRadioButton    *   displacementRB;
     QRadioButton    *   meshRB;
-    QRadioButton    *   anchorRB;
+    QRadioButton    *   anchorManuRB;
+    QRadioButton    *   anchorAutoRB;
     QWidget         *   generalLayoutWidget ;
     QFormLayout     *   generalFormLayout;
 
@@ -133,17 +162,26 @@ private :
     int                 gridIdx;
     QGridLayout     *   gridLayout;
 
-    /* Anchor selection widgets*/
+    /* Anchor manual selection widgets*/
     QListWidget     *   anchorList;
     QListWidget     *   candidateAnchorList;
     QPushButton     *   addAnchor;
     QPushButton     *   removeAnchor;
     QLabel          *   anchor;
     QLabel          *   anchorCandidate;
-    QWidget         *   anchorSelection;
-    int                 anchorIdx;
+    QWidget         *   anchorManuSelection;
+    int                 anchorManuIdx;
+
+    /* Anchor automatic selection widgets*/
+    QList <AnchorLabel *>  referenceFrame;
+    QWidget         *   anchorAutoSelection;
+    int                 anchorAutoIdx;
+    QPushButton     *   previousFrames;
+    QPushButton     *   nextFrames;
+    QPushButton     *   findAnchors;
 
 };
+
 
 
 #endif // WINDOW_H

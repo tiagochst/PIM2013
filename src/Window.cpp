@@ -4,6 +4,8 @@
 #include <QGraphicsScene>
 #include <QImage>
 
+
+
 using namespace std;
 
 template<typename T>
@@ -64,8 +66,90 @@ void Window::setDisplacement(bool b){
   }
 }
 
+void Window::loadAnchorFrames(){
+
+    static const std::string IMG_LIST_PATH(Config::FramesPath() + "list.txt");
+    static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
+    
+    QFile imageList(IMG_LIST_PATH.c_str());
+    QFile anchorSavedList(ANCHOR_LIST_PATH.c_str());
+    
+    QString fileName;
+    QString anchorID;
+    
+    /* Verify if the file with frames is readable*/
+    if(!imageList.open(QIODevice::ReadOnly )) return;
+    
+    /* Verify if the file with anchor frames is readable*/
+    if(!anchorSavedList.open(QIODevice::ReadOnly )){
+      
+      QTextStream in(& imageList);
+      
+      while(!in.atEnd())
+	{
+	  fileName = in.readLine();
+	  if(fileName.endsWith(".pgm"))
+	    {
+            QStringList id = fileName.split("."); // Slipt in ID and pgm
+            QString str = id.at(0);
+
+	    /* Code used for sorting */
+	    QString zero = "0";
+	    if(str.size() == 1){ 
+	      zero.append(str);
+	      str = zero;
+	    }
+            /* Show the ID in the list box*/
+	    candidateAnchorList->addItem(str);
+	    }
+	}
+      
+    }
+    else {
+
+      QTextStream in(& imageList);
+      QTextStream anchor(& anchorSavedList);
+      
+      if(!anchor.atEnd())
+	anchorID = anchor.readLine();
+      
+      while(!in.atEnd())
+	{
+	  fileName = in.readLine();
+	  if(fileName.endsWith(".pgm"))
+	    {
+	      QStringList id = fileName.split("."); // Slipt in ID and pgm
+	      QString str = id.at(0);
+	      
+	      /* Code used for sorting */
+	      QString zero = "0";
+	      if(str.size() == 1){ 
+		zero.append(str);
+		str = zero;
+	      }
+      
+	      /* Show the ID in the combo box*/
+	      if(!str.compare(anchorID)){ 
+		anchorList->addItem(str);
+		anchorID = anchor.readLine();
+	      }
+	      else{
+		candidateAnchorList->addItem(str);
+	      }
+	    }
+	}
+      
+      anchorSavedList.close();
+
+    }
+
+    /* Close the file */
+    imageList.close();
+
+    return;
+}
+
 void Window::addAnchorListItems(){
-  //TODO: abri arquivo ler quais sao anchor e comparar com lista de frames colocar na esquedar ou direita 
 
     static const std::string IMG_LIST_PATH(Config::FramesPath() + "list.txt");
     static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
@@ -169,7 +253,7 @@ void Window::saveAnchors(){
     anchorFile.close();
 }
 
-void Window::updateAnchorPreview(){
+void Window::updateManuAnchorPreview(){
 
   std::string RES_IMG_PATH(Config::FramesPath());
   /* Get list of selected items, we will preview only the first one in the list*/
@@ -209,46 +293,116 @@ void Window::updateAnchorPreview(){
 
 }
 
-void Window::initAnchorSelection(){
+void Window::updateAutoAnchorPreview(){
+
+  std::string RES_IMG_PATH(Config::FramesPath());
+  /* Get list of selected items, we will preview only the first one in the list*/
+  QList<QListWidgetItem *>  candidates = candidateAnchorList -> selectedItems();
+  QList<QListWidgetItem *>  anchors = anchorList -> selectedItems();
+
+  QString id1;
+  if(candidates.count() > 0){
+    id1 = (candidates[0] -> text());
+  }
+  else{
+    id1 = "-1";
+  }
+
+  /* Removes 0 from the left to align with write file names pattern */
+  bool ok;
+  int id = id1.toInt (&ok,10);
+  std::string frameID1 = toString(id);
+
+  for(int i = 0; i < 15;i++){
+    QPixmap anchorCandidateImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str())));
+    if(!anchorCandidateImg.isNull())
+      referenceFrame.at(i) -> setPixmap(anchorCandidateImg.scaled(100, 80, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+  }
+
+}
+
+void Window::initManuAnchorSelection(){
 
   if (candidateAnchorList) delete candidateAnchorList;
-  candidateAnchorList = new QListWidget(anchorSelection);
+  candidateAnchorList = new QListWidget(anchorManuSelection);
   candidateAnchorList -> setGeometry(QRect(50, 220, 180, 150));
 
   if (anchorList) delete anchorList;
-  anchorList = new QListWidget(anchorSelection);
+  anchorList = new QListWidget(anchorManuSelection);
   anchorList -> setGeometry(QRect(371, 220, 180, 150));
 
   addAnchorListItems();
 
   if (anchorCandidate) delete anchorCandidate;
-  anchorCandidate = new QLabel(anchorSelection);
+  anchorCandidate = new QLabel(anchorManuSelection);
   anchorCandidate -> setGeometry(QRect(50, 50, 180, 150));
   anchorCandidate -> setMaximumSize(QSize(180, 150));
 
   if (anchor) delete anchor;
-  anchor = new QLabel(anchorSelection);
+  anchor = new QLabel(anchorManuSelection);
   anchor -> setGeometry(QRect(371, 50, 180, 150));
   anchor -> setMaximumSize(QSize(180, 150));
 
-  updateAnchorPreview ();
+  updateManuAnchorPreview ();
 
   connect(
 	  candidateAnchorList, SIGNAL(itemSelectionChanged () ),
-	                 this, SLOT  ( updateAnchorPreview () )
+	                 this, SLOT  ( updateManuAnchorPreview () )
   );
 
   connect(
 	  anchorList, SIGNAL(itemSelectionChanged () ),
-                this, SLOT  ( updateAnchorPreview () )
+                this, SLOT  ( updateManuAnchorPreview () )
   );
 
 }
 
-void Window::setAnchor(bool b){
+void Window::initAutoAnchorSelection(){
+
+
+  //  for(int i = 0; i < 9; i++){
+  //  if (referenceFrame.at(i)) delete referenceFrame.at(i);
+  //}
+  
+  for(int i = 0; i < 15; i++){
+    referenceFrame << new AnchorLabel(anchorAutoSelection);
+  }
+  
+  for(int i = 0; i < 3; i++){
+    for(int j = 0; j < 5; j++){
+      referenceFrame.at(i*5+j) -> setGeometry(QRect(50 + 120 * j, 50 + 90 * i, 100, 80));
+      referenceFrame.at(i*5+j) -> setMaximumSize(QSize(100, 80));
+    }
+  }
+
+  /* Create buttons to interact with frames */
+  previousFrames =  new QPushButton ("Previous Frames", anchorAutoSelection);
+  previousFrames -> setGeometry( QRect(250, 340, 120, 31) );
+  nextFrames     =  new QPushButton ("Next Frames"    , anchorAutoSelection);
+  nextFrames     -> setGeometry( QRect(400, 340, 120, 31) );
+  findAnchors    =  new QPushButton ("Find Anchors"   , anchorAutoSelection);
+  findAnchors    -> setGeometry( QRect(50, 340, 120, 31) );
+
+  updateAutoAnchorPreview ();
+  
+}
+
+void Window::setManuAnchor(bool b){
   if(b){
-    initAnchorSelection();
-    centerWidget -> setCurrentIndex ( anchorIdx);
+    initManuAnchorSelection();
+    centerWidget -> setCurrentIndex ( anchorManuIdx);
+  }
+  else{ 
+    //save anchors listed in file 
+    saveAnchors();
+  }
+
+}
+
+void Window::setAutoAnchor(bool b){
+  if(b){
+    initAutoAnchorSelection();
+    centerWidget -> setCurrentIndex ( anchorAutoIdx);
   }
   else{ 
     //save anchors listed in file 
@@ -428,11 +582,9 @@ void Window::addImageItems()
         }
     }
 
-
     /* Close the file */
     imageList.close();
     return;
-
 }
 
 /*!
@@ -465,8 +617,11 @@ Window::Window ()
         removeAnchor(NULL),
         anchor(NULL),
         anchorCandidate(NULL),
-        anchorSelection(NULL),
-        anchorIdx(0)
+        anchorManuSelection(NULL),
+        anchorManuIdx(0),
+//        referenceFrame(NULL),
+        anchorAutoSelection(NULL),
+        anchorAutoIdx(0)
 {
 
     /* creates the list of images in the system*/
@@ -482,14 +637,16 @@ Window::Window ()
     }
     //    connect(this, SIGNAL(frameChanged()), viewer,SLOT(update()));
     gridLayoutWidget = new QWidget (this);
-    anchorSelection  = new QWidget (this);
+    anchorManuSelection  = new QWidget (this);
+    anchorAutoSelection  = new QWidget (this);
 
     centerWidget = new QStackedWidget();
     setCentralWidget (centerWidget);
 
-    viewerIdx = centerWidget -> addWidget (           viewer );
-    gridIdx   = centerWidget -> addWidget ( gridLayoutWidget );
-    anchorIdx = centerWidget -> addWidget (   anchorSelection );
+    viewerIdx     = centerWidget -> addWidget (                viewer );
+    gridIdx       = centerWidget -> addWidget (      gridLayoutWidget );
+    anchorManuIdx = centerWidget -> addWidget (   anchorManuSelection );
+    anchorAutoIdx = centerWidget -> addWidget (   anchorAutoSelection );
 
     /* Adding settings to upper menu */
     /* Adding quit and about buttons to upper menu */
@@ -614,20 +771,23 @@ void Window::initControlWidget () {
     snapshotButton     = new QPushButton ("Save preview", previewGroupBox);
     startCaptureButton = new QPushButton ("Start Capture", previewGroupBox);
 
+    /*Creating radio buttons*/
     QButtonGroup * modeButtonGroup = new QButtonGroup (previewGroupBox);
-    modeButtonGroup->setExclusive (true);
-    displacementRB =  new QRadioButton("Displacement", previewGroupBox);
-    meshRB   = new QRadioButton("Mesh", previewGroupBox);
-    anchorRB = new QRadioButton("Anchor", previewGroupBox);
-    modeButtonGroup->addButton (displacementRB);
-    modeButtonGroup->addButton (meshRB);
-    modeButtonGroup->addButton (anchorRB);
+    modeButtonGroup -> setExclusive (true);
+    displacementRB  =  new QRadioButton("Displacement", previewGroupBox);
+    meshRB          =  new QRadioButton("Mesh"        , previewGroupBox);
+    anchorManuRB    =  new QRadioButton("Edit Anchor" , previewGroupBox);
+    anchorAutoRB    =  new QRadioButton("Auto Anchor" , previewGroupBox);
+    modeButtonGroup -> addButton (displacementRB);
+    modeButtonGroup -> addButton (meshRB);
+    modeButtonGroup -> addButton (anchorManuRB);
+    modeButtonGroup -> addButton (anchorAutoRB);
 
     /* Anchor buttons*/
-    addAnchor    = new QPushButton (">",anchorSelection);
-    removeAnchor = new QPushButton ("<",anchorSelection);
-    addAnchor    -> setGeometry(QRect(280, 260, 41, 31));
-    removeAnchor -> setGeometry(QRect(280, 300, 41, 31));
+    addAnchor    = new QPushButton ( ">", anchorManuSelection );
+    removeAnchor = new QPushButton ( "<", anchorManuSelection );
+    addAnchor    -> setGeometry( QRect(280, 260, 41, 31) );
+    removeAnchor -> setGeometry( QRect(280, 300, 41, 31) );
 
     /********** Connections ***********/
 
@@ -715,25 +875,34 @@ void Window::initControlWidget () {
     );
 
 
-    /*** Situation: Anchor selection *****/
+    /*** Situation: Anchor manual selection *****/
 
-    /* Description: Calculate displacement */
+    /* Description: add candidate frame as anchor */
     connect (
-                addAnchor, SIGNAL (      clicked  () ), 
-                     this, SLOT   (      addNewAnchorItem () )
+                addAnchor, SIGNAL (         clicked  () ), 
+                     this, SLOT   ( addNewAnchorItem () )
     );
 
-    /* Description: Calculate displacement */
+    /* Description: remove frame from anchor */
     connect (
-             removeAnchor, SIGNAL (      clicked  () ), 
-                     this, SLOT   (      removeAnchorItem () )
+             removeAnchor, SIGNAL (         clicked  () ), 
+                     this, SLOT   ( removeAnchorItem () )
     );
 
     /* Description: Change of situation 
                     Displacement selected -> update screen */
     connect(
-	           anchorRB, SIGNAL (         toggled (bool) ),
-                       this, SLOT   (       setAnchor (bool) )
+	     anchorManuRB, SIGNAL (         toggled (bool) ),
+                     this, SLOT   (       setManuAnchor (bool) )
+    );
+
+    /*** Situation: Anchor automatic selection *****/
+
+    /* Description: Change of situation 
+                    Displacement selected -> update screen */
+    connect(
+	     anchorAutoRB, SIGNAL (         toggled (bool) ),
+                     this, SLOT   (       setAutoAnchor (bool) )
     );
 
 
@@ -765,7 +934,8 @@ void Window::initControlWidget () {
       meshRB -> setChecked(false);
       meshRB -> setDisabled(true);
       displacementRB -> setChecked(true);
-      anchorRB -> setChecked(false);
+      anchorManuRB -> setChecked(false);
+      anchorAutoRB -> setChecked(false);
       setDisplacement(true);
     }
 
@@ -775,7 +945,8 @@ void Window::initControlWidget () {
     previewLayout->addWidget (generalLayoutWidget);
     previewLayout->addWidget (displacementRB);
     previewLayout->addWidget (meshRB);
-    previewLayout->addWidget (anchorRB);
+    previewLayout->addWidget (anchorManuRB);
+    previewLayout->addWidget (anchorAutoRB);
     previewLayout->addWidget (createMeshPB);
     previewLayout->addWidget (calcDispPB);
     previewLayout->addWidget (snapshotButton);
@@ -793,3 +964,33 @@ void Window::createMesh () {
     std::cout << "TBD ;D" << std::endl;
 }
 
+
+void AnchorLabel::mousePressEvent( QMouseEvent* ev )
+{
+    emit  mousePressed();
+}
+
+AnchorLabel::AnchorLabel( const QString & text, QWidget * parent )
+:QLabel(parent)
+{
+    connect( this, SIGNAL(  mousePressed() ), this, SLOT( slotClicked() ) );
+}
+
+AnchorLabel::AnchorLabel(QWidget * parent )
+:QLabel(parent)
+{
+    connect( this, SIGNAL(  mousePressed() ), this, SLOT( slotClicked() ) );
+}
+ 
+void AnchorLabel::slotClicked()
+{
+  if(frameStyle() != 18){  
+    this -> setFrameStyle(QFrame::Panel | QFrame::Plain);
+    this -> setStyleSheet("color:red");
+    this -> setLineWidth(3);
+  } else {
+    this -> setFrameStyle(QFrame::NoFrame);
+  }
+
+}
+ 

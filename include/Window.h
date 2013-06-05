@@ -92,6 +92,7 @@ public slots:
     void exitPreprocess();
     void addNewAnchorItem();
     void removeAnchorItem();
+    void updateAnchorPreview();
 
 private :
     void initControlWidget ();
@@ -137,8 +138,8 @@ private :
     QListWidget     *   candidateAnchorList;
     QPushButton     *   addAnchor;
     QPushButton     *   removeAnchor;
-//    QLabel          *   anchor;
-//    QLabel          *   anchorCandidate;
+    QLabel          *   anchor;
+    QLabel          *   anchorCandidate;
     QWidget         *   anchorSelection;
     int                 anchorIdx;
 

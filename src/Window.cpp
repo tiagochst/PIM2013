@@ -68,7 +68,7 @@ void Window::addAnchorListItems(){
   //TODO: abri arquivo ler quais sao anchor e comparar com lista de frames colocar na esquedar ou direita 
 
     static const std::string IMG_LIST_PATH(Config::FramesPath() + "list.txt");
-    static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchor.txt");
+    static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
     
     QFile imageList(IMG_LIST_PATH.c_str());
     QFile anchorSavedList(ANCHOR_LIST_PATH.c_str());
@@ -90,8 +90,16 @@ void Window::addAnchorListItems(){
 	  if(fileName.endsWith(".pgm"))
 	    {
             QStringList id = fileName.split("."); // Slipt in ID and pgm
-            /* Show the ID in the combo box*/
-	    candidateAnchorList->addItem(id.at(0));
+            QString str = id.at(0);
+
+	    /* Code used for sorting */
+	    QString zero = "0";
+	    if(str.size() == 1){ 
+	      zero.append(str);
+	      str = zero;
+	    }
+            /* Show the ID in the list box*/
+	    candidateAnchorList->addItem(str);
 	    }
 	}
       
@@ -110,37 +118,131 @@ void Window::addAnchorListItems(){
 	  if(fileName.endsWith(".pgm"))
 	    {
 	      QStringList id = fileName.split("."); // Slipt in ID and pgm
+	      QString str = id.at(0);
+	      
+	      /* Code used for sorting */
+	      QString zero = "0";
+	      if(str.size() == 1){ 
+		zero.append(str);
+		str = zero;
+	      }
+      
 	      /* Show the ID in the combo box*/
-	      if(id.at(0).compare(anchorID)){ 
-		anchorList->addItem(id.at(0));
+	      if(!str.compare(anchorID)){ 
+		anchorList->addItem(str);
 		anchorID = anchor.readLine();
 	      }
 	      else{
-		candidateAnchorList->addItem(id.at(0));
+		candidateAnchorList->addItem(str);
 	      }
 	    }
 	}
-        
+      
+      anchorSavedList.close();
+
     }
+
+    /* Close the file */
+    imageList.close();
+
+    return;
+
 }
 
 void Window::saveAnchors(){
   //TODO: Create a file with the items in anchorList
+    static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
+
+    QFile anchorFile(ANCHOR_LIST_PATH.c_str());
+    QString fileName;
+    
+    /* Verify if the file readable*/
+    if(!anchorFile.open(QIODevice::WriteOnly))
+        return;
+
+    for(int i= 0; i < anchorList -> count(); i++){
+      fileName = anchorList -> item(i) -> text();
+      fileName.append("\n");
+      anchorFile.write(fileName.toUtf8());
+    }
+
+    anchorFile.close();
+}
+
+void Window::updateAnchorPreview(){
+
+  std::string RES_IMG_PATH(Config::FramesPath());
+  /* Get list of selected items, we will preview only the first one in the list*/
+  QList<QListWidgetItem *>  candidates = candidateAnchorList -> selectedItems();
+  QList<QListWidgetItem *>  anchors = anchorList -> selectedItems();
+
+  QString id1,id2;
+  if(candidates.count() > 0){
+    id1 = (candidates[0] -> text());
+  }
+  else{
+    id1 = "-1";
+  }
+  if(anchors.count() > 0){
+    id2 = (anchors[0] -> text());
+  }
+  else{
+    id2 = "-1";
+  }
+
+  /* Removes 0 from the left to align with write file names pattern */
+  bool ok;
+  int id = id1.toInt (&ok,10);
+  std::string frameID1 = toString(id);
+  id = id2.toInt   (&ok,10);
+  std::string frameID2= toString(id);
+
+
+  QPixmap anchorCandidateImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str())));
+  if(!anchorCandidateImg.isNull())
+    anchorCandidate -> setPixmap(anchorCandidateImg.scaled(180, 150, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+
+  QPixmap anchorImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID2 + ".pgm").c_str())));
+  if(!anchorImg.isNull()){
+    anchor -> setPixmap(anchorImg.scaled(180, 150, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+  }
+
 }
 
 void Window::initAnchorSelection(){
 
-
   if (candidateAnchorList) delete candidateAnchorList;
   candidateAnchorList = new QListWidget(anchorSelection);
-  candidateAnchorList -> setGeometry(QRect(50, 220, 151, 192));
+  candidateAnchorList -> setGeometry(QRect(50, 220, 180, 150));
 
   if (anchorList) delete anchorList;
   anchorList = new QListWidget(anchorSelection);
-  anchorList -> setGeometry(QRect(320, 220, 141, 192));
+  anchorList -> setGeometry(QRect(371, 220, 180, 150));
 
   addAnchorListItems();
-  anchorList->setSortingEnabled(false);
+
+  if (anchorCandidate) delete anchorCandidate;
+  anchorCandidate = new QLabel(anchorSelection);
+  anchorCandidate -> setGeometry(QRect(50, 50, 180, 150));
+  anchorCandidate -> setMaximumSize(QSize(180, 150));
+
+  if (anchor) delete anchor;
+  anchor = new QLabel(anchorSelection);
+  anchor -> setGeometry(QRect(371, 50, 180, 150));
+  anchor -> setMaximumSize(QSize(180, 150));
+
+  updateAnchorPreview ();
+
+  connect(
+	  candidateAnchorList, SIGNAL(itemSelectionChanged () ),
+	                 this, SLOT  ( updateAnchorPreview () )
+  );
+
+  connect(
+	  anchorList, SIGNAL(itemSelectionChanged () ),
+                this, SLOT  ( updateAnchorPreview () )
+  );
+
 }
 
 void Window::setAnchor(bool b){
@@ -148,6 +250,11 @@ void Window::setAnchor(bool b){
     initAnchorSelection();
     centerWidget -> setCurrentIndex ( anchorIdx);
   }
+  else{ 
+    //save anchors listed in file 
+    saveAnchors();
+  }
+
 }
 
 /*!
@@ -167,19 +274,34 @@ void Window::setFrame1(int iFrame) {
     }
 }
 
+/* Move Item from candidate list to anchor List*/
 void Window::addNewAnchorItem(){
 
-  /* Get selected Item */
+  /*Get selected row*/
   int row = candidateAnchorList -> currentRow();
+
+  /*Remove row from list and add to another list */
   QListWidgetItem * selectedFrame = candidateAnchorList ->  takeItem(row);
-  QString qs = selectedFrame -> text();
+  anchorList -> addItem(selectedFrame -> text());
 
-  anchorList->addItem(selectedFrame -> text());
-
+  /* Sort list*/
+  anchorList -> sortItems();
 }
 
+/* Move item from anchor list to candidate List*/
 void Window::removeAnchorItem(){
-  //  anchorList->addItem(id.at(0));
+
+  /*Get selected row*/
+  int row = anchorList -> currentRow();
+
+  /*Remove row from list and add to another list */
+  QListWidgetItem * selectedFrame = anchorList ->  takeItem(row);
+
+  candidateAnchorList -> addItem(selectedFrame -> text());
+
+  /* Sort list*/
+  candidateAnchorList -> sortItems();
+
 }
 
 void Window::calcDisp() {
@@ -341,8 +463,8 @@ Window::Window ()
         candidateAnchorList(NULL),
         addAnchor(NULL),
         removeAnchor(NULL),
-//        anchor(NULL),
-//        anchorCandidate(NULL),
+        anchor(NULL),
+        anchorCandidate(NULL),
         anchorSelection(NULL),
         anchorIdx(0)
 {
@@ -504,8 +626,8 @@ void Window::initControlWidget () {
     /* Anchor buttons*/
     addAnchor    = new QPushButton (">",anchorSelection);
     removeAnchor = new QPushButton ("<",anchorSelection);
-    addAnchor    -> setGeometry(QRect(240, 260, 41, 31));
-    removeAnchor -> setGeometry(QRect(240, 300, 41, 31));
+    addAnchor    -> setGeometry(QRect(280, 260, 41, 31));
+    removeAnchor -> setGeometry(QRect(280, 300, 41, 31));
 
     /********** Connections ***********/
 

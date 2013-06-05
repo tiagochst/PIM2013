@@ -76,10 +76,14 @@ public:
     ~AnchorLabel(){}
 
 public slots:
-	void slotClicked();	
+    void slotClicked();	
 
 protected:
     void mousePressEvent( QMouseEvent* ev );
+
+private:
+    int  oldFrameStyle; 
+
 };
 
 

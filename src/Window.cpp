@@ -272,7 +272,7 @@ void Window::updateAutoAnchorPreview(){
 
       if(std::find(isAnchorFrames.begin(), isAnchorFrames.end(), i)!=isAnchorFrames.end())
 	{
-	referenceFrame.at(j) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
+	referenceFrame.at(j) -> setFrameStyle(QFrame::Box | QFrame::Plain);
 	referenceFrame.at(j) -> setStyleSheet("color:blue");
 	referenceFrame.at(j) -> setLineWidth(3);
       }
@@ -1058,6 +1058,7 @@ void AnchorLabel::mousePressEvent( QMouseEvent* ev )
 AnchorLabel::AnchorLabel( const QString & text, QWidget * parent )
 :QLabel(parent)
 {
+    oldFrameStyle = 16;
     connect( this, SIGNAL(  mousePressed() ), this, SLOT( slotClicked() ) );
 }
 
@@ -1069,13 +1070,20 @@ AnchorLabel::AnchorLabel(QWidget * parent )
  
 void AnchorLabel::slotClicked()
 {
-  if(frameStyle() != 18){  
+
+  if(frameStyle() != 18){
+    oldFrameStyle = frameStyle();
     this -> setFrameStyle(QFrame::Panel | QFrame::Plain);
     this -> setStyleSheet("color:red");
     this -> setLineWidth(3);
-  } else {
-    this -> setFrameStyle(QFrame::NoFrame);
   }
-
+  else if(oldFrameStyle == 17) {
+    this -> setFrameStyle(QFrame::Box | QFrame::Plain);
+    this -> setStyleSheet("color:blue");
+    this -> setLineWidth(3);
+  }
+  else { 
+    this -> setFrameStyle(oldFrameStyle);
+  }
 }
  

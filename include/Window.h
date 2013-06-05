@@ -57,6 +57,7 @@
 #include "Camera.h"
 #include "FileWriterServices.h"
 
+const int MAXFRAMES = 999;
 
 /*!
  *  \brief A class used to treats the reference frame for
@@ -119,6 +120,9 @@ public slots:
     void removeAnchorItem();
     void updateManuAnchorPreview();
     void updateAutoAnchorPreview();
+    void subtractShowingFrames();
+    void sumShowingFrames();
+
 
 private :
     void initControlWidget ();
@@ -174,12 +178,13 @@ private :
 
     /* Anchor automatic selection widgets*/
     QList <AnchorLabel *>  referenceFrame;
-    QWidget         *   anchorAutoSelection;
-    int                 anchorAutoIdx;
-    QPushButton     *   previousFrames;
-    QPushButton     *   nextFrames;
-    QPushButton     *   findAnchors;
-
+    QWidget            *   anchorAutoSelection;
+    int                    anchorAutoIdx;
+    QPushButton        *   previousFrames;
+    QPushButton        *   nextFrames;
+    QPushButton        *   findAnchors;
+    int                    showingFrames;  
+    std::vector<int>     isAnchorFrames;
 };
 
 

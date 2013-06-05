@@ -49,6 +49,21 @@ void Window::enableCaptureButton () {
     }
 }
 
+void Window::sumShowingFrames(){
+    showingFrames++;
+    previousFrames -> setEnabled(true);
+    updateAutoAnchorPreview ();
+}
+
+void Window::subtractShowingFrames(){
+
+    if(showingFrames > 0 ) showingFrames--;
+    if(showingFrames == 0) previousFrames -> setDisabled(true);
+    nextFrames->setEnabled(true);
+    updateAutoAnchorPreview ();
+
+}
+
 void Window::setMesh(bool b){
   ParameterHandler* params = ParameterHandler::Instance();
   params -> SetMesh(b);
@@ -68,84 +83,35 @@ void Window::setDisplacement(bool b){
 
 void Window::loadAnchorFrames(){
 
-    static const std::string IMG_LIST_PATH(Config::FramesPath() + "list.txt");
+    /* clear list of anchorFrames */
+    if (!isAnchorFrames.empty()){
+        isAnchorFrames.clear();
+    }
+
     static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
     
-    QFile imageList(IMG_LIST_PATH.c_str());
     QFile anchorSavedList(ANCHOR_LIST_PATH.c_str());
     
-    QString fileName;
     QString anchorID;
     
-    /* Verify if the file with frames is readable*/
-    if(!imageList.open(QIODevice::ReadOnly )) return;
-    
     /* Verify if the file with anchor frames is readable*/
-    if(!anchorSavedList.open(QIODevice::ReadOnly )){
-      
-      QTextStream in(& imageList);
-      
-      while(!in.atEnd())
-	{
-	  fileName = in.readLine();
-	  if(fileName.endsWith(".pgm"))
-	    {
-            QStringList id = fileName.split("."); // Slipt in ID and pgm
-            QString str = id.at(0);
+    if(anchorSavedList.open(QIODevice::ReadOnly )){
 
-	    /* Code used for sorting */
-	    QString zero = "0";
-	    if(str.size() == 1){ 
-	      zero.append(str);
-	      str = zero;
-	    }
-            /* Show the ID in the list box*/
-	    candidateAnchorList->addItem(str);
-	    }
-	}
-      
-    }
-    else {
-
-      QTextStream in(& imageList);
       QTextStream anchor(& anchorSavedList);
       
-      if(!anchor.atEnd())
-	anchorID = anchor.readLine();
-      
-      while(!in.atEnd())
+      while(!anchor.atEnd())
 	{
-	  fileName = in.readLine();
-	  if(fileName.endsWith(".pgm"))
-	    {
-	      QStringList id = fileName.split("."); // Slipt in ID and pgm
-	      QString str = id.at(0);
-	      
-	      /* Code used for sorting */
-	      QString zero = "0";
-	      if(str.size() == 1){ 
-		zero.append(str);
-		str = zero;
-	      }
-      
-	      /* Show the ID in the combo box*/
-	      if(!str.compare(anchorID)){ 
-		anchorList->addItem(str);
-		anchorID = anchor.readLine();
-	      }
-	      else{
-		candidateAnchorList->addItem(str);
-	      }
-	    }
+	  anchorID = anchor.readLine();
+	  bool ok;
+	  int id = anchorID.toInt (&ok,10);
+	  
+	  isAnchorFrames.push_back(id);	  
 	}
-      
-      anchorSavedList.close();
-
     }
-
+    
     /* Close the file */
-    imageList.close();
-
+    anchorSavedList.close();
+    
     return;
 }
 
@@ -296,29 +262,27 @@ void Window::updateManuAnchorPreview(){
 void Window::updateAutoAnchorPreview(){
 
   std::string RES_IMG_PATH(Config::FramesPath());
-  /* Get list of selected items, we will preview only the first one in the list*/
-  QList<QListWidgetItem *>  candidates = candidateAnchorList -> selectedItems();
-  QList<QListWidgetItem *>  anchors = anchorList -> selectedItems();
 
-  QString id1;
-  if(candidates.count() > 0){
-    id1 = (candidates[0] -> text());
+  for(int i = 15 * showingFrames, j = 0; i < 15 + 15 * showingFrames; i++,j++){
+
+    QPixmap anchorCandidateImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ toString(i) + ".pgm").c_str())));
+    
+    if(!anchorCandidateImg.isNull()){
+      referenceFrame.at(j) -> setPixmap(anchorCandidateImg.scaled(100, 80, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+
+      if(std::find(isAnchorFrames.begin(), isAnchorFrames.end(), i)!=isAnchorFrames.end())
+	{
+	referenceFrame.at(j) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
+	referenceFrame.at(j) -> setStyleSheet("color:blue");
+	referenceFrame.at(j) -> setLineWidth(3);
+      }
+    }
+    else{
+      referenceFrame.at(j) -> clear();
+      /*BUG: if nb of frames % 15 == 0, next frames has to be pressed 2 times */
+      nextFrames -> setDisabled(true);
+    }
   }
-  else{
-    id1 = "-1";
-  }
-
-  /* Removes 0 from the left to align with write file names pattern */
-  bool ok;
-  int id = id1.toInt (&ok,10);
-  std::string frameID1 = toString(id);
-
-  for(int i = 0; i < 15;i++){
-    QPixmap anchorCandidateImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str())));
-    if(!anchorCandidateImg.isNull())
-      referenceFrame.at(i) -> setPixmap(anchorCandidateImg.scaled(100, 80, Qt::IgnoreAspectRatio, Qt::FastTransformation));
-  }
-
 }
 
 void Window::initManuAnchorSelection(){
@@ -359,32 +323,76 @@ void Window::initManuAnchorSelection(){
 
 void Window::initAutoAnchorSelection(){
 
-
-  //  for(int i = 0; i < 9; i++){
-  //  if (referenceFrame.at(i)) delete referenceFrame.at(i);
-  //}
-  
-  for(int i = 0; i < 15; i++){
-    referenceFrame << new AnchorLabel(anchorAutoSelection);
-  }
-  
-  for(int i = 0; i < 3; i++){
-    for(int j = 0; j < 5; j++){
-      referenceFrame.at(i*5+j) -> setGeometry(QRect(50 + 120 * j, 50 + 90 * i, 100, 80));
-      referenceFrame.at(i*5+j) -> setMaximumSize(QSize(100, 80));
+    loadAnchorFrames();
+    /* Frames to be showed while selecting */
+    for(int i = 0; i < 15; i++){
+      referenceFrame << new AnchorLabel(anchorAutoSelection);
     }
-  }
-
-  /* Create buttons to interact with frames */
-  previousFrames =  new QPushButton ("Previous Frames", anchorAutoSelection);
-  previousFrames -> setGeometry( QRect(250, 340, 120, 31) );
-  nextFrames     =  new QPushButton ("Next Frames"    , anchorAutoSelection);
-  nextFrames     -> setGeometry( QRect(400, 340, 120, 31) );
-  findAnchors    =  new QPushButton ("Find Anchors"   , anchorAutoSelection);
-  findAnchors    -> setGeometry( QRect(50, 340, 120, 31) );
-
-  updateAutoAnchorPreview ();
   
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 5; j++){
+            referenceFrame.at(i*5+j) -> setGeometry(QRect(50 + 120 * j, 50 + 90 * i, 100, 80));
+	    referenceFrame.at(i*5+j) -> setMaximumSize(QSize(100, 80));
+	}
+    }
+
+    /* Create buttons to interact with frames */
+    previousFrames =  new QPushButton ("Previous Frames", anchorAutoSelection);
+    previousFrames -> setGeometry( QRect(480, 340, 110, 25) );
+    previousFrames -> setDisabled(true);
+    nextFrames     =  new QPushButton ("Next Frames"    , anchorAutoSelection);
+    nextFrames     -> setGeometry( QRect(480, 375, 110, 25) );
+    findAnchors    =  new QPushButton ("Find Anchors"   , anchorAutoSelection);
+    findAnchors    -> setGeometry( QRect(250, 350, 140, 31) );
+    
+    /* Creating caption/explanation */
+    QPalette palette;
+    QBrush blue(QColor(0, 0, 255, 255));
+    blue.setStyle(Qt::SolidPattern);
+    QBrush red(QColor(255, 0, 0, 255));
+    red.setStyle(Qt::SolidPattern);
+    QBrush green(QColor(0, 255, 0, 255));
+    green.setStyle(Qt::SolidPattern);
+
+    /* blue caption*/
+    palette.setBrush(QPalette::Active, QPalette::Window, blue);
+    QLabel *anchorCaptionText =  new QLabel("Saved Anchors ",anchorAutoSelection);
+    anchorCaptionText -> setGeometry(QRect(80, 340, 100, 21));
+    QLabel *anchorCaptionBox =  new QLabel(anchorAutoSelection);
+    anchorCaptionBox -> setGeometry(QRect(50, 340, 21, 21));
+    anchorCaptionBox -> setPalette(palette);
+    anchorCaptionBox -> setAutoFillBackground(true);
+
+    /* green caption*/
+    palette.setBrush(QPalette::Active, QPalette::Window, green);
+    QLabel *autoAnchorCaptionText =  new QLabel("Automatically selected",anchorAutoSelection);
+    autoAnchorCaptionText -> setGeometry(QRect(80, 370, 150, 21));
+    QLabel *autoAnchorCaptionBox =  new QLabel(anchorAutoSelection);
+    autoAnchorCaptionBox -> setGeometry(QRect(50, 370, 21, 21));
+    autoAnchorCaptionBox -> setPalette(palette);
+    autoAnchorCaptionBox -> setAutoFillBackground(true);
+
+    /* red caption*/
+    palette.setBrush(QPalette::Active, QPalette::Window, red);
+    QLabel *referenceFrameCaptionText =  new QLabel("Reference frame",anchorAutoSelection);
+    referenceFrameCaptionText -> setGeometry(QRect(80, 400, 200, 21));
+    QLabel *referenceFrameCaptionBox =  new QLabel(anchorAutoSelection);
+    referenceFrameCaptionBox -> setGeometry(QRect(50, 400, 21, 21));
+    referenceFrameCaptionBox -> setPalette(palette);
+    referenceFrameCaptionBox -> setAutoFillBackground(true);
+
+    /* Creating connections */
+    connect(
+	    previousFrames, SIGNAL(               clicked () ),
+	              this, SLOT  ( subtractShowingFrames () )
+    );
+    connect(
+	    nextFrames, SIGNAL(          clicked () ),
+	          this, SLOT  ( sumShowingFrames () )
+    );
+    
+    updateAutoAnchorPreview ();
+    
 }
 
 void Window::setManuAnchor(bool b){
@@ -406,7 +414,7 @@ void Window::setAutoAnchor(bool b){
   }
   else{ 
     //save anchors listed in file 
-    saveAnchors();
+    //saveAnchors();
   }
 
 }
@@ -621,7 +629,8 @@ Window::Window ()
         anchorManuIdx(0),
 //        referenceFrame(NULL),
         anchorAutoSelection(NULL),
-        anchorAutoIdx(0)
+        anchorAutoIdx(0),
+        showingFrames(0)
 {
 
     /* creates the list of images in the system*/
@@ -896,6 +905,45 @@ void Window::initControlWidget () {
                      this, SLOT   (       setManuAnchor (bool) )
     );
 
+    /* Description: Disabling calculate displacement push button */
+    connect(
+              anchorManuRB, SIGNAL (       toggled (bool) ), 
+                calcDispPB, SLOT   (   setDisabled (bool) )
+    );
+
+
+    /* Description: Disabling Mesh snapshot */
+    connect(
+              anchorManuRB, SIGNAL (      toggled (bool) ),
+            snapshotButton, SLOT   (  setDisabled (bool) )
+    );
+
+  
+    /* Description: Disabling capture button */
+    connect(
+                  anchorManuRB, SIGNAL (     toggled (bool) ),
+            startCaptureButton, SLOT   ( setDisabled (bool) )
+    );
+
+    /* Description: Disabling create mesh */
+    connect(
+                 anchorManuRB, SIGNAL (     toggled (bool) ),
+                 createMeshPB, SLOT   ( setDisabled (bool) )
+    );
+
+    /* Description: Disabling frame1 selection */
+    connect(
+                   anchorManuRB, SIGNAL (     toggled (bool) ),
+                 frame1ComboBox, SLOT   ( setDisabled (bool) )
+    );
+
+    /* Description: Disabling frame 2 semection */
+    connect(
+                   anchorManuRB, SIGNAL (     toggled (bool) ),
+                 frame2ComboBox, SLOT   ( setDisabled (bool) )
+    );
+
+
     /*** Situation: Anchor automatic selection *****/
 
     /* Description: Change of situation 
@@ -903,6 +951,43 @@ void Window::initControlWidget () {
     connect(
 	     anchorAutoRB, SIGNAL (         toggled (bool) ),
                      this, SLOT   (       setAutoAnchor (bool) )
+    );
+
+    /* Description: Disabling calculate displacement push button */
+    connect(
+              anchorAutoRB, SIGNAL (       toggled (bool) ), 
+                calcDispPB, SLOT   (   setDisabled (bool) )
+    );
+
+
+    /* Description: Disabling Mesh snapshot */
+    connect(
+              anchorAutoRB, SIGNAL (      toggled (bool) ),
+            snapshotButton, SLOT   (  setDisabled (bool) )
+    );
+
+  
+    /* Description: Disabling capture button */
+    connect(
+                  anchorAutoRB, SIGNAL (     toggled (bool) ),
+            startCaptureButton, SLOT   ( setDisabled (bool) )
+    );
+
+    /* Description: Disabling create mesh */
+    connect(
+                 anchorAutoRB, SIGNAL (     toggled (bool) ),
+                 createMeshPB, SLOT   ( setDisabled (bool) )
+    );
+    /* Description: Disabling frame1 selection */
+    connect(
+                   anchorAutoRB, SIGNAL (     toggled (bool) ),
+                 frame1ComboBox, SLOT   ( setDisabled (bool) )
+    );
+
+    /* Description: Disabling frame 2 semection */
+    connect(
+                   anchorAutoRB, SIGNAL (     toggled (bool) ),
+                 frame2ComboBox, SLOT   ( setDisabled (bool) )
     );
 
 

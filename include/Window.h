@@ -76,15 +76,13 @@ public:
     AnchorLabel( QWidget* parent = 0);
     ~AnchorLabel(){}
     int  frameID;
+    int  oldFrameStyle; 
 
 public slots:
     void slotClicked();	
 
 protected:
     void mousePressEvent( QMouseEvent* ev );
-
-private:
-    int  oldFrameStyle; 
 
 };
 

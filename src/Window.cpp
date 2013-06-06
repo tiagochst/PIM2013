@@ -55,8 +55,41 @@ void Window::sumShowingFrames(){
     updateAutoAnchorPreview ();
 }
 
+
 void Window::setReferenceFrame(int iFrame){
+
+  int idxFrame = refFrameID % 15;
+  if(refFrameID == iFrame){
+
+    if(referenceFrame.at(idxFrame) -> frameStyle() != 18){
+      referenceFrame.at(idxFrame) -> oldFrameStyle = referenceFrame.at(idxFrame) -> frameStyle();
+      referenceFrame.at(idxFrame) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
+      referenceFrame.at(idxFrame) -> setStyleSheet("color:red");
+      referenceFrame.at(idxFrame)  -> setLineWidth(3);
+    }
+
+    return;
+  }
+
+  if(refFrameID/15 == iFrame/15) {
+    /* Change the old selected frame to unselected state*/
+    if(referenceFrame.at(idxFrame) -> frameStyle() != 18){
+      referenceFrame.at(idxFrame) -> oldFrameStyle = referenceFrame.at(idxFrame) -> frameStyle();
+      referenceFrame.at(idxFrame) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
+      referenceFrame.at(idxFrame) -> setStyleSheet("color:red");
+      referenceFrame.at(idxFrame)  -> setLineWidth(3);
+    }
+    else if(referenceFrame.at(idxFrame) -> oldFrameStyle == 17) {
+      referenceFrame.at(idxFrame) -> setFrameStyle(QFrame::Box | QFrame::Plain);
+      referenceFrame.at(idxFrame) -> setStyleSheet("color:blue");
+      referenceFrame.at(idxFrame) -> setLineWidth(3);
+    }
+    else { 
+      referenceFrame.at(idxFrame) -> setFrameStyle(referenceFrame.at(idxFrame) ->oldFrameStyle);
+    }
+  }  
   this -> refFrameID = iFrame;
+
 }
 
 void Window::subtractShowingFrames(){
@@ -326,6 +359,10 @@ void Window::updateAutoAnchorPreview(){
 
   std::string RES_IMG_PATH(Config::FramesPath());
 
+  for(int i = 0; i < 15;  i++){
+      referenceFrame.at(i) -> setFrameStyle(QFrame::NoFrame);
+  }
+
   for(int i = 15 * showingFrames, j = 0; i < 15 + 15 * showingFrames; i++,j++){
 
     QPixmap anchorCandidateImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ toString(i) + ".pgm").c_str())));
@@ -340,6 +377,15 @@ void Window::updateAutoAnchorPreview(){
 	referenceFrame.at(j) -> setStyleSheet("color:blue");
 	referenceFrame.at(j) -> setLineWidth(3);
       }
+      /* Default selected Frame */
+      if(i == refFrameID){
+	referenceFrame.at(j) -> oldFrameStyle = referenceFrame.at(j) -> frameStyle();
+	referenceFrame.at(j) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
+	referenceFrame.at(j) -> setStyleSheet("color:red");
+	referenceFrame.at(j)  -> setLineWidth(3);
+ 
+      }
+
     }
     else{
       referenceFrame.at(j) -> clear();
@@ -411,6 +457,7 @@ void Window::initAutoAnchorSelection(){
     previousFrames =  new QPushButton ("Previous Frames", anchorAutoSelection);
     previousFrames -> setGeometry( QRect(480, 340, 110, 25) );
     previousFrames -> setDisabled(true);
+    showingFrames = 0;
     nextFrames     =  new QPushButton ("Next Frames"    , anchorAutoSelection);
     nextFrames     -> setGeometry( QRect(480, 375, 110, 25) );
     findAnchors    =  new QPushButton ("Find Anchors"   , anchorAutoSelection);

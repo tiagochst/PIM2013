@@ -128,6 +128,7 @@ public slots:
     void sumShowingFrames();
     void findAutoAnchors();
     void setReferenceFrame(int iFrame);
+    void setThreshold( double iThreshold);
 
 private :
     void initControlWidget ();
@@ -192,6 +193,7 @@ private :
     int                    showingFrames; 
     std::vector<int>       isAnchorFrames;
     int                    refFrameID;
+    QDoubleSpinBox     *   thresholdSP;
 };
 
 

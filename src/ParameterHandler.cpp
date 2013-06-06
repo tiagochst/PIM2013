@@ -61,3 +61,14 @@ const bool& ParameterHandler::GetMesh () const
 {
       return m_mesh;
 };
+
+void ParameterHandler::SetThreshold (
+     const double& iThreshold
+) {
+    m_threshold = iThreshold;
+};
+
+const double& ParameterHandler::GetThreshold () const
+{
+    return m_threshold;
+};

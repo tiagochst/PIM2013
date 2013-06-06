@@ -17,7 +17,8 @@ private:
     bool            m_cameraFound;
     bool            m_captureMode;
     unsigned int    m_numCaptureFrames;
-
+    
+    double           m_threshold;
 
 private:
     ParameterHandler ()
@@ -27,7 +28,8 @@ private:
             m_wSize ( 9 ),
             m_nSize ( 9 ),
             m_cameraFound (false),
-            m_numCaptureFrames ( 35 )
+            m_numCaptureFrames ( 35 ),
+            m_threshold(0.0)
     {}
     ~ParameterHandler ()
     {}
@@ -75,7 +77,15 @@ public:
     const void SetNeighbourhoodSize (
         const unsigned int& iNeighbourhoodSize
     );
+
+    void SetThreshold (
+        const double&             iThreshold
+    );
+
+    const double& GetThreshold () const;
+
 };
+
 
 inline const unsigned int& ParameterHandler::GetWindowSize ()
 const {

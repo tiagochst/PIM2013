@@ -444,6 +444,11 @@ void Window::initManuAnchorSelection(){
 
 }
 
+void Window::setThreshold( double iThreshold){
+    ParameterHandler* params = ParameterHandler::Instance();
+    params -> SetThreshold(iThreshold);
+}
+
 void Window::initAutoAnchorSelection(){
 
     loadAnchorFrames();
@@ -470,12 +475,20 @@ void Window::initAutoAnchorSelection(){
     previousFrames =  new QPushButton ("Previous Frames", anchorAutoSelection);
     previousFrames -> setGeometry( QRect(480, 340, 110, 25) );
     previousFrames -> setDisabled(true);
-    showingFrames = 0;
-    nextFrames     =  new QPushButton ("Next Frames"    , anchorAutoSelection);
+    showingFrames  =  0;
+    nextFrames     =  new QPushButton ("Next Frames", anchorAutoSelection);
     nextFrames     -> setGeometry( QRect(480, 375, 110, 25) );
-    findAnchors    =  new QPushButton ("Find Anchors"   , anchorAutoSelection);
+    findAnchors    =  new QPushButton ("Find Anchors", anchorAutoSelection);
     findAnchors    -> setGeometry( QRect(250, 350, 140, 31) );
+    QLabel         *  thresholdLabel = new QLabel(tr("Threshold:"),anchorAutoSelection);
+    thresholdLabel->setGeometry(QRect(250, 400, 75, 33));
+
+    thresholdSP =  new QDoubleSpinBox(anchorAutoSelection);
+    thresholdSP -> setGeometry(QRect(330, 400, 62, 33));
+    thresholdSP -> setMaximum(1);
+    thresholdSP -> setSingleStep(0.1);
     
+
     /* Creating caption/explanation */
     QPalette palette;
     QBrush blue(QColor(0, 0, 255, 255));
@@ -525,6 +538,11 @@ void Window::initAutoAnchorSelection(){
     connect(
 	   findAnchors, SIGNAL(          clicked () ),
 	          this, SLOT  (  findAutoAnchors () )
+    );
+
+    connect(
+	   thresholdSP, SIGNAL(     valueChanged (double) ),
+	          this, SLOT  (     setThreshold (double) )
     );
     
     updateAutoAnchorPreview ();
@@ -762,7 +780,8 @@ Window::Window ()
 //        referenceFrame(NULL),
         anchorAutoSelection(NULL),
         anchorAutoIdx(0),
-        showingFrames(0)
+        showingFrames(0),
+        thresholdSP(NULL)
 {
     /* Update the list of frames captured*/
     updateFrameList();

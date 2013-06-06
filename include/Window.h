@@ -137,6 +137,7 @@ private :
     void addImageItems();
     void loadAnchorFrames();
     void saveAnchors();
+    void updateFrameList();
 
     QGroupBox       *   controlWidget;    //!< The Left dock group box.
     QStackedWidget  *   centerWidget;

@@ -47,6 +47,19 @@ void Window::enableCaptureButton () {
         delete progressDialog;
         progressDialog = 0x0;
     }
+    /* update list of frames*/
+    updateFrameList();
+    /*update combo box*/
+    addImageItems();
+}
+
+void Window::updateFrameList () {
+
+    /* Update the list of images in the system*/
+    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=depth* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/.pgm//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
+
+    system(IMAGE_LIST.c_str());
+
 }
 
 void Window::sumShowingFrames(){
@@ -751,11 +764,8 @@ Window::Window ()
         anchorAutoIdx(0),
         showingFrames(0)
 {
-
-    /* creates the list of images in the system*/
-    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=depth* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/.pgm//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
-
-    system(IMAGE_LIST.c_str());
+    /* Update the list of frames captured*/
+    updateFrameList();
 
     try {
         viewer = new GLViewer;

@@ -45,11 +45,9 @@ void GLViewer::init() {
 
     ParameterHandler* params = ParameterHandler::Instance();
     std::string frameID = std::to_string(params -> GetFrame1());
-
     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
-    std::cout << "showing image" <<  frameID << std::endl;
     m_frame.LoadFromFile(RES_IMG_PATH + "image_" + frameID + ".pgm");
-   m_depth.LoadFromFile(RES_IMG_PATH + "depth_" + frameID + ".pgm");
+    m_depth.LoadFromFile(RES_IMG_PATH + "depth_" + frameID + ".pgm");
 
     // Swap the CAMERA and FRAME state keys (NoButton and Control)
     // Save CAMERA binding first. See setHandlerKeyboardModifiers() documentation.

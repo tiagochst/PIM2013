@@ -70,45 +70,70 @@ void Window::subtractShowingFrames(){
 
 void Window::findAutoAnchors(){
 
-    // std::vector<int>     anchorFound;
+    std::vector<int>     anchorFound;
 
-    // /* clear list of anchorFrames */
-    // if (!anchorFound.empty()){
-    //     anchorFound.clear();
-    // }
+    /* clear list of anchorFrames */
+    if (!anchorFound.empty()){
+        anchorFound.clear();
+    }
 
-    // //TODO put a process dialog
-    // static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
-    // static const std::string FRAME_LIST_PATH(Config::FramesPath() + "list.txt");
+    //TODO put a process dialog
+    static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
+    static const std::string FRAME_LIST_PATH(Config::FramesPath() + "list.txt");
 
-    // QFile imageList(FRAME_LIST_PATH.c_str());
+    QFile imageList(FRAME_LIST_PATH.c_str());
+    QString id;
 
-    // QString fileName;
+    /* Verify if the file with frames is readable*/
+    if(!imageList.open(QIODevice::ReadOnly )) return;
 
-    // /* Verify if the file with frames is readable*/
-    // if(!imageList.open(QIODevice::ReadOnly )) return;
-    // QTextStream in(& imageList);
+    /*Creates a progress Dialog*/
+    QProgressDialog* progressDialog = NULL;
+    progressDialog = new QProgressDialog("Finding Anchor Frames...", "Cancel", 0,100);
+    int progress = 0;
+
+    if (progressDialog)
+        progressDialog->show ();
+
+    QTextStream listOfFrames(& imageList);
     
-    // while(!in.atEnd())
-    //   {
-    // 	fileName = in.readLine();
-    // 	if(fileName.endsWith(".pgm"))
-    // 	    {
-    // 	      QStringList id = fileName.split(".").at(0); // Slipt in ID and pgm
-    // 	      Image frame(Config::FramesPath() + "image_"+ id + ".pgm");
-    // 	      Image refFrame(Config::FramesPath() + "image_"+ id + ".pgm");
-	      
-    // 	      if(ImageBase::CalculateErrorScore ( frame0, frame1 ) < 0.85){
-    // 		bool ok;
-    // 		int id = frameID.toInt (&ok,10);
-    // 		anchorFound.push_back(id);	  
-    // 	      }
-	      
-	      
-    // 	    }
-    //   }
+    Image refFrame(Config::FramesPath() + "image_"+ toString(refFrameID) + ".pgm");
+    cout << "Ref frame ID: "<<refFrameID << endl;
     
+    while(!listOfFrames.atEnd())
+      {
+	progress +=  2;
+	if (progressDialog)
+	  progressDialog->setValue (progress);
+
+	id = listOfFrames.readLine();
+	Image frame(Config::FramesPath() + "image_"+ id.toStdString() + ".pgm");	      
+	
+	if(ImageBase::CalculateErrorScore ( frame, refFrame ) > 0.3){
+	  cout << "Anchor frame found" << endl;
+	  
+	  /* Save frame as an anchor */
+	  bool ok;
+	  anchorFound.push_back(id.toInt(&ok,10));	  
+	  
+	  /* The anchor will be our new reference */	
+	  refFrame.LoadFromFile(Config::FramesPath() + "image_"+ id.toStdString() + ".pgm");
+    	  
+	}
+	
+      }
+
+
+    if (progressDialog)
+      progressDialog->setValue (100);
+    
+    for(int j =0; j < anchorFound.size(); j++)
+      cout << anchorFound.at(j) << endl;
     // updateAutoAnchorPreview ();
+
+    if (progressDialog)
+      delete progressDialog;
+
     
 }
 
@@ -171,7 +196,7 @@ void Window::addAnchorListItems(){
     QFile imageList(IMG_LIST_PATH.c_str());
     QFile anchorSavedList(ANCHOR_LIST_PATH.c_str());
     
-    QString fileName;
+    QString id;
     QString anchorID;
     
     /* Verify if the file with frames is readable*/
@@ -184,24 +209,19 @@ void Window::addAnchorListItems(){
       
       while(!in.atEnd())
 	{
-	  fileName = in.readLine();
-	  if(fileName.endsWith(".pgm"))
-	    {
-            QStringList id = fileName.split("."); // Slipt in ID and pgm
-            QString str = id.at(0);
-
-	    /* Code used for sorting */
-	    QString zero = "0";
-	    if(str.size() == 1){ 
-	      zero.append(str);
-	      str = zero;
-	    }
-            /* Show the ID in the list box*/
-	    candidateAnchorList->addItem(str);
-	    }
+	  id = in.readLine();
+	  
+	  /* Code used for sorting */
+	  QString zero = "0";
+	  if(id.size() == 1){ 
+	    zero.append(id);
+	    id = zero;
+	  }
+	  /* Show the ID in the list box*/
+	  candidateAnchorList->addItem(id);
 	}
-      
     }
+       
     else {
 
       QTextStream in(& imageList);
@@ -212,28 +232,23 @@ void Window::addAnchorListItems(){
       
       while(!in.atEnd())
 	{
-	  fileName = in.readLine();
-	  if(fileName.endsWith(".pgm"))
-	    {
-	      QStringList id = fileName.split("."); // Slipt in ID and pgm
-	      QString str = id.at(0);
-	      
-	      /* Code used for sorting */
-	      QString zero = "0";
-	      if(str.size() == 1){ 
-		zero.append(str);
-		str = zero;
-	      }
-      
-	      /* Show the ID in the combo box*/
-	      if(!str.compare(anchorID)){ 
-		anchorList->addItem(str);
+	  id = in.readLine();
+	  
+	  /* Code used for sorting */
+	  QString zero = "0";
+	  if(id.size() == 1){ 
+	    zero.append(id);
+		id = zero;
+	  }
+	  
+	  /* Show the ID in the combo box*/
+	  if(!id.compare(anchorID)){ 
+		anchorList->addItem(id);
 		anchorID = anchor.readLine();
-	      }
-	      else{
-		candidateAnchorList->addItem(str);
-	      }
-	    }
+	  }
+	  else{
+	    candidateAnchorList->addItem(id);
+	  }
 	}
       
       anchorSavedList.close();
@@ -642,13 +657,9 @@ void Window::addImageItems()
     while(!in.atEnd())
     {
         fileName = in.readLine();
-        if(fileName.endsWith(".pgm"))
-        {
-            QStringList id = fileName.split("."); // Slipt in ID and pgm
-            /* Show the ID in the combo box*/
-            frame1ComboBox -> addItem(id.at(0),QVariant::Char); 
-            frame2ComboBox -> addItem(id.at(0),QVariant::Char); 
-        }
+	/* Show the ID in the combo box*/
+	frame1ComboBox -> addItem(fileName,QVariant::Char); 
+	frame2ComboBox -> addItem(fileName,QVariant::Char); 
     }
 
     /* Close the file */
@@ -695,7 +706,7 @@ Window::Window ()
 {
 
     /* creates the list of images in the system*/
-    static const std::string IMAGE_LIST(" ls -B --ignore=list.txt --ignore=depth* --ignore=*.ply " + Config::FramesPath() + "| sed -r 's/^.{6}//' |sort -g >" + Config::FramesPath() + "list.txt");
+    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=depth* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/.pgm//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
 
     system(IMAGE_LIST.c_str());
 

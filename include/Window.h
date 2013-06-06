@@ -69,11 +69,13 @@ Q_OBJECT
 
 signals:
    void mousePressed();
+   void mousePressed(int framID);
 
 public:
     AnchorLabel( const QString& text, QWidget* parent = 0);
     AnchorLabel( QWidget* parent = 0);
     ~AnchorLabel(){}
+    int  frameID;
 
 public slots:
     void slotClicked();	
@@ -126,7 +128,8 @@ public slots:
     void updateAutoAnchorPreview();
     void subtractShowingFrames();
     void sumShowingFrames();
-
+    void findAutoAnchors();
+    void setReferenceFrame(int iFrame);
 
 private :
     void initControlWidget ();
@@ -187,8 +190,9 @@ private :
     QPushButton        *   previousFrames;
     QPushButton        *   nextFrames;
     QPushButton        *   findAnchors;
-    int                    showingFrames;  
-    std::vector<int>     isAnchorFrames;
+    int                    showingFrames; 
+    std::vector<int>       isAnchorFrames;
+    int                    refFrameID;
 };
 
 

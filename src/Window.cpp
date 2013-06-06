@@ -55,6 +55,10 @@ void Window::sumShowingFrames(){
     updateAutoAnchorPreview ();
 }
 
+void Window::setReferenceFrame(int iFrame){
+  this -> refFrameID = iFrame;
+}
+
 void Window::subtractShowingFrames(){
 
     if(showingFrames > 0 ) showingFrames--;
@@ -62,6 +66,50 @@ void Window::subtractShowingFrames(){
     nextFrames->setEnabled(true);
     updateAutoAnchorPreview ();
 
+}
+
+void Window::findAutoAnchors(){
+
+    // std::vector<int>     anchorFound;
+
+    // /* clear list of anchorFrames */
+    // if (!anchorFound.empty()){
+    //     anchorFound.clear();
+    // }
+
+    // //TODO put a process dialog
+    // static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
+    // static const std::string FRAME_LIST_PATH(Config::FramesPath() + "list.txt");
+
+    // QFile imageList(FRAME_LIST_PATH.c_str());
+
+    // QString fileName;
+
+    // /* Verify if the file with frames is readable*/
+    // if(!imageList.open(QIODevice::ReadOnly )) return;
+    // QTextStream in(& imageList);
+    
+    // while(!in.atEnd())
+    //   {
+    // 	fileName = in.readLine();
+    // 	if(fileName.endsWith(".pgm"))
+    // 	    {
+    // 	      QStringList id = fileName.split(".").at(0); // Slipt in ID and pgm
+    // 	      Image frame(Config::FramesPath() + "image_"+ id + ".pgm");
+    // 	      Image refFrame(Config::FramesPath() + "image_"+ id + ".pgm");
+	      
+    // 	      if(ImageBase::CalculateErrorScore ( frame0, frame1 ) < 0.85){
+    // 		bool ok;
+    // 		int id = frameID.toInt (&ok,10);
+    // 		anchorFound.push_back(id);	  
+    // 	      }
+	      
+	      
+    // 	    }
+    //   }
+    
+    // updateAutoAnchorPreview ();
+    
 }
 
 void Window::setMesh(bool b){
@@ -269,6 +317,7 @@ void Window::updateAutoAnchorPreview(){
     
     if(!anchorCandidateImg.isNull()){
       referenceFrame.at(j) -> setPixmap(anchorCandidateImg.scaled(100, 80, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+      referenceFrame.at(j) -> frameID = i;
 
       if(std::find(isAnchorFrames.begin(), isAnchorFrames.end(), i)!=isAnchorFrames.end())
 	{
@@ -310,12 +359,12 @@ void Window::initManuAnchorSelection(){
   updateManuAnchorPreview ();
 
   connect(
-	  candidateAnchorList, SIGNAL(itemSelectionChanged () ),
+	  candidateAnchorList, SIGNAL(    itemSelectionChanged () ),
 	                 this, SLOT  ( updateManuAnchorPreview () )
   );
 
   connect(
-	  anchorList, SIGNAL(itemSelectionChanged () ),
+	  anchorList, SIGNAL(    itemSelectionChanged () ),
                 this, SLOT  ( updateManuAnchorPreview () )
   );
 
@@ -324,9 +373,16 @@ void Window::initManuAnchorSelection(){
 void Window::initAutoAnchorSelection(){
 
     loadAnchorFrames();
+
     /* Frames to be showed while selecting */
     for(int i = 0; i < 15; i++){
       referenceFrame << new AnchorLabel(anchorAutoSelection);
+
+    connect(
+	    referenceFrame.at(i), SIGNAL(     mousePressed (int) ), 
+	               	    this, SLOT  ( setReferenceFrame(int) ) 
+    );
+
     }
   
     for(int i = 0; i < 3; i++){
@@ -389,6 +445,11 @@ void Window::initAutoAnchorSelection(){
     connect(
 	    nextFrames, SIGNAL(          clicked () ),
 	          this, SLOT  ( sumShowingFrames () )
+    );
+
+    connect(
+	   findAnchors, SIGNAL(          clicked () ),
+	          this, SLOT  (  findAutoAnchors () )
     );
     
     updateAutoAnchorPreview ();
@@ -1053,19 +1114,28 @@ void Window::createMesh () {
 void AnchorLabel::mousePressEvent( QMouseEvent* ev )
 {
     emit  mousePressed();
+    emit  mousePressed(frameID);
+
 }
 
 AnchorLabel::AnchorLabel( const QString & text, QWidget * parent )
 :QLabel(parent)
 {
     oldFrameStyle = 16;
-    connect( this, SIGNAL(  mousePressed() ), this, SLOT( slotClicked() ) );
+    connect( 
+            this, SIGNAL(  mousePressed() ), 
+            this, SLOT  (   slotClicked() )
+    );
 }
 
 AnchorLabel::AnchorLabel(QWidget * parent )
 :QLabel(parent)
 {
-    connect( this, SIGNAL(  mousePressed() ), this, SLOT( slotClicked() ) );
+    connect( 
+            this, SIGNAL(  mousePressed() ), 
+            this, SLOT  (   slotClicked() )
+    );
+    
 }
  
 void AnchorLabel::slotClicked()

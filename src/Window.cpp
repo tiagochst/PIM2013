@@ -183,6 +183,16 @@ void Window::findAutoAnchors(){
     
 }
 
+void  Window::setWindowSize(int iSize){
+  ParameterHandler* params = ParameterHandler::Instance();
+  params -> SetWindowSize(iSize);
+}
+
+void  Window::setNeighbourhoodSize(int  iSize){
+  ParameterHandler* params = ParameterHandler::Instance();
+  params -> SetNeighbourhoodSize(iSize);
+}
+
 void Window::setMesh(bool b){
   ParameterHandler* params = ParameterHandler::Instance();
   params -> SetMesh(b);
@@ -481,10 +491,10 @@ void Window::initAutoAnchorSelection(){
     findAnchors    =  new QPushButton ("Find Anchors", anchorAutoSelection);
     findAnchors    -> setGeometry( QRect(250, 350, 140, 31) );
     QLabel         *  thresholdLabel = new QLabel(tr("Threshold:"),anchorAutoSelection);
-    thresholdLabel->setGeometry(QRect(250, 400, 75, 33));
+    thresholdLabel->setGeometry(QRect(250, 390, 75, 33));
 
     thresholdSP =  new QDoubleSpinBox(anchorAutoSelection);
-    thresholdSP -> setGeometry(QRect(330, 400, 62, 33));
+    thresholdSP -> setGeometry(QRect(330, 390, 62, 25));
     thresholdSP -> setMaximum(1);
     thresholdSP -> setSingleStep(0.1);
     
@@ -892,6 +902,9 @@ void Window::about () {
 
 void Window::initControlWidget () {
 
+    /* Get initial defined parameters*/
+    ParameterHandler* params = ParameterHandler::Instance();
+
     /* Defining size policy of the windows */
     QSizePolicy sizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
     sizePolicy.setHorizontalStretch(0);
@@ -945,6 +958,32 @@ void Window::initControlWidget () {
     removeAnchor = new QPushButton ( "<", anchorManuSelection );
     addAnchor    -> setGeometry( QRect(280, 260, 41, 31) );
     removeAnchor -> setGeometry( QRect(280, 300, 41, 31) );
+
+
+    QGroupBox *  parametersGroupBox = new QGroupBox   ("Parameters", controlWidget);
+    QVBoxLayout *   parametersLayout = new QVBoxLayout (parametersGroupBox);
+
+    windowSizeSP = new QSpinBox(parametersGroupBox);
+    neighbourhoodSizeSP = new QSpinBox(parametersGroupBox);
+    neighbourhoodSizeSP -> setValue(params -> GetNeighbourhoodSize());
+    windowSizeSP -> setValue(params -> GetWindowSize());
+    windowSizeSP -> setRange(1,30);
+    neighbourhoodSizeSP -> setRange(1,30);
+
+    QLabel          *   windowSizeLabel = new QLabel(tr("Window Size:"));
+    frame1Label -> setBuddy(neighbourhoodSizeSP);
+
+    QLabel          *   neighbourhoodSizeSPLabel = new QLabel(tr("Neighbourhood:"));
+    frame2Label -> setBuddy(windowSizeSP);
+
+    QWidget *paramsLayoutWidget   = new QWidget(parametersGroupBox);
+    QFormLayout *paramsFormLayout = new QFormLayout(paramsLayoutWidget);
+    paramsFormLayout -> setContentsMargins(0, 0, 0, 0);
+    paramsFormLayout -> setWidget(0, QFormLayout::LabelRole, windowSizeLabel);
+    paramsFormLayout -> setWidget(0, QFormLayout::FieldRole, windowSizeSP);
+    paramsFormLayout -> setWidget(1, QFormLayout::LabelRole, neighbourhoodSizeSPLabel);
+    paramsFormLayout -> setWidget(1, QFormLayout::FieldRole, neighbourhoodSizeSP);
+
 
     /********** Connections ***********/
 
@@ -1138,6 +1177,19 @@ void Window::initControlWidget () {
                  frame2ComboBox, SLOT   ( setDisabled (bool) )
     );
 
+    /*** Situation: Parameters modification *****/
+
+    /* Description: Change window size */
+    connect (
+             windowSizeSP, SIGNAL (valueChanged  (int) ), 
+                     this, SLOT   (setWindowSize (int) )
+    );
+
+    /* Description: Change window size */
+    connect (
+             neighbourhoodSizeSP, SIGNAL (       valueChanged  (int) ), 
+                            this, SLOT   (setNeighbourhoodSize (int) )
+    );
 
     /*** Initial situation: Default options ***/
     meshRB         -> setChecked(true);
@@ -1146,7 +1198,6 @@ void Window::initControlWidget () {
 
 
     /* Verify if a camera is connect */
-    ParameterHandler* params = ParameterHandler::Instance();
     if(params -> GetCamera()){
 
       cameraTimer = new QTimer();
@@ -1184,9 +1235,11 @@ void Window::initControlWidget () {
     previewLayout->addWidget (calcDispPB);
     previewLayout->addWidget (snapshotButton);
     previewLayout->addWidget (startCaptureButton);
+    parametersLayout->addWidget (paramsLayoutWidget);
 
     /* Add widgets to left dock layout*/
     layout -> addWidget (previewGroupBox);
+    layout -> addWidget (parametersGroupBox);
     layout -> addStretch (0);
 }
 

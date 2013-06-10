@@ -17,7 +17,7 @@ private:
     bool            m_cameraFound;
     bool            m_captureMode;
     unsigned int    m_numCaptureFrames;
-    
+
     double           m_threshold;
 
 private:

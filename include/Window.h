@@ -129,6 +129,8 @@ public slots:
     void findAutoAnchors();
     void setReferenceFrame(int iFrame);
     void setThreshold( double iThreshold);
+    void setWindowSize(int iSize);
+    void setNeighbourhoodSize(int  iSize);
 
 private :
     void initControlWidget ();
@@ -157,6 +159,9 @@ private :
     QRadioButton    *   anchorAutoRB;
     QWidget         *   generalLayoutWidget ;
     QFormLayout     *   generalFormLayout;
+    QSpinBox        *   windowSizeSP;
+    QSpinBox        *   neighbourhoodSizeSP;
+
 
     /* Mesh widgets*/
     GLViewer        *   viewer;           //!< The GLViewer (central window)

@@ -1,0 +1,81 @@
+%% General Info
+\NeedsTeXFormat{LaTeX2e}[1999/01/01]
+\ProvidesPackage{pim}[2013/06/10]
+
+% Variables
+\newif\if@algo \@algofalse
+\newif\if@listings \@listingsfalse
+\newcounter{moncompteur}
+
+\DeclareOption{listings}{\@listingstrue} % if listing in options so @listings=true!
+\DeclareOption{algo}{\@algotrue} % if listing in options so @listings=true!
+
+
+\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{babel}}
+\ProcessOptions
+
+%%% fontes %%%
+\RequirePackage[T1]{fontenc}
+\RequirePackage[utf8]{inputenc}   
+\RequirePackage{ae,aecompl}  
+
+%%% matematicos %%%
+\RequirePackage{amsmath}
+\RequirePackage{amssymb}
+\RequirePackage{mathptmx}
+
+%%% figuras %%%
+\RequirePackage{graphicx}
+\RequirePackage{wrapfig}
+
+%%% tabelas %%%
+\RequirePackage{colortbl}
+\RequirePackage{array}
+\RequirePackage{longtable}
+\RequirePackage{fancyvrb}
+\RequirePackage{color}
+
+\if@listings
+  \RequirePackage{listings}
+  \RequirePackage{verbatim}
+  \RequirePackage{moreverb}
+\fi
+
+\if@algo
+  \RequirePackage{algorithm}
+  \RequirePackage{algorithmic}
+\fi
+
+%%% outros %%%
+\RequirePackage{url}
+\RequirePackage{breakurl} 
+\RequirePackage{textcomp}
+\RequirePackage{hyperref} %internal links
+\RequirePackage{color}       
+\RequirePackage{indentfirst} %retira padrao americano de paragrafos
+\RequirePackage{multicol}    
+\numberwithin{table}{section}
+\numberwithin{figure}{section} %numercao de figuras por secao
+
+%%% extras %%%
+\RequirePackage{marvosym} % figuras \Letter \Email 
+\RequirePackage{fancyhdr}     % Headers
+\RequirePackage{epsf}
+\RequirePackage{tikz}
+\usetikzlibrary{arrows}
+\tikzstyle{block}=[draw opacity=0.7,line width=1.4cm]
+
+%%% Beamer style %%%
+\usetheme{Warsaw}
+
+% fontes em negrito
+\usefonttheme[onlylarge]{structurebold}
+
+% define tamanhos de letras
+\setbeamerfont*{frametitle}{size=\normalsize,series=\bfseries}
+%\setbeamertemplate{navigation symbols}{}% barra de navegacao superior
+
+
+% \setbeamercovered{transparent}
+
+

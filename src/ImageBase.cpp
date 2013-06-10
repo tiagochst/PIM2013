@@ -45,7 +45,7 @@ float ImageBase::CalculateErrorScore (
     assert ( iImageA.GetHeight () == iImageB.GetHeight () );
 
     const unsigned int& SAMPLING_STEP   = 20;
-    const unsigned int& NH_SZ           = 9;
+    const int&          NH_SZ           = 9;
 
     float globalScore = 0.f;
     const unsigned int& height  = iImageA.GetHeight ();
@@ -66,6 +66,7 @@ float ImageBase::CalculateErrorScore (
                     localScore  += ( valA * valB );
                 }
             }
+            //std::cout << denomA << " " << denomB << std::endl;
             if ( denomA && denomB ) {
                 localScore /= sqrt ( denomA * denomB );
             } else if ( !denomA && !denomB ) {
@@ -167,17 +168,18 @@ float ImageBase::TemplateMatch(
                 oCorrelationMap->SetGreyLvl (
                     y - sw.Y(), 
                     x - sw.X(),
-                    val * 255
+                    val * 255.f
                 );
             }
             #pragma omp critical
-            if (
+            {
+                if (
                     val >= bestMatchVal
-                &&  val >= 0.85f
-            ) {
-                bestMatchVal = val;
-                oBestMatch.x = x;
-                oBestMatch.y = y;
+                ) {
+                    bestMatchVal = val;
+                    oBestMatch.x = x;
+                    oBestMatch.y = y;
+                }
             }
         }
     }

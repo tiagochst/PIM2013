@@ -8,15 +8,6 @@
 
 using namespace std;
 
-template<typename T>
-std::string toString ( const T& val ) {
-    std::stringstream ss;
-
-    ss << val;
-
-    return ss.str ();
-}
-
 void Window::startCapture() {
     ParameterHandler* params = ParameterHandler::Instance();
     params->SetCaptureMode ( true );
@@ -554,7 +545,7 @@ void Window::initAutoAnchorSelection(){
 	   thresholdSP, SIGNAL(     valueChanged (double) ),
 	          this, SLOT  (     setThreshold (double) )
     );
-    
+
     updateAutoAnchorPreview ();
     
 }

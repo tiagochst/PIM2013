@@ -1,7 +1,7 @@
+#include <omp.h>
 #include <iostream> // cout, cerr
 #include <fstream> // ifstream
 #include <sstream> // stringstream
-#include "omp.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -9,6 +9,7 @@
 #include "Rectangle.h"
 #include "SubImage.h"
 #include "MathUtils.h"
+#include "Tools.h"
 
 #include "Config.h"
 #include <iomanip>
@@ -123,7 +124,8 @@ void Image::LoadFromFile (
         }
         inFile.close();
     } else {
-        std::cerr << "File could not be opened" << std::endl; 
+        std::cout << iFilename << std::endl;
+        std::cerr << ": File could not be opened" << std::endl; 
     }
 }
 

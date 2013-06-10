@@ -158,6 +158,20 @@ int main(int argc, char** argv) {
             Config::OutputPath() + "patch.pgm"
         );
 
+        std::vector<unsigned int> anchors;
+        Image::CalculateAnchors (
+            35,
+            0,
+            Config::OutputPath () + "CapturedFrames/",
+            "image_",
+            anchors
+        );
+        std::cout << "Anchor frames: ";
+        for ( unsigned int i = 0; i < anchors.size(); i++ ) {
+            std::cout << anchors[i] << " ";
+        }
+        std::cout << std::endl;
+
         std::cout   << "Correlation between frames F0 and F0: "
                     << frame0.Correlation ( frame0 )
                     << std::endl;
@@ -170,22 +184,22 @@ int main(int argc, char** argv) {
         std::cout   << "Error score between frames F0 and F1: "
                     << ImageBase::CalculateErrorScore ( frame0, frame1 )
                     << std::endl;
-        FindTemplateAndPrintMap(
-            frame0,
-            figure,
-            correlationMap,
-            bestMatch,
-            correlationVal,
-            "frame0figureCorrelation.pgm"
-        );
-        FindTemplateAndPrintMap(
-            figure,
-            patch,
-            correlationMap,
-            bestMatch,
-            correlationVal,
-            "figurePatchCorrelation.pgm"
-        );
+        //FindTemplateAndPrintMap(
+        //    frame0,
+        //    figure,
+        //    correlationMap,
+        //    bestMatch,
+        //    correlationVal,
+        //    "frame0figureCorrelation.pgm"
+        //);
+        //FindTemplateAndPrintMap(
+        //    figure,
+        //    patch,
+        //    correlationMap,
+        //    bestMatch,
+        //    correlationVal,
+        //    "figurePatchCorrelation.pgm"
+        //);
         FindTemplateAndPrintMap(
             bigMask,
             smallMask,
@@ -195,34 +209,34 @@ int main(int argc, char** argv) {
             "smallMaskCorrelation.pgm"
         );
 
-        FindTemplateAndPrintMap(
-            bigMask,
-            mask,
-            correlationMap,
-            bestMatch,
-            correlationVal,
-            "bigMaskCorrelation.pgm"
-        );
-        
-        FindTemplateAndPrintMap(
-            frame1,
-            mask,
-            correlationMap,
-            bestMatch,
-            correlationVal,
-            "frame1Correlation.pgm"
-        );
+       // FindTemplateAndPrintMap(
+       //     bigMask,
+       //     mask,
+       //     correlationMap,
+       //     bestMatch,
+       //     correlationVal,
+       //     "bigMaskCorrelation.pgm"
+       // );
+       // 
+       // FindTemplateAndPrintMap(
+       //     frame1,
+       //     mask,
+       //     correlationMap,
+       //     bestMatch,
+       //     correlationVal,
+       //     "frame1Correlation.pgm"
+       // );
 
-        Rectangle window( 150, 150, 200, 200 );
-        FindTemplateAndPrintMap(
-            frame1,
-            mask,
-            correlationMap,
-            bestMatch,
-            correlationVal,
-            "frame1WindowedCorrelation.pgm",
-            &window
-        );
+       // Rectangle window( 150, 150, 200, 200 );
+       // FindTemplateAndPrintMap(
+       //     frame1,
+       //     mask,
+       //     correlationMap,
+       //     bestMatch,
+       //     correlationVal,
+       //     "frame1WindowedCorrelation.pgm",
+       //     &window
+       // );
         
         try {
             ParameterHandler* params = ParameterHandler::Instance ();
@@ -266,12 +280,12 @@ int main(int argc, char** argv) {
         XnStatus rc = KinectSetup ( argc, argv );
         //CHECK_RC(rc, "Error setting up Kinect Camera");
 
-	if (rc == XN_STATUS_OK){
-	  ParameterHandler* params = ParameterHandler::Instance();
-	  params -> SetCamera(true);
-	  Camera& cam = Camera::Instance ();
-	  cam.Setup(argc, argv);
-	}
+        if (rc == XN_STATUS_OK){
+            ParameterHandler* params = ParameterHandler::Instance();
+            params -> SetCamera(true);
+            Camera& cam = Camera::Instance ();
+            cam.Setup(argc, argv);
+        }
 
         QMyApplication program (argc, argv);
 

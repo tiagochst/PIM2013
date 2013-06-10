@@ -297,3 +297,82 @@ inline const float& Image::GetNormed (
     return GetNormed ( iPos.y, iPos.x );
 }
 
+void Image::CalculateAnchors (
+    const unsigned int&         iTotalFrameCount,
+    const unsigned int&         iReferenceFrame,
+    const std::string&          iSearchPath,
+    const std::string&          iImagePrefix,
+    std::vector<unsigned int>&  oAnchorList
+) {
+    std::string localImagePrefix = iSearchPath + iImagePrefix;
+
+    Image   refImage ( localImagePrefix + toString(iReferenceFrame) + ".pgm");
+    Image*  curImage = (Image*)0x0;
+
+    omp_lock_t curImgLock;
+    omp_init_lock ( &curImgLock );
+
+    unsigned int curImgIdx  = 0;
+    #pragma omp parallel sections shared ( curImage ) 
+    {
+        #pragma omp section
+        {
+            while (
+                curImgIdx < iTotalFrameCount
+            ) {
+                if (
+                    curImgIdx == iReferenceFrame
+                ) {
+                    omp_set_lock ( &curImgLock );
+
+                    curImgIdx++;
+
+                    omp_unset_lock ( &curImgLock );
+
+                    continue;
+                }
+
+                Image* newImage = new Image ( localImagePrefix + toString(curImgIdx) + ".pgm");
+
+                omp_set_lock ( &curImgLock );
+
+                curImage = newImage;
+                curImgIdx++;
+
+                omp_unset_lock ( &curImgLock );
+            }
+        }
+
+        #pragma omp section
+        {
+            while (
+                curImgIdx <= iTotalFrameCount
+            ) {
+                omp_set_lock ( &curImgLock );
+
+                if (
+                    curImage != (Image*)0x0
+                ) {
+                    const float score = ImageBase::CalculateErrorScore ( refImage, *curImage );
+                    if (
+                        score <= 1
+                    ) {
+                        oAnchorList.push_back ( curImgIdx - 1 );
+                    }
+
+                    delete curImage;
+                    curImage = (Image*)0x0;
+                }
+
+                omp_unset_lock ( &curImgLock );
+                
+                if (
+                    curImgIdx == iTotalFrameCount
+                ) {
+                    break;
+                }
+            }
+        }
+    }
+    omp_destroy_lock ( &curImgLock );
+}

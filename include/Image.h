@@ -1,6 +1,7 @@
 #ifndef _IMAGE_H_
 #define _IMAGE_H_
 
+#include <vector>
 #include <string>
 #include "Eigen/Dense"
 #include "ImageBase.h"
@@ -51,6 +52,14 @@ public:
     void SetNormed (
         const CartesianCoordinate&  iPos,
         const float&                iValue
+    );
+
+    static void CalculateAnchors (
+        const unsigned int&         iTotalFrameCount,
+        const unsigned int&         iReferenceFrame,
+        const std::string&          iSearchPath,
+        const std::string&          iImagePrefix,
+        std::vector<unsigned int>&  oAnchorList
     );
 
     // Interface Methods

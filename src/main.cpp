@@ -17,6 +17,7 @@
 #include "Config.h"
 #include "Rectangle.h"
 #include "ParameterHandler.h"
+#include "PixelTracker.h"
 //#include "ui_mainInterface.Qt4.h"
 
 class QMyApplication
@@ -244,6 +245,36 @@ int main(int argc, char** argv) {
             const unsigned int& nSize = params->GetNeighbourhoodSize ();
             dispX.SetMaxGreyLevel ( wSize );
             dispY.SetMaxGreyLevel ( wSize );
+
+            PixelTracker pixTracker (0);
+            pixTracker.SetUp (
+                wSize,
+                wSize,
+                nSize,
+                nSize,
+                0.95
+            );
+            
+            pixTracker.TrackWithRegulation ( 1 );
+            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.95)+"r.ppm" );
+            pixTracker.Track ( 1 );
+            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.95)+"n.ppm" );
+            std::cout << "Track 1 Done" << std::endl;
+
+            pixTracker.SetRejectionTreshold(0.90); 
+            pixTracker.TrackWithRegulation ( 1 );
+            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.90)+"r.ppm" );
+            pixTracker.Track ( 1 );
+            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.90)+"n.ppm" );
+            std::cout << "Track 1 Done" << std::endl;
+
+            pixTracker.SetRejectionTreshold(0.85); 
+            pixTracker.TrackWithRegulation ( 1 );
+            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.85)+"r.ppm" );
+            pixTracker.Track ( 1 );
+            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.85)+"n.ppm" );
+            std::cout << "Track 1 Done" << std::endl;
+
 
             ImageBase::TrackPixels (
                 frame0,

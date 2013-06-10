@@ -25,7 +25,12 @@ HEADERS              =  include/Window.h                \
                         include/Vertex.h                \     
                         include/Writer.h                \
                         include/Tools.h                 \
-                        include/FileWriterServices.h
+                        include/FileWriterServices.h    \
+                        include/PPMImage.h              \
+                        include/PNMImage.h              \
+                        include/PNMImageDefs.h          \
+                        include/PixelTracker.h          \
+                        include/TrackInfo.h
 
 SOURCES              =  src/Window.cpp                  \
                         src/GLViewer.cpp                \
@@ -38,18 +43,25 @@ SOURCES              =  src/Window.cpp                  \
                         src/Config.cpp                  \ 
                         src/PointSet.cpp                \
                         src/main.cpp                    \
+                        #src/sandbox.cpp                 \
                         src/ParameterHandler.cpp        \
                         src/PlyFile.c                   \
-                        src/FileWriterServices.cpp
+                        src/FileWriterServices.cpp      \
+                        src/PPMImage.cpp                \
+                        src/PNMImage.cpp                \
+                        src/PixelTracker.cpp            \
+                        src/TrackInfo.cpp
+
 
 MOC_DIR              =  .tmp
 OBJECTS_DIR          =  .tmp
 
-QMAKE_CFLAGS        +=  -fopenmp
-QMAKE_CXXFLAGS      +=  -std=c++0x -fopenmp
+QMAKE_CFLAGS        +=  -fopenmp -ggdb
+QMAKE_CXXFLAGS      +=  -std=c++0x -fopenmp -ggdb
 INCLUDEPATH         +=  './include'                     \ 
                         './external/common'     
 
+DEFINES             +=   TRACK_REGULATION
 #DEFINES             +=  IMG_EQ_SIMG
 unix {
     DESTDIR          =  ./bin/linux/

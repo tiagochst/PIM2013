@@ -1232,6 +1232,8 @@ void Window::initControlWidget () {
     layout -> addWidget (previewGroupBox);
     layout -> addWidget (parametersGroupBox);
     layout -> addStretch (0);
+
+    resize(sizeHint());
 }
 
 /*!

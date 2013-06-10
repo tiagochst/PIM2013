@@ -3,8 +3,18 @@
 
 #include <vector>
 #include <string>
+#include <cv.h>
+#include <cxcore.h>
+#include "opencv2/highgui/highgui.hpp"
+#include "opencv2/imgproc/imgproc.hpp"
+#include <vector>
+#include <stdio.h>
+#include <opencv2/opencv.hpp>
 #include "Eigen/Dense"
 #include "ImageBase.h"
+
+
+using namespace cv;
 
 class Rectangle;
 class CartesianCoordinate;
@@ -20,6 +30,8 @@ private:
     Eigen::MatrixXf*    m_normalisedFigure;
 
 public:
+    Mat                 m_cvImage;
+
     Image ();
     Image (
         const int& iWidth,
@@ -30,6 +42,27 @@ public:
         const std::string& iFilename
     );
     virtual ~Image();
+
+    /* Read file using opencv */
+    void loadMat (
+        const std::string& iFilename
+    );
+
+    void CVErrorScore (
+	Mat iImageA,
+	double* score
+    );
+
+    void MatchingMethod(
+        Mat templ, 
+        Mat img, 
+        double* maxVal
+    );
+
+    void MatchingMethod( Mat templ,Mat result, 
+                         Point * maxLoc, double* maxVal);
+
+    void MatchingMethod( Mat temp, double* maxVal);
 
     /* Read a binary (P5) or Ascii(P2) .pgm file*/
     void LoadFromFile (

@@ -123,6 +123,10 @@ int main(int argc, char** argv) {
     Image dispX( frame0.GetWidth(), frame0.GetHeight(), 255 );
     Image dispY( frame0.GetWidth(), frame0.GetHeight(), 255 );
 
+    /* Opencv test */
+    frame0.loadMat(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
+    frame1.loadMat(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
+
     SubImage figure;
     SubImage patch;
     frame0.GetSubImage (
@@ -172,19 +176,44 @@ int main(int argc, char** argv) {
             std::cout << anchors[i] << " ";
         }
         std::cout << std::endl;
-
+	double maxVal=0;
         std::cout   << "Correlation between frames F0 and F0: "
                     << frame0.Correlation ( frame0 )
+                    << std::endl;
+
+	frame0.MatchingMethod( frame0.m_cvImage,&maxVal);
+        std::cout   << "OPENCV: Correlation between frames F0 and F0: "
+                    << maxVal
                     << std::endl;
         std::cout   << "Correlation between frames F0 and F1: "
                     << frame0.Correlation ( frame1 )
                     << std::endl;
+
+	frame0.MatchingMethod( frame1.m_cvImage,&maxVal);
+        std::cout   << "OPENCV: Correlation between frames F0 and F1: "
+                    << maxVal
+                    << std::endl;
+
         std::cout   << "Error score between frames F0 and F0: "
                     << ImageBase::CalculateErrorScore ( frame0, frame0 )
                     << std::endl;
+
+	double error = 0;
+	frame0.CVErrorScore(frame0.m_cvImage, &error);
+
+        std::cout   << "OPENCV Error score between frames F0 and F0: "
+                    << error
+                    << std::endl;
+
         std::cout   << "Error score between frames F0 and F1: "
                     << ImageBase::CalculateErrorScore ( frame0, frame1 )
                     << std::endl;
+
+	frame0.CVErrorScore(frame1.m_cvImage,&error);
+        std::cout   << "OPENCV Error score between frames F0 and F1: "
+                    << error
+                    << std::endl;
+
         //FindTemplateAndPrintMap(
         //    frame0,
         //    figure,
@@ -209,6 +238,27 @@ int main(int argc, char** argv) {
             correlationVal,
             "smallMaskCorrelation.pgm"
         );
+	Mat result;
+	Point bestPoint;
+	double correlationVal;
+
+	
+    bigMask.loadMat(Config::DataPath() + "bigMask.pgm");
+    mask.loadMat(Config::DataPath() + "mask.pgm");
+    smallMask.loadMat(Config::DataPath() + "smallMask.pgm");
+
+    bigMask.MatchingMethod(
+            smallMask.m_cvImage,
+            result,
+            &bestPoint,
+            &correlationVal
+        );
+
+    std::cout   << "Possible match found at ("  << bestPoint
+                << "with correlation value of "   << correlationVal
+                << std::endl;
+    exit(1);
+    //    oCorrelationMap.CreateAsciiPgm(Config::OutputPath() + iMapFilename);
 
        // FindTemplateAndPrintMap(
        //     bigMask,

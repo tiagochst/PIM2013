@@ -53,6 +53,142 @@ Image::~Image () {
     ClearMatrix ();
 }
 
+void Image::loadMat (
+   const std::string& iFilename
+){
+    m_cvImage = imread(iFilename, CV_LOAD_IMAGE_COLOR);   // Read the file
+
+    if(! m_cvImage.data )       // Check for invalid input
+    {
+      std::cout <<  "Could not open or find the image" << std::endl ;
+        return ;
+    }
+
+    return;
+}
+
+
+void Image::MatchingMethod(Mat templ,Mat result, Point* maxLoc, double* maxVal)
+{
+
+  /// Create the result matrix
+  int result_cols =  m_cvImage.cols - templ.cols + 1;
+  int result_rows = m_cvImage.rows - templ.rows + 1;
+
+  result.create( result_cols, result_rows, CV_32FC1 );
+
+  /// Do the Matching
+  matchTemplate( m_cvImage, templ, result, CV_TM_CCORR_NORMED );
+  
+  /// Localizing the best match with minMaxLoc
+  double minVal; Point minLoc;
+  minMaxLoc( result, &minVal, maxVal, &minLoc, maxLoc, Mat() );
+
+  // namedWindow( "Result", CV_WINDOW_AUTOSIZE );
+  // imshow( "Result", result );
+
+  // waitKey(0);
+ vector<int> compression_params;
+    compression_params.push_back(CV_IMWRITE_JPEG_QUALITY);
+    compression_params.push_back(100);
+    //    result.convertTo(result,CV_16UC3,255,255);
+    cv::normalize(result, result, 0, 255, NORM_MINMAX, CV_8UC1);
+    try {
+      imwrite(Config::OutputPath()+"testeOpencv.jpeg" , result, compression_params);
+
+    }
+    catch (std::runtime_error& ex) {
+      fprintf(stderr, "Exception converting image to PNG format: %s\n", ex.what());
+      return ;
+    }
+    
+    fprintf(stdout, "Saved PNG file with alpha data.\n");
+    
+    return;
+    
+}
+
+void Image::MatchingMethod(Mat templ, double* maxVal)
+{
+
+  Mat result;
+  const char* image_window = "Source Image";
+  const char* result_window = "Result window";
+
+  /// Create the result matrix
+  int result_cols =  m_cvImage.cols - templ.cols + 1;
+  int result_rows = m_cvImage.rows - templ.rows + 1;
+
+  result.create( result_cols, result_rows, CV_32FC1 );
+
+  /// Do the Matching
+  matchTemplate( m_cvImage, templ, result, CV_TM_CCORR_NORMED );
+  
+  /// Localizing the best match with minMaxLoc
+  double minVal; Point minLoc, maxLoc;
+  minMaxLoc( result, &minVal, maxVal, &minLoc, &maxLoc, Mat() );
+
+  return;
+}
+
+void Image::MatchingMethod(Mat templ, Mat img, double* maxVal)
+{
+
+  Mat result;
+  const char* image_window = "Source Image";
+  const char* result_window = "Result window";
+
+  /// Source image to display
+  Mat img_display;
+  img.copyTo( img_display );
+
+  /// Create the result matrix
+  int result_cols =  img.cols - templ.cols + 1;
+  int result_rows = img.rows - templ.rows + 1;
+
+  result.create( result_cols, result_rows, CV_32FC1 );
+
+  /// Do the Matching
+  matchTemplate( img, templ, result, CV_TM_CCORR_NORMED );
+  
+  /// Localizing the best match with minMaxLoc
+  double minVal; Point minLoc, maxLoc;
+  minMaxLoc( result, &minVal, maxVal, &minLoc, &maxLoc, Mat() );
+
+  return;
+}
+
+void Image::CVErrorScore (
+   Mat iImageA, double* score
+) {
+
+    const unsigned int& SAMPLING_STEP   = 20;
+    const int&          NH_SZ           = 9;
+
+
+    const unsigned int& height  = iImageA.rows;
+    const unsigned int& width   = iImageA.cols;
+
+    cv::Mat croppedImage;
+    cv::Mat croppedTempl;
+    
+
+    for ( int y = NH_SZ / 2; y < height - NH_SZ / 2; y += SAMPLING_STEP ) {
+        for ( int x = NH_SZ / 2; x < width - NH_SZ / 2; x += SAMPLING_STEP ) {
+            double localScore = 0.f;
+
+	    cv::Rect window(x-NH_SZ / 2, y-NH_SZ / 2, NH_SZ, NH_SZ);
+	    cv::Mat(iImageA, window).copyTo(croppedTempl);
+	    cv::Mat(m_cvImage, window).copyTo(croppedImage);
+
+	    this -> MatchingMethod(croppedImage,croppedTempl,&localScore); 
+	    *score += (1.0 - localScore); 
+	}
+    }
+
+    return;
+
+}
 void Image::LoadFromFile (
     const std::string& iFilename
 ) {

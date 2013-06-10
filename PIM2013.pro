@@ -5,8 +5,7 @@
 #-------------------------------------------------
 TEMPLATE             =  app
 TARGET               =  main
-CONFIG              +=  qt opengl warn_off xml console debug_and_release thread
-QT                  +=  core gui
+CONFIG              +=  qt opengl warn_off xml console debug_and_release thread  QT                  +=  core gui
 QT                  *=  opengl xml
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -74,13 +73,16 @@ unix {
                         -lOpenNI                        \
                         -lusb-1.0                       \
                         -lGLU                           \
-                        -lGL
+                        -lGL                            \
+                        `pkg-config --libs opencv`
 
     INCLUDEPATH     +=  './external/linux'              \
                         '/usr/include/libusb-1.0'       \ 
                         '/usr/include/libdrm'           \ 
                         '/usr/include/ni/'              \ 
-                        '/usr/include/openni'
+                        '/usr/include/openni'           \
+			'/usr/include/opencv'           \
+			'/usr/include/opencv2' 
 }
 
 win32 {

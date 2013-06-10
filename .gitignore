@@ -26,6 +26,8 @@ bin/
 .tmp
 .qglviewer.xml
 *.user
+Makefile.Debug
+Makefile.Release
 
 # Vim temporary files
 *.swp

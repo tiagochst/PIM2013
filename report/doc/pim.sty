@@ -1,0 +1,97 @@
+%% General Info
+\NeedsTeXFormat{LaTeX2e}[1999/01/01]
+\ProvidesPackage{pim}[2013/06/10]
+
+% Variables
+\newif\if@algo \@algofalse
+\newif\if@listings \@listingsfalse
+\newcounter{moncompteur}
+
+\DeclareOption{listings}{\@listingstrue} % if listing in options so @listings=true!
+\DeclareOption{algo}{\@algotrue} % if listing in options so @listings=true!
+
+
+\DeclareOption*{\PassOptionsToPackage{\CurrentOption}{babel}}
+\ProcessOptions
+
+%% Chargement des extensions
+\RequirePackage[dvips]{graphicx}
+
+%language
+\RequirePackage[T1]{fontenc}
+\RequirePackage{babel}
+\RequirePackage[utf8]{inputenc}   % acentuação
+\RequirePackage{ae,aecompl,aeguill}  % pdfs plus beaux =)
+\RequirePackage{dsfont}
+
+\RequirePackage[linkbordercolor={1 1 1},urlcolor=black,citecolor=black,linkcolor=black,colorlinks=true]{hyperref} % links
+\RequirePackage{subfig}
+\RequirePackage[letterpaper]{geometry}
+\geometry{verbose,lmargin=2.0cm,rmargin=2.0cm,top=2cm, bottom=2.0cm}
+
+%%% autres %%%
+\RequirePackage{ifthen}
+\RequirePackage{multirow}
+\RequirePackage{textcomp}
+\RequirePackage{color}       
+\RequirePackage{indentfirst} 
+\RequirePackage{multicol} 
+\RequirePackage{amsfonts}
+\RequirePackage{amsmath} 
+%\RequirePackage{pgfplots} % graphics
+\RequirePackage{setspace}
+
+
+% Ifs
+\if@listings
+  \RequirePackage{listings}
+  \RequirePackage{verbatim}
+  \RequirePackage{moreverb}
+\fi
+
+\if@algo
+  \RequirePackage{algorithm}
+  \RequirePackage{algorithmic}
+\fi
+
+%% Définition des commandes
+
+%COVER%
+\newcommand*{\titleTMB}{ 
+ \begin{figure}[h!]
+    \begin{center}
+      \includegraphics[scale=0.1]{img/logo.jpg}
+    \end{center}
+  \end{figure}
+  \vspace*{80pt}
+   \begingroup \centering 
+  {\large\scshape \ttabrv  \ttabrvxt } \\[0.2\baselineskip] 
+  \rule{11.0cm}{1.6pt}\vspace*{-\baselineskip}\vspace*{2pt}
+  \rule{11.0cm}{0.4pt}\\[\baselineskip] 
+  {\LARGE \mytitle }\\
+  \rule{11.0cm}{0.4pt}\vspace*{-\baselineskip}\vspace{3.2pt}
+  \rule{11.0cm}{1.6pt}\\[\baselineskip]
+  {\large\scshape Professeur: \ttprofname}\par
+  \vfill {\normalsize \scshape 
+    \begin{center} 
+      \begin{tabular}{ l l p{5cm} } 
+        \ttauthi & \ttxti \\
+        \ttauthii & \ttxtii \\
+      \end{tabular}
+    \end{center} 
+    \itshape \ttdate }\\
+  [\baselineskip] \vspace{3.2pt}
+  \endgroup}
+
+\renewcommand{\thefigure}{\arabic{figure}}
+
+\newcommand{\spc}[1]
+{
+  \ifthenelse{\equal{#1}{1}}{\singlespacing}{}
+  \ifthenelse{\equal{#1}{1.5}}{\onehalfspacing}{}
+  \ifthenelse{\equal{#1}{2}}{\doublespacing}{}
+}
+
+
+%% Fin du package
+\endinput

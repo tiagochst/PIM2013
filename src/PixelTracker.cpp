@@ -360,10 +360,6 @@ unsigned int PixelTracker::Match (
             #pragma omp critical
             {
                 if ( match ) {
-                    std::cout << "Match: "  << x << " "
-                                            << y << " "
-                                            << fme[0] << " "
-                                            << fme[1] << std::endl;
                     unmatchedPixels--;
                     m_disparityMapX ( y, x ) = fme[0];
                     m_disparityMapY ( y, x ) = fme[1];

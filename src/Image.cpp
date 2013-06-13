@@ -263,6 +263,12 @@ inline const int& Image::GetGreyLvl (
     const int& iRow,
     const int& iCol
 ) const {
+    //if (
+    //    iRow < 0 || iRow >= m_height ||
+    //    iCol < 0 || iCol >= m_width
+    //) {
+    //    return 0;
+    //}
     int row = abs(iRow);
     int col = abs(iCol);
 
@@ -282,6 +288,12 @@ inline const float& Image::GetNormed (
     const int& iRow,
     const int& iCol
 ) const {
+    //if (
+    //    iRow < 0 || iRow >= m_height ||
+    //    iCol < 0 || iCol >= m_width
+    //) {
+    //    return 0.0f;
+    //}
     int row = abs(iRow);
     int col = abs(iCol);
     

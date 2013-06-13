@@ -110,6 +110,15 @@ public:
     ) const;
     float TemplateMatch (
         const ImageBase&        iMask,
+        const unsigned int&     iSearchX,
+        const unsigned int&     iSearchY,
+        const unsigned int&     iSearchWidth,
+        const unsigned int&     iSearchHeight,
+        CartesianCoordinate&    oBestMatch,
+        ImageBase*              oCorrelationMap=NULL
+    ) const;
+    float TemplateMatch (
+        const ImageBase&        iMask,
         const Rectangle&        iSearchWindow,
         CartesianCoordinate&    oBestMatch,
         ImageBase*              oCorrelationMap=NULL

@@ -97,6 +97,28 @@ float ImageBase::TemplateMatch (
     );
 }
 
+float ImageBase::TemplateMatch (
+    const ImageBase&        iMask,
+    const unsigned int&     iSearchX,
+    const unsigned int&     iSearchY,
+    const unsigned int&     iSearchWidth,
+    const unsigned int&     iSearchHeight,
+    CartesianCoordinate&    oBestMatch,
+    ImageBase*              oCorrelationMap
+) const {
+    Rectangle searchWindow (
+        iSearchX,
+        iSearchY,
+        iSearchWidth,
+        iSearchHeight
+    );
+    return TemplateMatch (
+        iMask,
+        searchWindow,
+        oBestMatch,
+        oCorrelationMap
+    );
+}
 float ImageBase::TemplateMatch(
     const ImageBase&        iMask,
     const Rectangle&        iSearchWindow,

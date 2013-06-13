@@ -1254,12 +1254,42 @@ void Window::createMesh () {
     cam -> captureSingleMesh(fileAbsPath.toStdString());
 }
 
-
+void AnchorLabel::enterEvent (
+    QEvent* e
+) {
+    emit mouseEntered ();
+}
+void AnchorLabel::leaveEvent (
+    QEvent* e
+) {
+    emit mouseLeft ();
+}
 void AnchorLabel::mousePressEvent( QMouseEvent* ev )
 {
     emit  mousePressed();
     emit  mousePressed(frameID);
+}
+void AnchorLabel::onMouseEnter () {
+    frameLabel = new QLabel (this);
+    frameLabel->setWindowFlags ( Qt::Window );
 
+    std::string RES_IMG_PATH(Config::FramesPath());
+    QPixmap pic(QString::fromUtf8(((RES_IMG_PATH + "image_"+ toString(frameID) + ".pgm").c_str())));
+    frameLabel->setPixmap (
+        pic    
+    );
+    frameLabel->show ();
+    connect (
+              this, SIGNAL (   mouseLeft () ),
+        frameLabel,   SLOT (       close () )
+    );
+    connect (
+        frameLabel, SIGNAL (   destroyed () ),
+        frameLabel, SLOT   ( deleteLater () )
+    );
+}
+void AnchorLabel::onMouseLeave () {
+    frameLabel = (QLabel*)0x0;
 }
 
 AnchorLabel::AnchorLabel( const QString & text, QWidget * parent )
@@ -1269,6 +1299,13 @@ AnchorLabel::AnchorLabel( const QString & text, QWidget * parent )
     connect( 
             this, SIGNAL(  mousePressed() ), 
             this, SLOT  (   slotClicked() )
+    connect (
+        this, SIGNAL ( mouseEntered () ),
+        this,   SLOT ( onMouseEnter () )
+    );
+    connect (
+        this, SIGNAL (    mouseLeft () ),
+        this,   SLOT ( onMouseLeave () )
     );
 }
 
@@ -1278,6 +1315,13 @@ AnchorLabel::AnchorLabel(QWidget * parent )
     connect( 
             this, SIGNAL(  mousePressed() ), 
             this, SLOT  (   slotClicked() )
+    connect (
+        this, SIGNAL ( mouseEntered () ),
+        this,   SLOT ( onMouseEnter () )
+    );
+    connect (
+        this, SIGNAL (    mouseLeft () ),
+        this,   SLOT ( onMouseLeave () )
     );
     
 }

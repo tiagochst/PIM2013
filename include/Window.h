@@ -69,6 +69,8 @@ class AnchorLabel : public QLabel
 Q_OBJECT
 
 signals:
+    void mouseLeft ();
+    void mouseEntered ();
    void mousePressed();
    void mousePressed(int framID);
 
@@ -78,12 +80,17 @@ public:
     ~AnchorLabel(){}
     int  frameID;
     int  oldFrameStyle; 
+    QLabel* frameLabel;
 
 public slots:
+    void onMouseEnter ();
+    void onMouseLeave ();
     void slotClicked();	
 
 protected:
     void mousePressEvent( QMouseEvent* ev );
+    void enterEvent ( QEvent* e );
+    void leaveEvent ( QEvent* e );
 
 };
 
@@ -205,7 +212,5 @@ private :
     int                    refFrameID;
     QDoubleSpinBox     *   thresholdSP;
 };
-
-
 
 #endif // WINDOW_H

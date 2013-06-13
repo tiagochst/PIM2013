@@ -93,10 +93,10 @@ void PointSet::WritePlyFile(const char* iFilename) {
         vPOD.nx     = normal[0];
         vPOD.ny     = normal[1];
         vPOD.nz     = normal[2];
-        vPOD.red    = color.Red ();
-        vPOD.green  = color.Green ();
-        vPOD.blue   = color.Blue ();
-        vPOD.alpha  = color.Alpha ();
+        vPOD.red    = 255.f * color.Red ();
+        vPOD.green  = 255.f * color.Green ();
+        vPOD.blue   = 255.f * color.Blue ();
+        vPOD.alpha  = 255.f * color.Alpha ();
 
         ply_put_element ( plyFile, (void *) &vPOD );
     }

@@ -1,6 +1,8 @@
 #ifndef _COLOR_H_
 #define _COLOR_H_
 
+#include <cmath>
+
 class Color {
 private:
     float    m_R; 
@@ -25,9 +27,67 @@ public:
 
     int Brightness () const;
 
+    void FromHSV (
+        const float&    iHue,
+        const float&    iSaturation,
+        const float&    iValue
+    );
+
 private:
     void ClampValues();
 };
+
+inline void Color::FromHSV (
+    const float&    iHue,
+    const float&    iSaturation,
+    const float&    iValue
+) {
+    unsigned int hi = ((unsigned int)floor ( iHue / 60u ) % 6);
+    float f = (iHue / 60.0f) - hi;
+
+    float l = iValue * ( 1.0f - iSaturation );
+    float m = iValue * ( 1.0f - ( f * iSaturation ) );
+    float n = iValue * ( 1.0f - ( 1.0f - f ) * iSaturation );
+
+    m_A = 1.0f;
+    switch ( hi ) {
+        case 0:
+            m_R = iValue;
+            m_G = n;
+            m_B = l;
+            break;
+
+        case 1:
+            m_R = m;
+            m_G = iValue;
+            m_B = l;
+            break;
+
+        case 2:
+            m_R = l;
+            m_G = iValue;
+            m_B = n;
+            break;
+
+        case 3:
+            m_R = l;
+            m_G = m;
+            m_B = iValue;
+            break;
+
+        case 4:
+            m_R = n;
+            m_G = l;
+            m_B = iValue;
+            break;
+
+        case 5:
+            m_R = iValue;
+            m_G = l;
+            m_B = m;
+            break; 
+    }
+}
 
 inline int Color::Brightness ()
 const {

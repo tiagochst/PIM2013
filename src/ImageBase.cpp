@@ -187,10 +187,10 @@ float ImageBase::TemplateMatch(
             }
             
             if ( oCorrelationMap != NULL ) {
-                oCorrelationMap->SetGreyLvl (
+                oCorrelationMap->SetNormed (
                     y - sw.Y(), 
                     x - sw.X(),
-                    val * 255.f
+                    val
                 );
             }
             #pragma omp critical
@@ -375,8 +375,8 @@ void ImageBase::TrackPixels(
             int valY = maxAbsDispY + 1;
             for ( int i = 0; i < correlationMapL.GetWidth (); i++ ) {
                 for ( int j = 0; j < correlationMapL.GetHeight (); j++ ) {
-                    float leftVal  = correlationMapL.GetGreyLvl ( j, i );
-                    float rightVal = correlationMapR.GetGreyLvl ( j, i );
+                    float leftVal  = correlationMapL.GetNormed ( j, i );
+                    float rightVal = correlationMapR.GetNormed ( j, i );
     
                     if (
                             leftVal >= 0.85f

@@ -132,6 +132,8 @@ public slots:
     void setThreshold( double iThreshold);
     void setWindowSize(int iSize);
     void setNeighbourhoodSize(int  iSize);
+    void setNearPlane ( const unsigned int& iNear );
+    void setFarPlane ( const unsigned int& iFar );
 
 private :
     void initControlWidget ();
@@ -162,6 +164,8 @@ private :
     QFormLayout     *   generalFormLayout;
     QSpinBox        *   windowSizeSP;
     QSpinBox        *   neighbourhoodSizeSP;
+    QSpinBox        *   nearPlaneSP;
+    QSpinBox        *   farPlaneSP;
 
 
     /* Mesh widgets*/

@@ -1,4 +1,5 @@
 #include <GL/glew.h>
+#include "ParameterHandler.h"
 #include "Window.h"
 #include <sstream>
 #include <QGraphicsScene>
@@ -101,6 +102,17 @@ void Window::subtractShowingFrames(){
     nextFrames->setEnabled(true);
     updateAutoAnchorPreview ();
 
+}
+
+
+void Window::setFarPlane ( const unsigned int& iFar ) {
+    ParameterHandler* params = ParameterHandler::Instance ();
+    params->SetFarPlane ( iFar );
+}
+
+void Window::setNearPlane ( const unsigned int& iNear ) {
+    ParameterHandler* params = ParameterHandler::Instance ();
+    params->SetNearPlane ( iNear );
 }
 
 void Window::findAutoAnchors(){

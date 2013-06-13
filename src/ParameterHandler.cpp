@@ -68,6 +68,34 @@ void ParameterHandler::SetThreshold (
     m_threshold = iThreshold;
 };
 
+const unsigned int& ParameterHandler::GetNearPlane () 
+const {
+    return m_nearPlane;
+}
+void ParameterHandler::SetNearPlane (
+    const unsigned int& iNearPlane
+) {
+    m_nearPlane = iNearPlane;
+}
+const unsigned int& ParameterHandler::GetFarPlane () 
+const {
+    return m_farPlane;
+}
+void ParameterHandler::SetFarPlane (
+    const unsigned int& iFarPlane
+) {
+    m_farPlane = iFarPlane;
+}
+const bool& ParameterHandler::GetDepthCrop () 
+const {
+    return m_depthCrop;
+}
+void ParameterHandler::SetDepthCrop (
+    const bool& iDepthCrop
+) {
+    m_depthCrop = iDepthCrop;
+}
+
 const double& ParameterHandler::GetThreshold () const
 {
     return m_threshold;

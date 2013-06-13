@@ -13,20 +13,20 @@ void Window::startCapture() {
     startCaptureButton->setEnabled ( false );
     controlWidget->setEnabled ( false );
     progressDialog = new QProgressDialog (
-        QString ("Processing..."),
-        QString ("Cancel"),
-        0,
-        100 
-    );
+            QString ("Processing..."),
+            QString ("Cancel"),
+            0,
+            100 
+            );
     FileWriterServices* fws = FileWriterServices::Instance ();
     connect (
-                   fws, SIGNAL (       Progress ( int ) ),
-        progressDialog, SLOT   (       setValue ( int ) )
-    );
+            fws, SIGNAL (       Progress ( int ) ),
+            progressDialog, SLOT   (       setValue ( int ) )
+            );
     connect (
-                   fws, SIGNAL (            Finished () ),
-                  this, SLOT   ( enableCaptureButton () )
-    );
+            fws, SIGNAL (            Finished () ),
+            this, SLOT   ( enableCaptureButton () )
+            );
     progressDialog->show ();
 }
 
@@ -61,37 +61,37 @@ void Window::sumShowingFrames(){
 
 void Window::setReferenceFrame(int iFrame){
 
-  int idxFrame = refFrameID % 15;
-  if(refFrameID == iFrame){
+    int idxFrame = refFrameID % 15;
+    if(refFrameID == iFrame){
 
-    if(referenceFrame.at(idxFrame) -> frameStyle() != 18){
-      referenceFrame.at(idxFrame) -> oldFrameStyle = referenceFrame.at(idxFrame) -> frameStyle();
-      referenceFrame.at(idxFrame) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
-      referenceFrame.at(idxFrame) -> setStyleSheet("color:red");
-      referenceFrame.at(idxFrame)  -> setLineWidth(3);
+        if(referenceFrame.at(idxFrame) -> frameStyle() != 18){
+            referenceFrame.at(idxFrame) -> oldFrameStyle = referenceFrame.at(idxFrame) -> frameStyle();
+            referenceFrame.at(idxFrame) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
+            referenceFrame.at(idxFrame) -> setStyleSheet("color:red");
+            referenceFrame.at(idxFrame)  -> setLineWidth(3);
+        }
+
+        return;
     }
 
-    return;
-  }
-
-  if(refFrameID/15 == iFrame/15) {
-    /* Change the old selected frame to unselected state*/
-    if(referenceFrame.at(idxFrame) -> frameStyle() != 18){
-      referenceFrame.at(idxFrame) -> oldFrameStyle = referenceFrame.at(idxFrame) -> frameStyle();
-      referenceFrame.at(idxFrame) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
-      referenceFrame.at(idxFrame) -> setStyleSheet("color:red");
-      referenceFrame.at(idxFrame)  -> setLineWidth(3);
-    }
-    else if(referenceFrame.at(idxFrame) -> oldFrameStyle == 17) {
-      referenceFrame.at(idxFrame) -> setFrameStyle(QFrame::Box | QFrame::Plain);
-      referenceFrame.at(idxFrame) -> setStyleSheet("color:blue");
-      referenceFrame.at(idxFrame) -> setLineWidth(3);
-    }
-    else { 
-      referenceFrame.at(idxFrame) -> setFrameStyle(referenceFrame.at(idxFrame) ->oldFrameStyle);
-    }
-  }  
-  this -> refFrameID = iFrame;
+    if(refFrameID/15 == iFrame/15) {
+        /* Change the old selected frame to unselected state*/
+        if(referenceFrame.at(idxFrame) -> frameStyle() != 18){
+            referenceFrame.at(idxFrame) -> oldFrameStyle = referenceFrame.at(idxFrame) -> frameStyle();
+            referenceFrame.at(idxFrame) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
+            referenceFrame.at(idxFrame) -> setStyleSheet("color:red");
+            referenceFrame.at(idxFrame)  -> setLineWidth(3);
+        }
+        else if(referenceFrame.at(idxFrame) -> oldFrameStyle == 17) {
+            referenceFrame.at(idxFrame) -> setFrameStyle(QFrame::Box | QFrame::Plain);
+            referenceFrame.at(idxFrame) -> setStyleSheet("color:blue");
+            referenceFrame.at(idxFrame) -> setLineWidth(3);
+        }
+        else { 
+            referenceFrame.at(idxFrame) -> setFrameStyle(referenceFrame.at(idxFrame) ->oldFrameStyle);
+        }
+    }  
+    this -> refFrameID = iFrame;
 
 }
 
@@ -103,6 +103,7 @@ void Window::subtractShowingFrames(){
     updateAutoAnchorPreview ();
 
 }
+
 
 
 void Window::setFarPlane ( const unsigned int& iFar ) {
@@ -192,34 +193,33 @@ void Window::findAutoAnchors(){
         delete progressDialog;
 
 
-    
 }
 
 void  Window::setWindowSize(int iSize){
-  ParameterHandler* params = ParameterHandler::Instance();
-  params -> SetWindowSize(iSize);
+    ParameterHandler* params = ParameterHandler::Instance();
+    params -> SetWindowSize(iSize);
 }
 
 void  Window::setNeighbourhoodSize(int  iSize){
-  ParameterHandler* params = ParameterHandler::Instance();
-  params -> SetNeighbourhoodSize(iSize);
+    ParameterHandler* params = ParameterHandler::Instance();
+    params -> SetNeighbourhoodSize(iSize);
 }
 
 void Window::setMesh(bool b){
-  ParameterHandler* params = ParameterHandler::Instance();
-  params -> SetMesh(b);
+    ParameterHandler* params = ParameterHandler::Instance();
+    params -> SetMesh(b);
 
-  if(b){
-    viewer -> reset();
-    centerWidget->setCurrentIndex ( viewerIdx );
-  }
+    if(b){
+        viewer -> reset();
+        centerWidget->setCurrentIndex ( viewerIdx );
+    }
 }
 
 void Window::setDisplacement(bool b){
-  if(b){
-    updateImages();
-    centerWidget->setCurrentIndex ( gridIdx );
-  }
+    if(b){
+        updateImages();
+        centerWidget->setCurrentIndex ( gridIdx );
+    }
 }
 
 void Window::loadAnchorFrames(){
@@ -230,29 +230,29 @@ void Window::loadAnchorFrames(){
     }
 
     static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
-    
+
     QFile anchorSavedList(ANCHOR_LIST_PATH.c_str());
-    
+
     QString anchorID;
-    
+
     /* Verify if the file with anchor frames is readable*/
     if(anchorSavedList.open(QIODevice::ReadOnly )){
 
-      QTextStream anchor(& anchorSavedList);
-      
-      while(!anchor.atEnd())
-	{
-	  anchorID = anchor.readLine();
-	  bool ok;
-	  int id = anchorID.toInt (&ok,10);
-	  
-	  isAnchorFrames.push_back(id);	  
-	}
+        QTextStream anchor(& anchorSavedList);
+
+        while(!anchor.atEnd())
+        {
+            anchorID = anchor.readLine();
+            bool ok;
+            int id = anchorID.toInt (&ok,10);
+
+            isAnchorFrames.push_back(id);	  
+        }
     }
-    
+
     /* Close the file */
     anchorSavedList.close();
-    
+
     return;
 }
 
@@ -260,66 +260,66 @@ void Window::addAnchorListItems(){
 
     static const std::string IMG_LIST_PATH(Config::FramesPath() + "list.txt");
     static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
-    
+
     QFile imageList(IMG_LIST_PATH.c_str());
     QFile anchorSavedList(ANCHOR_LIST_PATH.c_str());
-    
+
     QString id;
     QString anchorID;
-    
+
     /* Verify if the file with frames is readable*/
     if(!imageList.open(QIODevice::ReadOnly )) return;
-    
+
     /* Verify if the file with anchor frames is readable*/
     if(!anchorSavedList.open(QIODevice::ReadOnly )){
-      
-      QTextStream in(& imageList);
-      
-      while(!in.atEnd())
-	{
-	  id = in.readLine();
-	  
-	  /* Code used for sorting */
-	  QString zero = "0";
-	  if(id.size() == 1){ 
-	    zero.append(id);
-	    id = zero;
-	  }
-	  /* Show the ID in the list box*/
-	  candidateAnchorList->addItem(id);
-	}
+
+        QTextStream in(& imageList);
+
+        while(!in.atEnd())
+        {
+            id = in.readLine();
+
+            /* Code used for sorting */
+            QString zero = "0";
+            if(id.size() == 1){ 
+                zero.append(id);
+                id = zero;
+            }
+            /* Show the ID in the list box*/
+            candidateAnchorList->addItem(id);
+        }
     }
-       
+
     else {
 
-      QTextStream in(& imageList);
-      QTextStream anchor(& anchorSavedList);
-      
-      if(!anchor.atEnd())
-	anchorID = anchor.readLine();
-      
-      while(!in.atEnd())
-	{
-	  id = in.readLine();
-	  
-	  /* Code used for sorting */
-	  QString zero = "0";
-	  if(id.size() == 1){ 
-	    zero.append(id);
-		id = zero;
-	  }
-	  
-	  /* Show the ID in the combo box*/
-	  if(!id.compare(anchorID)){ 
-		anchorList->addItem(id);
-		anchorID = anchor.readLine();
-	  }
-	  else{
-	    candidateAnchorList->addItem(id);
-	  }
-	}
-      
-      anchorSavedList.close();
+        QTextStream in(& imageList);
+        QTextStream anchor(& anchorSavedList);
+
+        if(!anchor.atEnd())
+            anchorID = anchor.readLine();
+
+        while(!in.atEnd())
+        {
+            id = in.readLine();
+
+            /* Code used for sorting */
+            QString zero = "0";
+            if(id.size() == 1){ 
+                zero.append(id);
+                id = zero;
+            }
+
+            /* Show the ID in the combo box*/
+            if(!id.compare(anchorID)){ 
+                anchorList->addItem(id);
+                anchorID = anchor.readLine();
+            }
+            else{
+                candidateAnchorList->addItem(id);
+            }
+        }
+
+        anchorSavedList.close();
 
     }
 
@@ -331,20 +331,21 @@ void Window::addAnchorListItems(){
 }
 
 void Window::saveAnchors(){
-  //TODO: Create a file with the items in anchorList
+    //TODO: Create a file with the items in anchorList
     static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
 
     QFile anchorFile(ANCHOR_LIST_PATH.c_str());
     QString fileName;
-    
+
     /* Verify if the file readable*/
     if(!anchorFile.open(QIODevice::WriteOnly))
         return;
 
     for(int i= 0; i < anchorList -> count(); i++){
-      fileName = anchorList -> item(i) -> text();
-      fileName.append("\n");
-      anchorFile.write(fileName.toUtf8());
+        fileName = anchorList -> item(i) -> text();
+        fileName.append("\n");
+        anchorFile.write(fileName.toUtf8());
+    }
 
     anchorFile.close();
 }
@@ -372,117 +373,119 @@ void Window::saveAnchors(
 
 void Window::updateManuAnchorPreview(){
 
-  std::string RES_IMG_PATH(Config::FramesPath());
-  /* Get list of selected items, we will preview only the first one in the list*/
-  QList<QListWidgetItem *>  candidates = candidateAnchorList -> selectedItems();
-  QList<QListWidgetItem *>  anchors = anchorList -> selectedItems();
+    std::string RES_IMG_PATH(Config::FramesPath());
+    /* Get list of selected items, we will preview only the first one in the list*/
+    QList<QListWidgetItem *>  candidates = candidateAnchorList -> selectedItems();
+    QList<QListWidgetItem *>  anchors = anchorList -> selectedItems();
 
-  QString id1,id2;
-  if(candidates.count() > 0){
-    id1 = (candidates[0] -> text());
-  }
-  else{
-    id1 = "-1";
-  }
-  if(anchors.count() > 0){
-    id2 = (anchors[0] -> text());
-  }
-  else{
-    id2 = "-1";
-  }
+    QString id1,id2;
+    if(candidates.count() > 0){
+        id1 = (candidates[0] -> text());
+    }
+    else{
+        id1 = "-1";
+    }
+    if(anchors.count() > 0){
+        id2 = (anchors[0] -> text());
+    }
+    else{
+        id2 = "-1";
+    }
 
-  /* Removes 0 from the left to align with write file names pattern */
-  bool ok;
-  int id = id1.toInt (&ok,10);
-  std::string frameID1 = toString(id);
-  id = id2.toInt   (&ok,10);
-  std::string frameID2= toString(id);
+    /* Removes 0 from the left to align with write file names pattern */
+    bool ok;
+    int id = id1.toInt (&ok,10);
+    std::string frameID1 = toString(id);
+    id = id2.toInt   (&ok,10);
+    std::string frameID2= toString(id);
 
 
-  QPixmap anchorCandidateImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str())));
-  if(!anchorCandidateImg.isNull())
-    anchorCandidate -> setPixmap(anchorCandidateImg.scaled(180, 150, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+    QPixmap anchorCandidateImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str())));
+    if(!anchorCandidateImg.isNull())
+        anchorCandidate -> setPixmap(anchorCandidateImg.scaled(180, 150, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
-  QPixmap anchorImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID2 + ".pgm").c_str())));
-  if(!anchorImg.isNull()){
-    anchor -> setPixmap(anchorImg.scaled(180, 150, Qt::IgnoreAspectRatio, Qt::FastTransformation));
-  }
+    QPixmap anchorImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID2 + ".pgm").c_str())));
+    if(!anchorImg.isNull()){
+        anchor -> setPixmap(anchorImg.scaled(180, 150, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+    }
 
 }
 
 void Window::updateAutoAnchorPreview(){
 
-  std::string RES_IMG_PATH(Config::FramesPath());
+    std::string RES_IMG_PATH(Config::FramesPath());
 
-  for(int i = 0; i < 15;  i++){
-      referenceFrame.at(i) -> setFrameStyle(QFrame::NoFrame);
-  }
+    loadAnchorFrames();
 
-  for(int i = 15 * showingFrames, j = 0; i < 15 + 15 * showingFrames; i++,j++){
-
-    QPixmap anchorCandidateImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ toString(i) + ".pgm").c_str())));
-    
-    if(!anchorCandidateImg.isNull()){
-      referenceFrame.at(j) -> setPixmap(anchorCandidateImg.scaled(100, 80, Qt::IgnoreAspectRatio, Qt::FastTransformation));
-      referenceFrame.at(j) -> frameID = i;
-
-      if(std::find(isAnchorFrames.begin(), isAnchorFrames.end(), i)!=isAnchorFrames.end())
-	{
-	referenceFrame.at(j) -> setFrameStyle(QFrame::Box | QFrame::Plain);
-	referenceFrame.at(j) -> setStyleSheet("color:blue");
-	referenceFrame.at(j) -> setLineWidth(3);
-      }
-      /* Default selected Frame */
-      if(i == refFrameID){
-	referenceFrame.at(j) -> oldFrameStyle = referenceFrame.at(j) -> frameStyle();
-	referenceFrame.at(j) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
-	referenceFrame.at(j) -> setStyleSheet("color:red");
-	referenceFrame.at(j)  -> setLineWidth(3);
- 
-      }
-
+    for(int i = 0; i < 15;  i++){
+        referenceFrame.at(i) -> setFrameStyle(QFrame::NoFrame);
     }
-    else{
-      referenceFrame.at(j) -> clear();
-      /*BUG: if nb of frames % 15 == 0, next frames has to be pressed 2 times */
-      nextFrames -> setDisabled(true);
+
+    for(int i = 15 * showingFrames, j = 0; i < 15 + 15 * showingFrames; i++,j++){
+
+        QPixmap anchorCandidateImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ toString(i) + ".pgm").c_str())));
+
+        if(!anchorCandidateImg.isNull()){
+            referenceFrame.at(j) -> setPixmap(anchorCandidateImg.scaled(100, 80, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+            referenceFrame.at(j) -> frameID = i;
+
+            if(std::find(isAnchorFrames.begin(), isAnchorFrames.end(), i)!=isAnchorFrames.end())
+            {
+                referenceFrame.at(j) -> setFrameStyle(QFrame::Box | QFrame::Plain);
+                referenceFrame.at(j) -> setStyleSheet("color:blue");
+                referenceFrame.at(j) -> setLineWidth(3);
+            }
+            /* Default selected Frame */
+            if(i == refFrameID){
+                referenceFrame.at(j) -> oldFrameStyle = referenceFrame.at(j) -> frameStyle();
+                referenceFrame.at(j) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
+                referenceFrame.at(j) -> setStyleSheet("color:red");
+                referenceFrame.at(j)  -> setLineWidth(3);
+
+            }
+
+        }
+        else{
+            referenceFrame.at(j) -> clear();
+            /*BUG: if nb of frames % 15 == 0, next frames has to be pressed 2 times */
+            nextFrames -> setDisabled(true);
+        }
     }
-  }
 }
 
 void Window::initManuAnchorSelection(){
 
-  if (candidateAnchorList) delete candidateAnchorList;
-  candidateAnchorList = new QListWidget(anchorManuSelection);
-  candidateAnchorList -> setGeometry(QRect(50, 220, 180, 150));
+    if (candidateAnchorList) delete candidateAnchorList;
+    candidateAnchorList = new QListWidget(anchorManuSelection);
+    candidateAnchorList -> setGeometry(QRect(50, 220, 180, 150));
 
-  if (anchorList) delete anchorList;
-  anchorList = new QListWidget(anchorManuSelection);
-  anchorList -> setGeometry(QRect(371, 220, 180, 150));
+    if (anchorList) delete anchorList;
+    anchorList = new QListWidget(anchorManuSelection);
+    anchorList -> setGeometry(QRect(371, 220, 180, 150));
 
-  addAnchorListItems();
+    addAnchorListItems();
 
-  if (anchorCandidate) delete anchorCandidate;
-  anchorCandidate = new QLabel(anchorManuSelection);
-  anchorCandidate -> setGeometry(QRect(50, 50, 180, 150));
-  anchorCandidate -> setMaximumSize(QSize(180, 150));
+    if (anchorCandidate) delete anchorCandidate;
+    anchorCandidate = new QLabel(anchorManuSelection);
+    anchorCandidate -> setGeometry(QRect(50, 50, 180, 150));
+    anchorCandidate -> setMaximumSize(QSize(180, 150));
 
-  if (anchor) delete anchor;
-  anchor = new QLabel(anchorManuSelection);
-  anchor -> setGeometry(QRect(371, 50, 180, 150));
-  anchor -> setMaximumSize(QSize(180, 150));
+    if (anchor) delete anchor;
+    anchor = new QLabel(anchorManuSelection);
+    anchor -> setGeometry(QRect(371, 50, 180, 150));
+    anchor -> setMaximumSize(QSize(180, 150));
 
-  updateManuAnchorPreview ();
+    updateManuAnchorPreview ();
 
-  connect(
-	  candidateAnchorList, SIGNAL(    itemSelectionChanged () ),
-	                 this, SLOT  ( updateManuAnchorPreview () )
-  );
+    connect(
+            candidateAnchorList, SIGNAL(    itemSelectionChanged () ),
+            this, SLOT  ( updateManuAnchorPreview () )
+           );
 
-  connect(
-	  anchorList, SIGNAL(    itemSelectionChanged () ),
-                this, SLOT  ( updateManuAnchorPreview () )
-  );
+    connect(
+            anchorList, SIGNAL(    itemSelectionChanged () ),
+            this, SLOT  ( updateManuAnchorPreview () )
+           );
 
 }
 
@@ -497,20 +500,19 @@ void Window::initAutoAnchorSelection(){
 
     /* Frames to be showed while selecting */
     for(int i = 0; i < 15; i++){
-      referenceFrame << new AnchorLabel(anchorAutoSelection);
+        referenceFrame << new AnchorLabel(anchorAutoSelection);
 
-    connect(
-	    referenceFrame.at(i), SIGNAL(     mousePressed (int) ), 
-	               	    this, SLOT  ( setReferenceFrame(int) ) 
-    );
-
+        connect(
+            referenceFrame.at(i), SIGNAL(     mousePressed (int) ), 
+                            this, SLOT  ( setReferenceFrame(int) ) 
+        );
     }
-  
+
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 5; j++){
             referenceFrame.at(i*5+j) -> setGeometry(QRect(50 + 120 * j, 50 + 90 * i, 100, 80));
-	    referenceFrame.at(i*5+j) -> setMaximumSize(QSize(100, 80));
-	}
+            referenceFrame.at(i*5+j) -> setMaximumSize(QSize(100, 80));
+        }
     }
 
     /* Create buttons to interact with frames */
@@ -527,9 +529,10 @@ void Window::initAutoAnchorSelection(){
 
     thresholdSP =  new QDoubleSpinBox(anchorAutoSelection);
     thresholdSP -> setGeometry(QRect(330, 390, 62, 25));
-    thresholdSP -> setMaximum(1);
+    thresholdSP -> setMaximum(1000000);
     thresholdSP -> setSingleStep(0.1);
-    
+    thresholdSP -> setDecimals ( 1 );
+
 
     /* Creating caption/explanation */
     QPalette palette;
@@ -569,49 +572,49 @@ void Window::initAutoAnchorSelection(){
 
     /* Creating connections */
     connect(
-	    previousFrames, SIGNAL(               clicked () ),
-	              this, SLOT  ( subtractShowingFrames () )
-    );
+            previousFrames, SIGNAL(               clicked () ),
+            this, SLOT  ( subtractShowingFrames () )
+           );
     connect(
-	    nextFrames, SIGNAL(          clicked () ),
-	          this, SLOT  ( sumShowingFrames () )
-    );
+            nextFrames, SIGNAL(          clicked () ),
+            this, SLOT  ( sumShowingFrames () )
+           );
 
     connect(
-	   findAnchors, SIGNAL(          clicked () ),
-	          this, SLOT  (  findAutoAnchors () )
-    );
+            findAnchors, SIGNAL(          clicked () ),
+            this, SLOT  (  findAutoAnchors () )
+           );
 
     connect(
-	   thresholdSP, SIGNAL(     valueChanged (double) ),
-	          this, SLOT  (     setThreshold (double) )
-    );
+            thresholdSP, SIGNAL(     valueChanged (double) ),
+            this, SLOT  (     setThreshold (double) )
+           );
 
     updateAutoAnchorPreview ();
-    
+
 }
 
 void Window::setManuAnchor(bool b){
-  if(b){
-    initManuAnchorSelection();
-    centerWidget -> setCurrentIndex ( anchorManuIdx);
-  }
-  else{ 
-    //save anchors listed in file 
-    saveAnchors();
-  }
+    if(b){
+        initManuAnchorSelection();
+        centerWidget -> setCurrentIndex ( anchorManuIdx);
+    }
+    else{ 
+        //save anchors listed in file 
+        saveAnchors();
+    }
 
 }
 
 void Window::setAutoAnchor(bool b){
-  if(b){
-    initAutoAnchorSelection();
-    centerWidget -> setCurrentIndex ( anchorAutoIdx);
-  }
-  else{ 
-    //save anchors listed in file 
-    //saveAnchors();
-  }
+    if(b){
+        initAutoAnchorSelection();
+        centerWidget -> setCurrentIndex ( anchorAutoIdx);
+    }
+    else{ 
+        //save anchors listed in file 
+        //saveAnchors();
+    }
 
 }
 
@@ -635,30 +638,30 @@ void Window::setFrame1(int iFrame) {
 /* Move Item from candidate list to anchor List*/
 void Window::addNewAnchorItem(){
 
-  /*Get selected row*/
-  int row = candidateAnchorList -> currentRow();
+    /*Get selected row*/
+    int row = candidateAnchorList -> currentRow();
 
-  /*Remove row from list and add to another list */
-  QListWidgetItem * selectedFrame = candidateAnchorList ->  takeItem(row);
-  anchorList -> addItem(selectedFrame -> text());
+    /*Remove row from list and add to another list */
+    QListWidgetItem * selectedFrame = candidateAnchorList ->  takeItem(row);
+    anchorList -> addItem(selectedFrame -> text());
 
-  /* Sort list*/
-  anchorList -> sortItems();
+    /* Sort list*/
+    anchorList -> sortItems();
 }
 
 /* Move item from anchor list to candidate List*/
 void Window::removeAnchorItem(){
 
-  /*Get selected row*/
-  int row = anchorList -> currentRow();
+    /*Get selected row*/
+    int row = anchorList -> currentRow();
 
-  /*Remove row from list and add to another list */
-  QListWidgetItem * selectedFrame = anchorList ->  takeItem(row);
+    /*Remove row from list and add to another list */
+    QListWidgetItem * selectedFrame = anchorList ->  takeItem(row);
 
-  candidateAnchorList -> addItem(selectedFrame -> text());
+    candidateAnchorList -> addItem(selectedFrame -> text());
 
-  /* Sort list*/
-  candidateAnchorList -> sortItems();
+    /* Sort list*/
+    candidateAnchorList -> sortItems();
 
 }
 
@@ -679,15 +682,15 @@ void Window::calcDisp() {
 
     try {
         Image::TrackPixels (
-            frame1,
-            frame2,
-            wSize,
-            wSize,
-            nSize,
-            nSize,
-            dispX,
-            dispY
-        );
+                frame1,
+                frame2,
+                wSize,
+                wSize,
+                nSize,
+                nSize,
+                dispX,
+                dispY
+                );
         dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2+"x.pgm");
         dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2+"y.pgm");
     } catch (BadIndex bi) {
@@ -702,13 +705,13 @@ void Window::updateImages() {
     std::string frameID1 = toString(params -> GetFrame1());
     std::string frameID2 = toString(params -> GetFrame2());
 
-   /* Reads image 1 */
+    /* Reads image 1 */
     if (img1) delete img1;
     img1 = new QLabel;
     img1 -> setMaximumSize(QSize(320, 240));
     QPixmap pic1(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str())));
     if(!pic1.isNull())
-      img1 -> setPixmap(pic1.scaled(320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+        img1 -> setPixmap(pic1.scaled(320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
     /* Reads image 2 */
     if (img2) delete img2;
@@ -716,7 +719,7 @@ void Window::updateImages() {
     img2 -> setMaximumSize(QSize(320, 240));
     QPixmap pic2(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID2 + ".pgm").c_str())));
     if(!pic2.isNull())
-      img2 -> setPixmap(pic2.scaled(320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+        img2 -> setPixmap(pic2.scaled(320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
     /* Reads X displacement */
     if (dispX) delete dispX;
@@ -724,7 +727,7 @@ void Window::updateImages() {
     dispX -> setMaximumSize(QSize(320, 240));
     QPixmap pic3(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2 + "x.pgm").c_str()))));
     if(!pic3.isNull())
-      dispX -> setPixmap(pic3.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+        dispX -> setPixmap(pic3.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
     /* Reads Y displacement */
     if (dispY) delete dispY;
@@ -732,8 +735,8 @@ void Window::updateImages() {
     dispY -> setMaximumSize(QSize(320, 240));
     QPixmap pic4(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2 + "y.pgm").c_str()))));
     if(!pic4.isNull())
-      dispY -> setPixmap(pic4.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
-    
+        dispY -> setPixmap(pic4.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+
     /* Set image in a 2x2 grid*/
     if (gridLayout) delete gridLayout;
     gridLayout = new QGridLayout(gridLayoutWidget);
@@ -777,9 +780,9 @@ void Window::addImageItems()
     while(!in.atEnd())
     {
         fileName = in.readLine();
-	/* Show the ID in the combo box*/
-	frame1ComboBox -> addItem(fileName,QVariant::Char); 
-	frame2ComboBox -> addItem(fileName,QVariant::Char); 
+        /* Show the ID in the combo box*/
+        frame1ComboBox -> addItem(fileName,QVariant::Char); 
+        frame2ComboBox -> addItem(fileName,QVariant::Char); 
     }
 
     /* Close the file */
@@ -792,38 +795,38 @@ void Window::addImageItems()
  */
 Window::Window ()
     :   QMainWindow (NULL),
-        centerWidget(NULL),
-        controlWidget(NULL),
-        createMeshPB(NULL),
-        calcDispPB(NULL),
-        snapshotButton(NULL),
-	startCaptureButton(NULL),
-        frame1ComboBox(NULL),
-	frame2ComboBox(NULL),
-        viewer(NULL),
-        viewerIdx(0),
-	cameraTimer(NULL),
-	progressDialog(NULL),
-        img1(NULL),
-        img2(NULL),
-        dispX(NULL),
-        dispY(NULL),
-        gridLayoutWidget(NULL),
-        gridIdx(0),
-        gridLayout(NULL),
-        anchorList(NULL),
-        candidateAnchorList(NULL),
-        addAnchor(NULL),
-        removeAnchor(NULL),
-        anchor(NULL),
-        anchorCandidate(NULL),
-        anchorManuSelection(NULL),
-        anchorManuIdx(0),
-//        referenceFrame(NULL),
-        anchorAutoSelection(NULL),
-        anchorAutoIdx(0),
-        showingFrames(0),
-        thresholdSP(NULL)
+    centerWidget(NULL),
+    controlWidget(NULL),
+    createMeshPB(NULL),
+    calcDispPB(NULL),
+    snapshotButton(NULL),
+    startCaptureButton(NULL),
+    frame1ComboBox(NULL),
+    frame2ComboBox(NULL),
+    viewer(NULL),
+    viewerIdx(0),
+    cameraTimer(NULL),
+    progressDialog(NULL),
+    img1(NULL),
+    img2(NULL),
+    dispX(NULL),
+    dispY(NULL),
+    gridLayoutWidget(NULL),
+    gridIdx(0),
+    gridLayout(NULL),
+    anchorList(NULL),
+    candidateAnchorList(NULL),
+    addAnchor(NULL),
+    removeAnchor(NULL),
+    anchor(NULL),
+    anchorCandidate(NULL),
+    anchorManuSelection(NULL),
+    anchorManuIdx(0),
+    //        referenceFrame(NULL),
+    anchorAutoSelection(NULL),
+    anchorAutoIdx(0),
+    showingFrames(0),
+    thresholdSP(NULL)
 {
     /* Update the list of frames captured*/
     updateFrameList();
@@ -856,16 +859,16 @@ Window::Window ()
 
     connect(
             glViewerHelp, SIGNAL( triggered() ),
-                  viewer, SLOT  (      help() )
-    );
+            viewer, SLOT  (      help() )
+           );
 
     QAction *openAct = new QAction(tr("&About..."), this);
     fileMenu -> addAction(openAct);
 
     connect(
-               openAct, SIGNAL( triggered() ),
-               this   , SLOT  (     about() )
-    );
+            openAct, SIGNAL( triggered() ),
+            this   , SLOT  (     about() )
+           );
 
     fileMenu -> addSeparator();
 
@@ -874,13 +877,13 @@ Window::Window ()
 
     connect(
             exitAct, SIGNAL(      triggered() ),
-               this, SLOT  ( exitPreprocess() )
-    );
+            this, SLOT  ( exitPreprocess() )
+           );
 
     connect(
-              this, SIGNAL(         exiting() ),
-              qApp, SLOT  ( closeAllWindows() )
-    );
+            this, SIGNAL(         exiting() ),
+            qApp, SLOT  ( closeAllWindows() )
+           );
 
     createDock();
     statusBar()->showMessage("");
@@ -1022,206 +1025,206 @@ void Window::initControlWidget () {
     /*** Situation: Mesh showing *****/
     /* Description: TODO */
     connect (
-             createMeshPB, SIGNAL (       clicked () ),
-                     this, SLOT   (    createMesh () )
-    );
+            createMeshPB, SIGNAL (       clicked () ),
+            this, SLOT   (    createMesh () )
+            );
 
     /* Description: Print screen */
     connect (
             snapshotButton, SIGNAL (      clicked () ),
-                      this, SLOT   (  saveGLImage () )
-    );
+            this, SLOT   (  saveGLImage () )
+            );
 
     /* Description: Capture Frames */
     connect (
-        startCaptureButton, SIGNAL (      clicked () ),
-                      this, SLOT   ( startCapture () )
-    );
+            startCaptureButton, SIGNAL (      clicked () ),
+            this, SLOT   ( startCapture () )
+            );
 
     /* Description: Disabling image 2 selection */
     connect(
-                    meshRB, SIGNAL (     toggled (bool) ), 
+            meshRB, SIGNAL (     toggled (bool) ), 
             frame2ComboBox, SLOT   ( setDisabled (bool) )
-    );
+           );
 
     /* Description: Disabling calculate displacement push button */
     connect(
-                    meshRB, SIGNAL (       toggled (bool) ), 
-                calcDispPB, SLOT   (   setDisabled (bool) )
-    );
+            meshRB, SIGNAL (       toggled (bool) ), 
+            calcDispPB, SLOT   (   setDisabled (bool) )
+           );
 
     /* Description: Change of situation 
-                    Mesh selected -> update screen */
+       Mesh selected -> update screen */
     connect(
-                    meshRB, SIGNAL( toggled (bool) ), 
-		      this, SLOT  ( setMesh (bool) )
-    );
+            meshRB, SIGNAL( toggled (bool) ), 
+            this, SLOT  ( setMesh (bool) )
+           );
 
     /*** Situation: Displacement showing *****/
     /* Description: Calculate displacement */
     connect (
-               calcDispPB, SIGNAL (      clicked  () ), 
-                     this, SLOT   (      calcDisp () )
-    );
+            calcDispPB, SIGNAL (      clicked  () ), 
+            this, SLOT   (      calcDisp () )
+            );
 
     /* Description: Disabling Mesh snapshot */
     connect(
             displacementRB, SIGNAL (      toggled (bool) ),
             snapshotButton, SLOT   (  setDisabled (bool) )
-    );
+           );
 
-  
+
     /* Description: Disabling capture button */
     connect(
-                displacementRB, SIGNAL (     toggled (bool) ),
+            displacementRB, SIGNAL (     toggled (bool) ),
             startCaptureButton, SLOT   ( setDisabled (bool) )
-    );
+           );
 
     /* Description: Disabling create mesh */
     connect(
-               displacementRB, SIGNAL (     toggled (bool) ),
-                 createMeshPB, SLOT   ( setDisabled (bool) )
-    );
+            displacementRB, SIGNAL (     toggled (bool) ),
+            createMeshPB, SLOT   ( setDisabled (bool) )
+           );
 
     /* Description: Changing Frame 1 */
     connect (
-               frame1ComboBox, SIGNAL ( currentIndexChanged (int) ), 
-                         this, SLOT   (           setFrame1 (int) )
-    );
+            frame1ComboBox, SIGNAL ( currentIndexChanged (int) ), 
+            this, SLOT   (           setFrame1 (int) )
+            );
 
     /* Description: Changing Frame 2 */
     connect (
-               frame2ComboBox, SIGNAL ( currentIndexChanged (int) ), 
-                         this, SLOT   (           setFrame2 (int) )
-    );
+            frame2ComboBox, SIGNAL ( currentIndexChanged (int) ), 
+            this, SLOT   (           setFrame2 (int) )
+            );
 
     /* Description: Change of situation 
-                    Displacement selected -> update screen */
+       Displacement selected -> update screen */
     connect(
             displacementRB, SIGNAL (         toggled (bool) ),
-                      this, SLOT   ( setDisplacement (bool) )
-    );
+            this, SLOT   ( setDisplacement (bool) )
+           );
 
 
     /*** Situation: Anchor manual selection *****/
 
     /* Description: add candidate frame as anchor */
     connect (
-                addAnchor, SIGNAL (         clicked  () ), 
-                     this, SLOT   ( addNewAnchorItem () )
-    );
+            addAnchor, SIGNAL (         clicked  () ), 
+            this, SLOT   ( addNewAnchorItem () )
+            );
 
     /* Description: remove frame from anchor */
     connect (
-             removeAnchor, SIGNAL (         clicked  () ), 
-                     this, SLOT   ( removeAnchorItem () )
-    );
+            removeAnchor, SIGNAL (         clicked  () ), 
+            this, SLOT   ( removeAnchorItem () )
+            );
 
     /* Description: Change of situation 
-                    Displacement selected -> update screen */
+       Displacement selected -> update screen */
     connect(
-	     anchorManuRB, SIGNAL (         toggled (bool) ),
-                     this, SLOT   (       setManuAnchor (bool) )
-    );
+            anchorManuRB, SIGNAL (         toggled (bool) ),
+            this, SLOT   (       setManuAnchor (bool) )
+           );
 
     /* Description: Disabling calculate displacement push button */
     connect(
-              anchorManuRB, SIGNAL (       toggled (bool) ), 
-                calcDispPB, SLOT   (   setDisabled (bool) )
-    );
+            anchorManuRB, SIGNAL (       toggled (bool) ), 
+            calcDispPB, SLOT   (   setDisabled (bool) )
+           );
 
 
     /* Description: Disabling Mesh snapshot */
     connect(
-              anchorManuRB, SIGNAL (      toggled (bool) ),
+            anchorManuRB, SIGNAL (      toggled (bool) ),
             snapshotButton, SLOT   (  setDisabled (bool) )
-    );
+           );
 
-  
+
     /* Description: Disabling capture button */
     connect(
-                  anchorManuRB, SIGNAL (     toggled (bool) ),
+            anchorManuRB, SIGNAL (     toggled (bool) ),
             startCaptureButton, SLOT   ( setDisabled (bool) )
-    );
+           );
 
     /* Description: Disabling create mesh */
     connect(
-                 anchorManuRB, SIGNAL (     toggled (bool) ),
-                 createMeshPB, SLOT   ( setDisabled (bool) )
-    );
+            anchorManuRB, SIGNAL (     toggled (bool) ),
+            createMeshPB, SLOT   ( setDisabled (bool) )
+           );
 
     /* Description: Disabling frame1 selection */
     connect(
-                   anchorManuRB, SIGNAL (     toggled (bool) ),
-                 frame1ComboBox, SLOT   ( setDisabled (bool) )
-    );
+            anchorManuRB, SIGNAL (     toggled (bool) ),
+            frame1ComboBox, SLOT   ( setDisabled (bool) )
+           );
 
     /* Description: Disabling frame 2 semection */
     connect(
-                   anchorManuRB, SIGNAL (     toggled (bool) ),
-                 frame2ComboBox, SLOT   ( setDisabled (bool) )
-    );
+            anchorManuRB, SIGNAL (     toggled (bool) ),
+            frame2ComboBox, SLOT   ( setDisabled (bool) )
+           );
 
 
     /*** Situation: Anchor automatic selection *****/
 
     /* Description: Change of situation 
-                    Displacement selected -> update screen */
+       Displacement selected -> update screen */
     connect(
-	     anchorAutoRB, SIGNAL (         toggled (bool) ),
-                     this, SLOT   (       setAutoAnchor (bool) )
-    );
+            anchorAutoRB, SIGNAL (         toggled (bool) ),
+            this, SLOT   (       setAutoAnchor (bool) )
+           );
 
     /* Description: Disabling calculate displacement push button */
     connect(
-              anchorAutoRB, SIGNAL (       toggled (bool) ), 
-                calcDispPB, SLOT   (   setDisabled (bool) )
-    );
+            anchorAutoRB, SIGNAL (       toggled (bool) ), 
+            calcDispPB, SLOT   (   setDisabled (bool) )
+           );
 
 
     /* Description: Disabling Mesh snapshot */
     connect(
-              anchorAutoRB, SIGNAL (      toggled (bool) ),
+            anchorAutoRB, SIGNAL (      toggled (bool) ),
             snapshotButton, SLOT   (  setDisabled (bool) )
-    );
+           );
 
-  
+
     /* Description: Disabling capture button */
     connect(
-                  anchorAutoRB, SIGNAL (     toggled (bool) ),
+            anchorAutoRB, SIGNAL (     toggled (bool) ),
             startCaptureButton, SLOT   ( setDisabled (bool) )
-    );
+           );
 
     /* Description: Disabling create mesh */
     connect(
-                 anchorAutoRB, SIGNAL (     toggled (bool) ),
-                 createMeshPB, SLOT   ( setDisabled (bool) )
-    );
+            anchorAutoRB, SIGNAL (     toggled (bool) ),
+            createMeshPB, SLOT   ( setDisabled (bool) )
+           );
     /* Description: Disabling frame1 selection */
     connect(
-                   anchorAutoRB, SIGNAL (     toggled (bool) ),
-                 frame1ComboBox, SLOT   ( setDisabled (bool) )
-    );
+            anchorAutoRB, SIGNAL (     toggled (bool) ),
+            frame1ComboBox, SLOT   ( setDisabled (bool) )
+           );
 
     /* Description: Disabling frame 2 semection */
     connect(
-                   anchorAutoRB, SIGNAL (     toggled (bool) ),
-                 frame2ComboBox, SLOT   ( setDisabled (bool) )
-    );
+            anchorAutoRB, SIGNAL (     toggled (bool) ),
+            frame2ComboBox, SLOT   ( setDisabled (bool) )
+           );
 
     /*** Situation: Parameters modification *****/
 
     /* Description: Change window size */
     connect (
-             windowSizeSP, SIGNAL (valueChanged  (int) ), 
-                     this, SLOT   (setWindowSize (int) )
-    );
+            windowSizeSP, SIGNAL (valueChanged  (int) ), 
+            this, SLOT   (setWindowSize (int) )
+            );
 
     /* Description: Change window size */
     connect (
-             neighbourhoodSizeSP, SIGNAL (       valueChanged  (int) ), 
-                            this, SLOT   (setNeighbourhoodSize (int) )
-    );
+            neighbourhoodSizeSP, SIGNAL (       valueChanged  (int) ), 
+            this, SLOT   (setNeighbourhoodSize (int) )
+            );
 
     /*** Initial situation: Default options ***/
     meshRB         -> setChecked(true);
@@ -1232,27 +1235,27 @@ void Window::initControlWidget () {
     /* Verify if a camera is connect */
     if(params -> GetCamera()){
 
-      cameraTimer = new QTimer();
-      Camera* cam = &(Camera::Instance());
+        cameraTimer = new QTimer();
+        Camera* cam = &(Camera::Instance());
 
-      connect (
-	       cameraTimer, SIGNAL (          timeout () ),
-	               cam, SLOT   ( WaitUpdateCamera () )
-	       );
-      connect (
-	       cameraTimer, SIGNAL (          timeout () ),
-	       viewer     , SLOT   (           update () )
-	       );
-      cameraTimer->start(16);
+        connect (
+                cameraTimer, SIGNAL (          timeout () ),
+                cam, SLOT   ( WaitUpdateCamera () )
+                );
+        connect (
+                cameraTimer, SIGNAL (          timeout () ),
+                viewer     , SLOT   (           update () )
+                );
+        cameraTimer->start(16);
     }
     else {
-      /* No device found: disable glviewer */
-      meshRB -> setChecked(false);
-      meshRB -> setDisabled(true);
-      displacementRB -> setChecked(true);
-      anchorManuRB -> setChecked(false);
-      anchorAutoRB -> setChecked(false);
-      setDisplacement(true);
+        /* No device found: disable glviewer */
+        meshRB -> setChecked(false);
+        meshRB -> setDisabled(true);
+        displacementRB -> setChecked(true);
+        anchorManuRB -> setChecked(false);
+        anchorAutoRB -> setChecked(false);
+        setDisplacement(true);
     }
 
     FileWriterServices* fws = FileWriterServices::Instance ();
@@ -1330,9 +1333,10 @@ AnchorLabel::AnchorLabel( const QString & text, QWidget * parent )
 :QLabel(parent)
 {
     oldFrameStyle = 16;
-    connect( 
-            this, SIGNAL(  mousePressed() ), 
-            this, SLOT  (   slotClicked() )
+    connect ( 
+        this, SIGNAL ( mousePressed () ), 
+        this,   SLOT (  slotClicked () )
+    );
     connect (
         this, SIGNAL ( mouseEntered () ),
         this,   SLOT ( onMouseEnter () )
@@ -1344,11 +1348,12 @@ AnchorLabel::AnchorLabel( const QString & text, QWidget * parent )
 }
 
 AnchorLabel::AnchorLabel(QWidget * parent )
-:QLabel(parent)
+    :   QLabel(parent)
 {
-    connect( 
-            this, SIGNAL(  mousePressed() ), 
-            this, SLOT  (   slotClicked() )
+    connect ( 
+        this, SIGNAL ( mousePressed () ), 
+        this,   SLOT (  slotClicked () )
+    );
     connect (
         this, SIGNAL ( mouseEntered () ),
         this,   SLOT ( onMouseEnter () )
@@ -1357,25 +1362,24 @@ AnchorLabel::AnchorLabel(QWidget * parent )
         this, SIGNAL (    mouseLeft () ),
         this,   SLOT ( onMouseLeave () )
     );
-    
 }
- 
+
 void AnchorLabel::slotClicked()
 {
 
-  if(frameStyle() != 18){
-    oldFrameStyle = frameStyle();
-    this -> setFrameStyle(QFrame::Panel | QFrame::Plain);
-    this -> setStyleSheet("color:red");
-    this -> setLineWidth(3);
-  }
-  else if(oldFrameStyle == 17) {
-    this -> setFrameStyle(QFrame::Box | QFrame::Plain);
-    this -> setStyleSheet("color:blue");
-    this -> setLineWidth(3);
-  }
-  else { 
-    this -> setFrameStyle(oldFrameStyle);
-  }
+    if(frameStyle() != 18){
+        oldFrameStyle = frameStyle();
+        this -> setFrameStyle(QFrame::Panel | QFrame::Plain);
+        this -> setStyleSheet("color:red");
+        this -> setLineWidth(3);
+    }
+    else if(oldFrameStyle == 17) {
+        this -> setFrameStyle(QFrame::Box | QFrame::Plain);
+        this -> setStyleSheet("color:blue");
+        this -> setLineWidth(3);
+    }
+    else { 
+        this -> setFrameStyle(oldFrameStyle);
+    }
 }
- 
+

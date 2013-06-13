@@ -1,33 +1,44 @@
 #include "PNMImage.h"
 #include "PPMImage.h"
 
-int main ( void ) {
-    PPMImage binImage;
-    PPMImage asciiImage;
+extern void printColorChart (
+    const int& width,
+    const int& height,
+    PPMImage& colorChart
+);
 
-    binImage.LoadFromFile (
-        "./in/ppm_bin.ppm"
+int main ( void ) {
+    PPMImage colorChart;
+    printColorChart (
+        30, 30, colorChart
     );
-    binImage.WriteToFile (
-        "./out/bin_ppm_to_bin_ppm.ppm",
-        PIXMAP | BINARY
-    );
-    binImage.WriteToFile (
-        "./out/bin_ppm_to_bin_pgm.pgm",
-        GREYMAP | BINARY
-    );
-    binImage.WriteToFile (
-        "./out/bin_ppm_to_ascii_ppm.ppm",
-        PIXMAP | ASCII
-    );
-    binImage.WriteToFile (
-        "./out/bin_ppm_to_ascii_pgm.pgm",
-        GREYMAP | ASCII
-    );
-    binImage.WriteToFile (
-        "./out/bin_ppm_to_ascii_pbm.pbm",
-        BITMAP | ASCII
-    );
+
+    //PPMImage binImage;
+    //PPMImage asciiImage;
+
+    //binImage.LoadFromFile (
+    //    "./in/ppm_bin.ppm"
+    //);
+    //binImage.WriteToFile (
+    //    "./out/bin_ppm_to_bin_ppm.ppm",
+    //    PIXMAP | BINARY
+    //);
+    //binImage.WriteToFile (
+    //    "./out/bin_ppm_to_bin_pgm.pgm",
+    //    GREYMAP | BINARY
+    //);
+    //binImage.WriteToFile (
+    //    "./out/bin_ppm_to_ascii_ppm.ppm",
+    //    PIXMAP | ASCII
+    //);
+    //binImage.WriteToFile (
+    //    "./out/bin_ppm_to_ascii_pgm.pgm",
+    //    GREYMAP | ASCII
+    //);
+    //binImage.WriteToFile (
+    //    "./out/bin_ppm_to_ascii_pbm.pbm",
+    //    BITMAP | ASCII
+    //);
 
     //asciiImage.LoadFromFile (
     //    "./ppm_ascii.ppm"

@@ -255,25 +255,19 @@ int main(int argc, char** argv) {
                 0.95
             );
             
-            pixTracker.TrackWithRegulation ( 1 );
-            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.95)+"r.ppm" );
             pixTracker.Track ( 1 );
             pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.95)+"n.ppm" );
-            std::cout << "Track 1 Done" << std::endl;
+            std::cout << "Track 0 Done" << std::endl;
 
             pixTracker.SetRejectionTreshold(0.90); 
-            pixTracker.TrackWithRegulation ( 1 );
-            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.90)+"r.ppm" );
             pixTracker.Track ( 1 );
             pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.90)+"n.ppm" );
             std::cout << "Track 1 Done" << std::endl;
 
             pixTracker.SetRejectionTreshold(0.85); 
-            pixTracker.TrackWithRegulation ( 1 );
-            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.85)+"r.ppm" );
             pixTracker.Track ( 1 );
             pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.85)+"n.ppm" );
-            std::cout << "Track 1 Done" << std::endl;
+            std::cout << "Track 2 Done" << std::endl;
 
 
             ImageBase::TrackPixels (

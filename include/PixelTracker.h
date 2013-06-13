@@ -49,7 +49,7 @@ public:
     );
     void Track (
         const unsigned int&     iTargetFrameId,
-        const Image*            iTarget
+        Image*                  iTarget
     );
     void Rematch (
         const unsigned int&     iTargetFrameId,

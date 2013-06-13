@@ -25,6 +25,13 @@ void TrackInfo::SetDimensions (
     );
 }
 
+const MatchDescriptor& TrackInfo::GetMatchData (
+    const unsigned int&     iRefX,
+    const unsigned int&     iRefY
+) const {
+    return m_matches ( iRefY, iRefX );
+}
+
 void TrackInfo::SetMatch (
     const unsigned int&     iRefX,
     const unsigned int&     iRefY,
@@ -60,6 +67,7 @@ void TrackInfo::CreateOutputImage (
         rows
     );
 
+    float invWsz = 1.0f / (float)wSz;
     for (
         unsigned int i = 0;
         i < m_matches.rows ();
@@ -76,14 +84,23 @@ void TrackInfo::CreateOutputImage (
                 int dispY = (int)md.m_yCoord - (int)i;
                 int dispZ = targetDepth.GetGreyLvl (md.m_yCoord, md.m_xCoord) - refDepth.GetGreyLvl ( i, j );
 
-                unsigned int channelX = ( dispX > 0 ) ? GREEN : BLUE;
-                unsigned int channelY = ( dispY > 0 ) ? GREEN : BLUE;
-                unsigned int channelZ = ( dispZ > 0 ) ? GREEN : BLUE;
+                float bX = ( dispX + 0.5f * wSz ) * invWsz;
+                float bY = ( dispY + 0.5f * wSz ) * invWsz;
+                float bZ = ( dispZ + 0.5f * wSz ) * invWsz;
+                float gX = 1.0f - bX;
+                float gY = 1.0f - bY;
+                float gZ = 1.0f - bZ;
 
-                output.SetChannelValue ( X_OFF_Y + i, X_OFF_X + j, channelX, ( 500.f * abs ( dispX ) ) / wSz );
-                output.SetChannelValue ( Y_OFF_Y + i, Y_OFF_X + j, channelY, ( 500.f * abs ( dispY ) ) / wSz );
-                output.SetChannelValue ( Z_OFF_Y + i, Z_OFF_X + j, channelZ, abs ( dispZ ) );
-                output.SetChannelValue ( S_OFF_Y + i, S_OFF_X + j,     GREY, md.m_score * 255.f );
+                output.SetChannelValue ( X_OFF_Y + i, X_OFF_X + j,   RED, 0u );
+                output.SetChannelValue ( Y_OFF_Y + i, Y_OFF_X + j,   RED, 0u );
+                output.SetChannelValue ( Z_OFF_Y + i, Z_OFF_X + j,   RED, 0u );
+                output.SetChannelValue ( X_OFF_Y + i, X_OFF_X + j, GREEN, gX * 255.f );
+                output.SetChannelValue ( Y_OFF_Y + i, Y_OFF_X + j, GREEN, gY * 255.f );
+                output.SetChannelValue ( Z_OFF_Y + i, Z_OFF_X + j, GREEN, abs ( dispZ ) );
+                output.SetChannelValue ( X_OFF_Y + i, X_OFF_X + j,  BLUE, bX * 255.f );
+                output.SetChannelValue ( Y_OFF_Y + i, Y_OFF_X + j,  BLUE, bX * 255.f );
+                output.SetChannelValue ( Z_OFF_Y + i, Z_OFF_X + j,  BLUE, abs ( dispZ ) );
+                output.SetChannelValue ( S_OFF_Y + i, S_OFF_X + j,  GREY, md.m_score * 255.f );
             } else {
                 output.SetChannelValue ( X_OFF_Y + i, X_OFF_X + j, RED, 255u );
                 output.SetChannelValue ( Y_OFF_Y + i, Y_OFF_X + j, RED, 255u );
@@ -94,7 +111,7 @@ void TrackInfo::CreateOutputImage (
     }
     output.WriteToFile (
         iFilename,
-        PIXMAP|ASCII
+        PIXMAP|BINARY
     );
 }
 

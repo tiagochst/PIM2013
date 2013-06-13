@@ -21,6 +21,8 @@ public:
 
     void PushVertex ( const Vertex& iVertex );
 
+    void MoveToBarycenter ();
+
     void Draw () const;
 };
 

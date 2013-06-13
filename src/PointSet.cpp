@@ -251,6 +251,23 @@ void PointSet::WriteToFile(const std::string& iFilename) {
     }
 }
 
+void PointSet::MoveToBarycenter () {
+    Vec3Df barycenter ( 0, 0, 0 );
+    for ( int vtx = 0; vtx < m_vertices.size (); vtx++ ) {
+        const Vertex& v = m_vertices[vtx];
+
+        barycenter += v.GetPosition ();
+    }
+    barycenter /= m_vertices.size ();
+    for ( int vtx = 0; vtx < m_vertices.size (); vtx++ ) {
+        Vertex& v = m_vertices[vtx];
+
+        Vec3Df position = v.GetPosition ();
+        position -= barycenter;
+        v.SetPosition ( position );
+    }
+}
+
 void PointSet::Draw () const {
 
     glBegin ( GL_POINTS );

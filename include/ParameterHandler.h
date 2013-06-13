@@ -18,7 +18,11 @@ private:
     bool            m_captureMode;
     unsigned int    m_numCaptureFrames;
 
-    double           m_threshold;
+    unsigned int    m_nearPlane;
+    unsigned int    m_farPlane;
+    bool            m_depthCrop;
+
+    double          m_threshold;
 
 private:
     ParameterHandler ()
@@ -29,7 +33,10 @@ private:
             m_nSize ( 9 ),
             m_cameraFound (false),
             m_numCaptureFrames ( 35 ),
-            m_threshold(0.0)
+            m_nearPlane ( 0 ),
+            m_farPlane ( 1500 ),
+            m_depthCrop ( false ),
+            m_threshold ( 0.0 )
     {}
     ~ParameterHandler ()
     {}
@@ -76,6 +83,19 @@ public:
     const unsigned int& GetNeighbourhoodSize () const;
     const void SetNeighbourhoodSize (
         const unsigned int& iNeighbourhoodSize
+    );
+
+    const unsigned int& GetNearPlane () const;
+    void SetNearPlane (
+        const unsigned int& iNearPlane
+    );
+    const unsigned int& GetFarPlane () const;
+    void SetFarPlane (
+        const unsigned int& iFarPlane
+    );
+    const bool& GetDepthCrop () const;
+    void SetDepthCrop (
+        const bool& iDepthCrop
     );
 
     void SetThreshold (

@@ -44,12 +44,15 @@ float ImageBase::CalculateErrorScore (
     assert ( iImageA.GetWidth  () == iImageB.GetWidth  () );
     assert ( iImageA.GetHeight () == iImageB.GetHeight () );
 
-    const unsigned int& SAMPLING_STEP   = 20;
+    const unsigned int& SAMPLING_STEP   = 9;
     const int&          NH_SZ           = 9;
 
     float globalScore = 0.f;
-    const unsigned int& height  = iImageA.GetHeight ();
-    const unsigned int& width   = iImageA.GetWidth  ();
+    const int height  = iImageA.GetHeight ();
+    const int width   = iImageA.GetWidth  ();
+    unsigned int featureCount = 0;
+    unsigned int zeroCount = 0;
+    unsigned int oneCount = 0;
     for ( int y = NH_SZ / 2; y < height - NH_SZ / 2; y += SAMPLING_STEP ) {
         for ( int x = NH_SZ / 2; x < width - NH_SZ / 2; x += SAMPLING_STEP ) {
             float localScore    = 0.f;
@@ -66,19 +69,22 @@ float ImageBase::CalculateErrorScore (
                     localScore  += ( valA * valB );
                 }
             }
-            //std::cout << denomA << " " << denomB << std::endl;
             if ( denomA && denomB ) {
                 localScore /= sqrt ( denomA * denomB );
             } else if ( !denomA && !denomB ) {
                 localScore = 1.f; 
+                oneCount++;
             } else {
                 localScore = 0.f;
+                zeroCount++;
             }
 
             globalScore += ( 1.f - localScore );
+            featureCount++;
         }
     }
 
+    //std::cerr << featureCount << " " << zeroCount << " " << oneCount << std::endl;
     return ( globalScore );
 }
 

@@ -365,35 +365,44 @@ void Camera::ReadFrame (
     Image*      oDepth,
     PointSet*   oPoints
 ) {
+    const XnUInt XOffset    = 160u;
+    const XnUInt YOffset    = 120u;
+    const XnUInt CropWidth  = 320u;
+    const XnUInt CropHeight = 240u;
+
     const XnUInt& width   = m_imageMD.XRes();
     const XnUInt& height  = m_imageMD.YRes();
 
     if ( oBrightness ) {
         oBrightness->SetDimensions (
-            width,
-            height
+            CropWidth,
+            CropHeight
         );
         oBrightness->SetMaxGreyLevel ( 255 );
     }
     if ( oDepth ) {
         oDepth->SetDimensions (
-            width,
-            height
+            CropWidth,
+            CropHeight
         );
         oDepth->SetMaxGreyLevel ( 1000 );
     }
 
-    const XnRGB24Pixel* pImageRow = m_imageMD.RGB24Data();
-    const XnDepthPixel* pDepthRow = m_depthMD.Data();
+    const XnRGB24Pixel* pImageRow   = m_imageMD.RGB24Data()
+                                    + YOffset * width
+                                    + XOffset;
+    const XnDepthPixel* pDepthRow   = m_depthMD.Data()
+                                    + YOffset * width
+                                    + XOffset;
 
     std::vector<XnPoint3D> projectivePoints;
     std::vector<Color> colors;
-    for (XnUInt y = 0; y < height; ++y)
+    for (XnUInt y = 0; y < CropHeight; ++y)
     {
         const XnRGB24Pixel* pImage = pImageRow;
         const XnDepthPixel* pDepth = pDepthRow;
         
-        for (XnUInt x = 0; x < width; ++x, ++pImage, ++pDepth)
+        for (XnUInt x = 0; x < CropWidth; ++x, ++pImage, ++pDepth)
         {
             Color c (
                 (int)pImage->nRed,
@@ -467,6 +476,7 @@ void Camera::ReadFrame (
                 )
             );
         }
+        oPoints->MoveToBarycenter ();
     }
 }
 

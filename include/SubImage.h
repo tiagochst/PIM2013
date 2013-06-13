@@ -4,6 +4,8 @@
 #define _SUBIMAGE_H_
 
 #include "Image.h"
+#include "Rectangle.h"
+#include "ImageBase.h"
 
 typedef Image   SubImage;
 

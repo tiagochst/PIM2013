@@ -61,8 +61,8 @@ QMAKE_CXXFLAGS      +=  -std=c++0x -fopenmp -ggdb
 INCLUDEPATH         +=  './include'                     \ 
                         './external/common'     
 
-DEFINES             +=   TRACK_REGULATION
-#DEFINES             +=  IMG_EQ_SIMG
+DEFINES             +=  TRACK_REGULATION
+DEFINES             +=  IMG_EQ_SIMG
 unix {
     DESTDIR          =  ./bin/linux/
 

@@ -13,17 +13,20 @@ private:
     Image*          m_imageInfo;
     Image*          m_depthInfo;
     PointSet*       m_vertexInfo;
+    std::string     m_path;
 
 public:
     FrameDescriptor (
         unsigned int&   iFrameId,
         Image*          iBrightnessInfo,
         Image*          iDepthInfo,
-        PointSet*       iVertexInfo
+        PointSet*       iVertexInfo,
+	std::string     iPath
     )   :   m_frameId ( iFrameId ),
             m_imageInfo ( iBrightnessInfo ),
             m_depthInfo ( iDepthInfo ),
-            m_vertexInfo ( iVertexInfo )
+            m_vertexInfo ( iVertexInfo ),
+            m_path ( iPath )
     {}
     ~FrameDescriptor () {
         if ( m_imageInfo ) {
@@ -41,26 +44,35 @@ public:
     }
 
     void WriteFrame () const {
-        std::string path = Config::OutputPath() + "CapturedFrames/";
         std::string suffix = "_" + Int2Str(m_frameId);
 
         std::string str_aux;
 
         if ( m_imageInfo ) {
-            str_aux = path + "image" + suffix +".pgm";
+            str_aux = m_path + "image" + suffix +".pgm";
             m_imageInfo->CreateAsciiPgm(str_aux);
         }
 
         if ( m_depthInfo ) {
-            str_aux = path + "depth" + suffix +".pgm";
+            str_aux = m_path + "depth" + suffix +".pgm";
             m_depthInfo->CreateAsciiPgm(str_aux);
         }
 
         if ( m_vertexInfo ) {
-            str_aux = path + "pointset" + suffix +".ply";
+            str_aux = m_path + "pointset" + suffix +".ply";
             m_vertexInfo->WriteToFile(str_aux);
         }
     }
+
+    void WriteMesh () const {
+       if ( m_vertexInfo ) {
+	 if(m_path.find(".ply") == m_path.size()-4) 
+	   m_vertexInfo -> WriteToFile(m_path);
+	 else m_vertexInfo -> WriteToFile(m_path + ".ply");
+
+        }
+    }
+
 };
 
 FileWriterServices* FileWriterServices::sm_instance = (FileWriterServices*)0x0;
@@ -99,6 +111,36 @@ void FileWriterServices::StartCapture () {
     m_consumer->start ();
 }
 
+void FileWriterServices::StartSavingMesh () {
+    m_framesDone = false;
+
+    m_consumer = new QThread ();
+    this->moveToThread ( m_consumer );
+    connect (
+        m_consumer, SIGNAL (       started () ),
+              this, SLOT   (   ProcessMesh () )
+    );
+    connect (
+              this, SIGNAL (      Finished () ),
+        m_consumer, SLOT   (          quit () )
+    );
+    connect (
+              this, SIGNAL (      Finished () ),
+              this, SLOT   (   deleteLater () )
+    );
+    connect (
+              this, SIGNAL (      Finished () ),
+              this, SLOT   ( ResetInstance () )
+    );
+    connect (
+        m_consumer, SIGNAL (      finished () ),
+        m_consumer, SLOT   (   deleteLater () )
+    );
+    m_consumer->start ();
+}
+
+
+
 void FileWriterServices::ResetInstance () {
     sm_instance = (FileWriterServices*)0x0;
 }
@@ -134,6 +176,29 @@ void FileWriterServices::ProcessFrames () {
     emit (Finished());
 }
 
+void FileWriterServices::ProcessMesh (
+) {
+    int fileCounter = 0;
+    ParameterHandler* params = ParameterHandler::Instance ();
+    while (
+	   !m_frameQueue.empty ()
+    ) {
+        while ( !m_frameQueue.empty () ) {
+            FrameDescriptor* data = m_frameQueue.dequeue ();
+
+            data->WriteMesh();
+            delete data;
+            data = (FrameDescriptor*)0x0;
+            fileCounter++;
+            float progress  = (float)(fileCounter)
+                            / params->GetNumCaptureFrames ();
+            emit ( Progress ( 100 * progress ) );
+        }
+    }
+    std::cout << "Done writing files" << std::endl;
+    emit (Finished());
+}
+
 FileWriterServices* FileWriterServices::Instance () {
     if ( !sm_instance ) {
         sm_instance = new FileWriterServices ();
@@ -145,7 +210,8 @@ void FileWriterServices::RegisterFrame (
     unsigned int    iFrameId,
     Image*          iBrighnessInfo,
     Image*          iDepthInfo,
-    PointSet*       iVertexInfo
+    PointSet*       iVertexInfo,
+    std::string     iPath
 ) {
      moveToThread ( m_consumer );
      m_frameQueue.enqueue (
@@ -153,7 +219,9 @@ void FileWriterServices::RegisterFrame (
             iFrameId,
             iBrighnessInfo,
             iDepthInfo,
-            iVertexInfo
+            iVertexInfo,
+	    iPath
         )
     );
 }
+

@@ -447,6 +447,32 @@ void Camera::ReadFrame (
     }
 }
 
+void Camera::captureSingleMesh(std::string iPath)
+{
+    ParameterHandler* params = ParameterHandler::Instance();
+
+    Image*      camImg = new Image ();
+    Image*      camDepth = new Image ();
+    PointSet*   pointCloud = new PointSet ();
+
+    ReadFrame (
+        camImg,
+        camDepth,
+        pointCloud
+    );
+
+    FileWriterServices* fws = FileWriterServices::Instance ();
+    fws->StartSavingMesh ();
+    
+    fws->RegisterFrame (
+        999,
+        NULL,
+        NULL,
+        pointCloud,
+        iPath
+    );
+}
+
 void Camera::captureSingleFrame()
 {
     ParameterHandler* params = ParameterHandler::Instance();
@@ -477,7 +503,8 @@ void Camera::captureSingleFrame()
         m_nbFrames++,
         camImg,
         camDepth,
-        pointCloud
+        pointCloud,
+        Config::OutputPath() + "CapturedFrames/"
     );
 
     if ( m_nbFrames == params->GetNumCaptureFrames() ) {

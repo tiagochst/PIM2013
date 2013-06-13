@@ -49,6 +49,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <QTextStream>
+#include <QDebug>
 #include <QProgressDialog>
 #include <QtGui/QLabel>
 #include <QtGui/QListWidget>

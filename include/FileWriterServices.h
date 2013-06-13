@@ -28,7 +28,8 @@ public:
         unsigned int    iFrameId,
         Image*          iBrightnessInfo,
         Image*          iDepthInfo,
-        PointSet*       iVertexInfo
+        PointSet*       iVertexInfo,
+	std::string     iPath
     );
 
 signals:
@@ -39,6 +40,9 @@ signals:
 public slots:
     void StartCapture ();
     void ProcessFrames ();
+    void StartSavingMesh (); 
+    void ProcessMesh ();
+
 
 protected slots:
     void ResetInstance ();

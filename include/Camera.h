@@ -78,6 +78,7 @@ public:
     );
 
     void captureSingleFrame();
+    void captureSingleMesh(std::string iPath);
 
 signals:
     void captureFinished();

@@ -4,8 +4,6 @@
 #include <QGraphicsScene>
 #include <QImage>
 
-
-
 using namespace std;
 
 void Window::startCapture() {
@@ -135,7 +133,6 @@ void Window::findAutoAnchors(){
     QTextStream listOfFrames(& imageList);
     
     Image refFrame(Config::FramesPath() + "image_"+ toString(refFrameID) + ".pgm");
-    cout << "Ref frame ID: "<<refFrameID << endl;
     
     while(!listOfFrames.atEnd())
       {
@@ -144,18 +141,16 @@ void Window::findAutoAnchors(){
 	  progressDialog->setValue (progress);
 
 	id = listOfFrames.readLine();
+	cout << "COmparing Ref frame ID: "<<refFrameID << "With ID: "<< id.toStdString() << endl;
+
 	Image frame(Config::FramesPath() + "image_"+ id.toStdString() + ".pgm");	      
 	
 	if(ImageBase::CalculateErrorScore ( frame, refFrame ) > 0.3){
 	  cout << "Anchor frame found" << endl;
-	  
-	  /* Save frame as an anchor */
 	  bool ok;
+
+	  /* Save frame as an anchor */
 	  anchorFound.push_back(id.toInt(&ok,10));	  
-	  
-	  /* The anchor will be our new reference */	
-	  refFrame.LoadFromFile(Config::FramesPath() + "image_"+ id.toStdString() + ".pgm");
-    	  
 	}
 	
       }
@@ -1238,7 +1233,13 @@ void Window::initControlWidget () {
  *  \brief  Create the vertex of a mesh from the image and deeper image 
  */
 void Window::createMesh () {
-    std::cout << "TBD ;D" << std::endl;
+    Camera* cam = &(Camera::Instance());
+
+    QFileDialog *filedialog=new QFileDialog();
+    filedialog->setAcceptMode(QFileDialog::AcceptSave);//To save files,default is open mode.
+    QString fileAbsPath = QFileDialog::getSaveFileName(this);
+    qDebug() << fileAbsPath;
+    cam -> captureSingleMesh(fileAbsPath.toStdString());
 }
 
 

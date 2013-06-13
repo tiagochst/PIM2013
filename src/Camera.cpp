@@ -365,8 +365,8 @@ void Camera::ReadFrame (
     Image*      oDepth,
     PointSet*   oPoints
 ) {
-    const int   width   = m_imageMD.XRes();
-    const int   height  = m_imageMD.YRes();
+    const XnUInt& width   = m_imageMD.XRes();
+    const XnUInt& height  = m_imageMD.YRes();
 
     if ( oBrightness ) {
         oBrightness->SetDimensions (
@@ -380,12 +380,14 @@ void Camera::ReadFrame (
             width,
             height
         );
-        oDepth->SetMaxGreyLevel ( 256 );
+        oDepth->SetMaxGreyLevel ( 1000 );
     }
 
     const XnRGB24Pixel* pImageRow = m_imageMD.RGB24Data();
     const XnDepthPixel* pDepthRow = m_depthMD.Data();
 
+    std::vector<XnPoint3D> projectivePoints;
+    std::vector<Color> colors;
     for (XnUInt y = 0; y < height; ++y)
     {
         const XnRGB24Pixel* pImage = pImageRow;
@@ -398,13 +400,13 @@ void Camera::ReadFrame (
                 (int)pImage->nGreen,
                 (int)pImage->nBlue
             );
-            int depthVal = 0;
 
-            /* HDTV rgb to grayscale*/
-            if (*pDepth != 0)
-            {
-                depthVal = m_pDepthHist[*pDepth];
-            }
+            int depthVal = 0;
+            //if (*pDepth != 0)
+            //{
+            //    depthVal = m_pDepthHist[*pDepth];
+            //}
+            depthVal = *pDepth;
 
             /* HDTV rgb to grayscale*/
             if ( oBrightness ) {
@@ -424,26 +426,47 @@ void Camera::ReadFrame (
             }
             
             if ( oPoints ) {
-                oPoints->PushVertex (
-                    Vertex (
-                        Vec3Df (
-                            (float)( width  - x ) / width,
-                            (float)( height - y ) / height,
-                            (float)( depthVal   ) / 256.f
-                        ),
-                        Vec3Df (
-                            1,
-                            0,
-                            0
-                        ),
-                        c
-                    )
-                );
+                //if (depthVal > 0.0f && depthVal < 1500) {
+                    XnPoint3D point;
+                    point.X  = x;
+                    point.Y  = y;
+                    point.Z  = depthVal;
+                    projectivePoints.push_back ( point );
+                    colors.push_back(c);
+                //}
             }
         }
 
         pImageRow += m_imageMD.XRes();
         pDepthRow += m_depthMD.XRes();
+    }
+    if ( oPoints ) {
+        std::vector<XnPoint3D> realWorld;
+        realWorld.resize ( projectivePoints.size () );
+        m_depth.ConvertProjectiveToRealWorld (
+            projectivePoints.size (),
+            &(projectivePoints[0]),
+            &(realWorld[0])
+        );
+        for ( int vtx = 0; vtx < realWorld.size (); vtx++ ) {
+            XnPoint3D pt = realWorld[vtx];
+            Color& c = colors[vtx];
+            oPoints->PushVertex (
+                Vertex (
+                    Vec3Df (
+                        (float)( pt.X ),
+                        (float)( pt.Y ),
+                        (float)( -pt.Z )
+                    ),
+                    Vec3Df (
+                        1,
+                        0,
+                        0
+                    ),
+                    c
+                )
+            );
+        }
     }
 }
 

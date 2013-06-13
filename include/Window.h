@@ -71,8 +71,8 @@ Q_OBJECT
 signals:
     void mouseLeft ();
     void mouseEntered ();
-   void mousePressed();
-   void mousePressed(int framID);
+    void mousePressed();
+    void mousePressed(int framID);
 
 public:
     AnchorLabel( const QString& text, QWidget* parent = 0);
@@ -85,7 +85,7 @@ public:
 public slots:
     void onMouseEnter ();
     void onMouseLeave ();
-    void slotClicked();	
+    void slotClicked ();	
 
 protected:
     void mousePressEvent( QMouseEvent* ev );
@@ -150,6 +150,7 @@ private :
     void addImageItems();
     void loadAnchorFrames();
     void saveAnchors();
+    void saveAnchors(const std::vector<int>& iAnchorList);
     void updateFrameList();
 
     QGroupBox       *   controlWidget;    //!< The Left dock group box.

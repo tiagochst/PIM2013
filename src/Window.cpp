@@ -117,6 +117,7 @@ void Window::setNearPlane ( const unsigned int& iNear ) {
 
 void Window::findAutoAnchors(){
 
+    ParameterHandler* params = ParameterHandler::Instance ();
     std::vector<int>     anchorFound;
 
     /* clear list of anchorFrames */
@@ -143,40 +144,53 @@ void Window::findAutoAnchors(){
         progressDialog->show ();
 
     QTextStream listOfFrames(& imageList);
-    
+
     Image refFrame(Config::FramesPath() + "image_"+ toString(refFrameID) + ".pgm");
-    
+    cout << "Ref frame ID: "<<refFrameID << endl;
+
     while(!listOfFrames.atEnd())
-      {
-	progress +=  2;
-	if (progressDialog)
-	  progressDialog->setValue (progress);
+    {
+        progress +=  2;
+        if (progressDialog)
+            progressDialog->setValue (progress);
 
-	id = listOfFrames.readLine();
-	cout << "COmparing Ref frame ID: "<<refFrameID << "With ID: "<< id.toStdString() << endl;
+        id = listOfFrames.readLine();
+        
+        std::stringstream ss ( id.toStdString () );
+        int i_id = 0;
+        ss >> i_id;
+        if (i_id == refFrameID) continue;
 
-	Image frame(Config::FramesPath() + "image_"+ id.toStdString() + ".pgm");	      
-	
-	if(ImageBase::CalculateErrorScore ( frame, refFrame ) > 0.3){
-	  cout << "Anchor frame found" << endl;
-	  bool ok;
+        Image frame(Config::FramesPath() + "image_"+ ss.str() + ".pgm");	      
 
-	  /* Save frame as an anchor */
-	  anchorFound.push_back(id.toInt(&ok,10));	  
-	}
-	
-      }
+        float errorScore = ImageBase::CalculateErrorScore ( frame, refFrame );
+        cout << errorScore << endl;
+        if( errorScore < params->GetThreshold () ){
+            cout << "Anchor frame found" << endl;
+            /* Save frame as an anchor */
+            bool ok;
+            anchorFound.push_back(id.toInt(&ok,10));	  
 
+            ///* The anchor will be our new reference */	
+            //refFrame.LoadFromFile(Config::FramesPath() + "image_"+ id.toStdString() + ".pgm");
+
+        }
+
+    }
 
     if (progressDialog)
-      progressDialog->setValue (100);
-    
-    for(int j =0; j < anchorFound.size(); j++)
-      cout << anchorFound.at(j) << endl;
-    // updateAutoAnchorPreview ();
+        progressDialog->setValue (100);
+
+    for(int j =0; j < anchorFound.size(); j++) {
+        cout << anchorFound.at(j) << endl;
+
+    }
+    updateAutoAnchorPreview ();
+    saveAnchors ( anchorFound ) ;
 
     if (progressDialog)
-      delete progressDialog;
+        delete progressDialog;
+
 
     
 }
@@ -331,6 +345,26 @@ void Window::saveAnchors(){
       fileName = anchorList -> item(i) -> text();
       fileName.append("\n");
       anchorFile.write(fileName.toUtf8());
+
+    anchorFile.close();
+}
+void Window::saveAnchors(
+    const std::vector<int>& iAnchorList
+){
+    //TODO: Create a file with the items in anchorList
+    static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
+
+    QFile anchorFile(ANCHOR_LIST_PATH.c_str());
+
+    /* Verify if the file readable*/
+    if(!anchorFile.open(QIODevice::WriteOnly))
+        return;
+
+    for(int i= 0; i < iAnchorList.size(); i++){
+        QString id("%1");
+        QString line = id   .arg(iAnchorList.operator[](i))
+                            .append("\n");
+        anchorFile.write(line.toUtf8 ());
     }
 
     anchorFile.close();

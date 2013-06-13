@@ -68,7 +68,7 @@ void GLViewer::init() {
     /* Reset far plane*/
     qglviewer::Camera * cam = camera();
     cam -> setZNearCoefficient(0.000000001f); 
-    cam -> setSceneRadius(10000.0f); 
+    cam -> setSceneRadius(100000000.0f); 
 
     glEnable( GL_POINT_SPRITE );    // GL_POINT_SPRITE_ARB if you're
                                     // using the functionality as an extension.

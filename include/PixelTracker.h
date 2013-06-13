@@ -2,6 +2,7 @@
 #define _PIXELTRACKER_H_
 
 #include <string>
+#include <Eigen/Dense>
 
 class Image;
 class TrackInfo;
@@ -15,7 +16,10 @@ private:
     unsigned int                m_nbhHeight;
     unsigned int                m_nbhWidth;
     float                       m_rejectionTreshold;
-    TrackInfo*                  m_trackInfo;
+    TrackInfo*                  m_forwardTrack;
+    TrackInfo*                  m_backwardsTrack;
+    Eigen::MatrixXf             m_disparityMapX;
+    Eigen::MatrixXf             m_disparityMapY;
 
 public:
     PixelTracker (
@@ -51,10 +55,10 @@ public:
         const unsigned int&     iTargetFrameId,
         Image*                  iTarget
     );
-    void Rematch (
-        const unsigned int&     iTargetFrameId,
-        const Image*            iTarget
-    ) const;
+    unsigned int Match (
+        const unsigned int&     iUnmatchedPixels,
+        Image*                  iTarget
+    );
     void Export (
         const std::string&      iFilename
     ) const;

@@ -29,6 +29,11 @@ public:
         const unsigned int&     iHeight
     );
 
+    const MatchDescriptor& GetMatchData (
+        const unsigned int&     iRefX,
+        const unsigned int&     iRefY
+    ) const;
+
     void SetMatch (
         const unsigned int&     iRefX,
         const unsigned int&     iRefY,

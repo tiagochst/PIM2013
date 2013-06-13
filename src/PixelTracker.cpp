@@ -478,5 +478,46 @@ void PixelTracker::Export (
     if ( m_backwardsTrack ) {
         m_backwardsTrack->CreateOutputImage ( iFilename + "backwards" );
     }
+
+    PPMImage disparityMap;
+    disparityMap.SetMaxValue ( 255u );
+    disparityMap.ResetDimensions (
+        m_refImage->GetWidth (),
+        m_refImage->GetHeight ()        
+    );
+    //PPMImage colorChart;
+    //printColorChart ( 30, 30, colorChart);
+
+    const float maxDispX = m_winWidth  * 0.5f;   
+    const float maxDispY = m_winHeight * 0.5f;
+    const float maxDisp = sqrt ( maxDispX * maxDispX + maxDispY * maxDispY );
+
+    Color c;
+    Vec3Df redDir ( 1.0f, 0.0f, 0.0f );
+    for ( unsigned int x = 0; x < m_refImage->GetWidth (); x++ ) {
+        for ( unsigned int y = 0; y < m_refImage->GetHeight (); y++ ) {
+            const float dX = m_disparityMapX ( y, x );
+            const float dY = m_disparityMapY ( y, x );
+
+            if ( dX > maxDispX || dY > maxDispY ) {
+                disparityMap.SetChannelValue ( y, x, GREY, 255u );
+                continue;
+            }
+
+            Vec3Df disp ( dX, dY, 0.0f );
+            const float value = disp.normalize () / maxDisp;
+
+            const float hue = 180.0f * acos ( Vec3Df::dotProduct ( disp, redDir ) ) / M_PI; 
+            if ( disp [1] < 0 ) {
+                c.FromHSV ( 360.0f-hue, 1.0f, value ); 
+            } else {
+                c.FromHSV ( hue, 1.0f, value ); 
+            }
+
+            disparityMap.SetChannelValue ( y, x,   RED, 255.f * c.Red () );
+            disparityMap.SetChannelValue ( y, x, GREEN, 255.f * c.Green () );
+            disparityMap.SetChannelValue ( y, x,  BLUE, 255.f * c.Blue () );
+        }
     }
+    disparityMap.WriteToFile ( iFilename, PIXMAP | BINARY );
 }

@@ -3,12 +3,21 @@
 
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 template<typename T>
 inline std::string toString ( const T& val ) {
     std::stringstream ss;
 
     ss << val;
+
+    return ss.str ();
+}
+
+inline std::string toString ( const float& val ) {
+    std::stringstream ss;
+
+    ss << std::setprecision(2) << val;
 
     return ss.str ();
 }

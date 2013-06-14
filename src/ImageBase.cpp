@@ -406,3 +406,47 @@ void ImageBase::TrackPixels(
     }
 }
 
+
+
+float ImageBase::PixelCorrelation (
+   const ImageBase& iOther,
+   const CartesianCoordinate& p,
+   const CartesianCoordinate& q,
+   const int& WinWidth,
+   const int& WinHeigh
+) const {
+
+    float correlation   = 0.f;
+    float myDenom       = 0.f;
+    float otherDenom    = 0.f;
+
+    for (
+        int x = 0;
+        x < WinWidth ;
+        x++
+    ) {
+        for (
+            int y = 0;
+            y < WinHeigh;
+            y++
+        ) {
+            CartesianCoordinate c ( x, y );
+
+            const float myVal       = GetGreyLvl (
+            p.y + y,
+            p.x + x
+            );
+            const float otherVal    = iOther.GetGreyLvl (
+             q.x + y,
+             q.x + x
+            );
+
+            myDenom     += ( myVal * myVal );
+            otherDenom  += ( otherVal * otherVal );
+            correlation += ( otherVal * myVal );
+        } 
+    } 
+    correlation /= sqrt ( myDenom * otherDenom );
+
+    return ( correlation );
+}

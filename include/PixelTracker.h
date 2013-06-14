@@ -3,6 +3,7 @@
 
 #include <string>
 #include <Eigen/Dense>
+#include <math.h>     
 
 class Image;
 class TrackInfo;
@@ -20,6 +21,7 @@ private:
     TrackInfo*                  m_backwardsTrack;
     Eigen::MatrixXf             m_disparityMapX;
     Eigen::MatrixXf             m_disparityMapY;
+    Image*                      m_depthMap;
 
 public:
     PixelTracker (
@@ -62,6 +64,52 @@ public:
     void Export (
         const std::string&      iFilename
     ) const;
+
+    /* Refinement functions*/ 
+    float computeDpX(
+        float e_1, float e0, float e1,
+        CartesianCoordinate p,CartesianCoordinate q
+    );
+    float computeDpY(
+        float e_1, float e0, float e1,
+        CartesianCoordinate p,CartesianCoordinate q
+    );
+
+    float computeDsX(
+        CartesianCoordinate p
+    );
+    float computeDsY(
+        CartesianCoordinate p
+    );
+    float computeWp(
+        float e_1, float e0, float e1
+    );
+    float getWs();
+
+    /* 
+       Mode 0 = X displacement
+       Mode 1 = Y displacement
+    */
+    float computeUs(
+        CartesianCoordinate p,
+        Image* iTarget,
+        int   iMode
+    );
+
+    float computeDprimeX(
+        float e_1, float e0, float e1,
+        CartesianCoordinate p, CartesianCoordinate q,
+        Image* iTarget
+    );
+    float computeDprimeY(
+        float e_1, float e0, float e1,
+        CartesianCoordinate p, CartesianCoordinate q,
+        Image* iTarget
+    );
+    void  disparityRefinement(
+        Image* iTarget    
+    );
+  
 };
 
 #endif // _PIXELTRACKER_H_

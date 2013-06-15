@@ -596,12 +596,13 @@ float PixelTracker::computeUs(
       /*Calculus made only with 8 neighboring pixels */
       if(x==0 && y == 0) continue;
 
-      float denom = pow(
+       // Doubt: pow (norm 2) ?
+       float denom = pow(
                         abs(
                           m_depthMap -> GetGreyLvl (p.y + y,p.x + x) 
                         - m_depthMap -> GetGreyLvl (p.y,p.x)
                        ),
-                    2);
+                        1);
  
       float exponential = exp(denom / sigma * sigma); 
       CartesianCoordinate q(p.x +x, p.y + y);
@@ -672,85 +673,133 @@ float PixelTracker::computeDprimeY(
 */
 void PixelTracker::disparityRefinement(Image * iTarget)
 {
-  int nbInteraction = 1; /* 180 for high resolution */
-  static const float inf = std::numeric_limits<float>::infinity();
-  int width = m_disparityMapX.cols();
-  int height = m_disparityMapX.rows();
-
-  Eigen::MatrixXf newDisparityMapX;
-  Eigen::MatrixXf newDisparityMapY;
-
-  newDisparityMapX.resize(height,width);
-  newDisparityMapY.resize(height,width);
-
-  for(int i = 0; i< nbInteraction ; i++){
-    /* for each pixel in disparity map calculated dprime pixel */
-    for(int x = 0; x < m_disparityMapX.cols(); x++){
-      for(int y = 0; y < m_disparityMapX.rows(); y++){
-
-        float e_1 = 0.0f, e0 = 0.0f, e1 = 0.0f;
-
-        int dispX = 0;
-        int dispY = 0;
-        
-        if (
-            !isinf ( m_disparityMapX ( y, x ) ) 
-            && !isinf ( m_disparityMapY ( y, x ))
-            && m_disparityMapY ( y, x ) < height 
-            && m_disparityMapX ( y, x ) < width
-            && m_disparityMapY ( y, x ) > -height 
-            && m_disparityMapX ( y, x ) > -width
-            ) {
-          std::cout << abs(m_disparityMapY ( y, x )) << std::endl;
-          std::cout << abs(m_disparityMapX ( y, x )) << std::endl;
-          dispX =  (int)floor(m_disparityMapX(y,x)) ;
-          dispY =  (int)floor(m_disparityMapY(y,x)) ;
-        } else {
-          newDisparityMapX(y,x) = inf;
-          newDisparityMapY(y,x) = inf;
-          continue;
+    int nbInteraction = 1; /* 180 for high resolution */
+    static const float inf = std::numeric_limits<float>::infinity();
+    int width = m_disparityMapX.cols();
+    int height = m_disparityMapX.rows();
+    
+    Eigen::MatrixXf newDisparityMapX;
+    Eigen::MatrixXf newDisparityMapY;
+    
+    newDisparityMapX.resize(height,width);
+    newDisparityMapY.resize(height,width);
+    
+    for(int i = 0; i< nbInteraction ; i++){
+        /* for each pixel in disparity map calculated dprime pixel */
+        for(int x = 0; x < m_disparityMapX.cols(); x++){
+            for(int y = 0; y < m_disparityMapX.rows(); y++){
+                
+                float e_1 = 0.0f, e0 = 0.0f, e1 = 0.0f;
+                
+                int dispX = 0;
+                int dispY = 0;
+                
+                if (
+                    !isinf ( m_disparityMapX ( y, x ) ) 
+                    && !isinf ( m_disparityMapY ( y, x ))
+                    && m_disparityMapY ( y, x ) < height 
+                    && m_disparityMapX ( y, x ) < width
+                    && m_disparityMapY ( y, x ) > -height 
+                    && m_disparityMapX ( y, x ) > -width
+                    ) {
+                    std::cout << abs(m_disparityMapY ( y, x )) << std::endl;
+                    std::cout << abs(m_disparityMapX ( y, x )) << std::endl;
+                    dispX =  (int)floor(m_disparityMapX(y,x)) ;
+                    dispY =  (int)floor(m_disparityMapY(y,x)) ;
+                } else {
+                    newDisparityMapX(y,x) = inf;
+                    newDisparityMapY(y,x) = inf;
+                    continue;
+                }
+                
+                /*Getting points to evaluate*/
+                CartesianCoordinate p (x, y);
+                
+                int q_1x = (x + dispX - 1);
+                int q_1y = (y + dispY);
+                CartesianCoordinate q_1h (q_1x,q_1y);
+                
+                int qx = (x + dispX);
+                int qy = (y + dispY);
+                CartesianCoordinate q (qx,qy);
+                
+                int q1x = (x + dispX + 1);
+                int q1y = (y + dispY);
+                CartesianCoordinate q1h (q1x, q1y);
+                
+                /* Calculate mean [NCC] = (1 - NCC) / 2 */
+                e_1 = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q_1h ,3 ,3 ))/2;
+                e0  = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q   ,3 ,3 ))/2;
+                e1  = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q1h ,3 ,3 ))/2;
+                
+                /* Calculates new value for each disparity value*/
+                newDisparityMapX(y,x) = computeDprimeX(e_1, e0, e1, p, q, iTarget);
+                
+                q_1x = (x + dispX);
+                q_1y = (y + dispY - 1 );
+                CartesianCoordinate q_1v (q_1x,q_1y);
+                
+                q1x = (x + dispX);
+                q1y = (y + dispY + 1);
+                CartesianCoordinate q1v (q1x, q1y);
+                
+                /* Calculate mean [NCC] = (1 - NCC) / 2 */
+                e_1 = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q_1v,3 ,3 ))/2;
+                e1  = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q1v ,3 ,3 ))/2;
+                
+                newDisparityMapY(y,x) = computeDprimeY(e_1, e0, e1, p, q, iTarget);
+            }
         }
-        
-        /*Getting points to evaluate*/
-        CartesianCoordinate p (x, y);
-
-        int q_1x = (x + dispX - 1);
-        int q_1y = (y + dispY);
-        CartesianCoordinate q_1h (q_1x,q_1y);
-        
-        int qx = (x + dispX);
-        int qy = (y + dispY);
-        CartesianCoordinate q (qx,qy);
-
-        int q1x = (x + dispX + 1);
-        int q1y = (y + dispY);
-        CartesianCoordinate q1h (q1x, q1y);
-
-        /* Calculate mean [NCC] = (1 - NCC) / 2 */
-        e_1 = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q_1h ,3 ,3 ))/2;
-        e0  = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q   ,3 ,3 ))/2;
-        e1  = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q1h ,3 ,3 ))/2;
-        
-        /* Calculates new value for each disparity value*/
-        newDisparityMapX(y,x) = computeDprimeX(e_1, e0, e1, p, q, iTarget);
-
-        q_1x = (x + dispX);
-        q_1y = (y + dispY - 1 );
-        CartesianCoordinate q_1v (q_1x,q_1y);
-        
-        q1x = (x + dispX);
-        q1y = (y + dispY + 1);
-        CartesianCoordinate q1v (q1x, q1y);
-
-        /* Calculate mean [NCC] = (1 - NCC) / 2 */
-        e_1 = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q_1v,3 ,3 ))/2;
-        e1  = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q1v ,3 ,3 ))/2;
-
-        newDisparityMapY(y,x) = computeDprimeY(e_1, e0, e1, p, q, iTarget);
-      }
-    }
-    m_disparityMapX = newDisparityMapX;
-    m_disparityMapY = newDisparityMapY;
+        m_disparityMapX = newDisparityMapX;
+        m_disparityMapY = newDisparityMapY;
   }
+}
+
+/* GDB function call displayDisparityMapX() */
+void PixelTracker::displayDisparityMapX()
+{
+    int width = m_disparityMapX.cols();
+    int height = m_disparityMapX.rows();
+    
+    for(int x = 0; x < width; x++){
+        for(int y = 0; y < height; y++){
+            
+            if (
+                !isinf ( m_disparityMapX ( y, x ) ) 
+                ) {
+                if( m_disparityMapX ( y, x ) > height 
+                    || m_disparityMapX ( y, x ) < -height 
+                    ){
+                    std::cout << "Strange value" << m_disparityMapY ( y, x )  << " ";
+                }
+            }
+        }
+//        std::cout << std::endl;
+    }
+}
+
+
+/* GDB function */
+void PixelTracker::displayDisparityMapY()
+{
+    int width = m_disparityMapY.cols();
+    int height = m_disparityMapY.rows();
+    
+    for(int x = 0; x < width; x++){
+        for(int y = 0; y < height; y++){
+
+            if (
+                !isinf ( m_disparityMapY ( y, x ) ) 
+                ) {
+                if( m_disparityMapY ( y, x ) > height 
+                    || m_disparityMapY ( y, x ) < -height 
+                    ){
+
+                std::cout << "Strange value" << m_disparityMapY ( y, x )  << " ";
+                }
+            }
+        }
+        //       std::cout << std::endl;
+    }
 }
 

@@ -109,7 +109,12 @@ public:
     void  disparityRefinement(
         Image* iTarget    
     );
-  
+    /* GDB Functions */
+    void displayDisparityMapX();
+    
+    /* GDB Functions */
+    void displayDisparityMapY();
+
 };
 
 #endif // _PIXELTRACKER_H_

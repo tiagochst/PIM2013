@@ -4,9 +4,14 @@
 #include <Eigen/Dense>
 
 struct MatchDescriptor {
+    bool            m_matched;
     float           m_score;
-    unsigned int    m_xCoord;
-    unsigned int    m_yCoord;
+    int    m_xCoord;
+    int    m_yCoord;
+
+    MatchDescriptor ()
+        :   m_matched (false), m_score (1.0f), m_xCoord(0u), m_yCoord(0u)
+    {}
 };
 
 using namespace Eigen;
@@ -29,6 +34,10 @@ public:
         const unsigned int&     iHeight
     );
 
+    MatchDescriptor& GetMatchData (
+        const unsigned int&     iRefX,
+        const unsigned int&     iRefY
+    );
     const MatchDescriptor& GetMatchData (
         const unsigned int&     iRefX,
         const unsigned int&     iRefY

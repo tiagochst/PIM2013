@@ -265,6 +265,7 @@ unsigned int PixelTracker::Match (
 
     const unsigned int width  = m_refImage->GetWidth (); 
     const unsigned int height = m_refImage->GetHeight ();
+    const unsigned int totalPixels = width * height;
 
     #pragma omp parallel for
     for ( int x = 0; x < width; x++ ) {
@@ -288,6 +289,41 @@ unsigned int PixelTracker::Match (
             float leftScore     = -inf;
             float backScore     = -inf;
 
+            Eigen::Matrix3f ndX;
+            Eigen::Matrix3f ndY;
+            ndX.fill ( inf );
+            ndY.fill ( inf );
+
+            float minDispX =  inf;
+            float minDispY =  inf;
+            float maxDispX = -inf;
+            float maxDispY = -inf;
+            #pragma omp critical
+            {
+                for ( int xx = x - 1; xx < x + 1; xx++ ) {
+                    for ( int yy = y - 1; yy < y + 1; yy++ ) {
+                        unsigned int idX = xx - x + 1;
+                        unsigned int idY = yy - y + 1;
+                        if (
+                                ( yy >= 0 && xx >= 0 )
+                            &&  ( yy < height && xx < width )
+                        ) {
+                            float& a = ndX ( idY, idX ) = m_disparityMapX ( yy, xx );
+                            float& b = ndY ( idY, idX ) = m_disparityMapY ( yy, xx );
+
+                            minDispX = min ( a, minDispX );
+                            minDispY = min ( b, minDispY );
+                            maxDispX = max ( a, maxDispX );
+                            maxDispY = max ( b, maxDispY );
+                        }
+                    }
+                }
+            }
+            minDispX = ( isinf ( minDispX ) ) ? 0 : minDispX;
+            minDispY = ( isinf ( minDispY ) ) ? 0 : minDispY;
+            maxDispX = ( isinf ( maxDispX ) ) ? 0 : maxDispX;
+            maxDispY = ( isinf ( maxDispY ) ) ? 0 : maxDispY;
+
             m_refImage->GetSubImage (
                 x - m_nbhWidth / 2,     // X
                 y - m_nbhHeight / 2,    // Y
@@ -297,10 +333,10 @@ unsigned int PixelTracker::Match (
             );
             fmd.m_score  = iTarget->TemplateMatch (
                 neighbourhood,
-                x - m_winWidth / 2,     // X
-                y - m_winHeight / 2,    // Y
-                m_winWidth,             // Width
-                m_winHeight,            // Height
+                x - m_winWidth / 2   + minDispX,                // X
+                y - m_winHeight / 2  + minDispY,                // Y
+                m_winWidth           + (maxDispX - minDispX),   // Width
+                m_winHeight          + (maxDispY - minDispY),   // Height
                 bestMatch,
                 &correlationMap
             );
@@ -317,10 +353,10 @@ unsigned int PixelTracker::Match (
             );
             bmd.m_score  = m_refImage->TemplateMatch (
                 neighbourhood,
-                bestMatch.x - m_winWidth / 2,   // X
-                bestMatch.y - m_winHeight / 2,  // Y
-                m_winWidth,                     // Width
-                m_winHeight,                    // Height
+                bestMatch.x - m_winWidth / 2    ,//+ minDispX,                // X
+                bestMatch.y - m_winHeight / 2   ,//+ minDispY,                // Y
+                m_winWidth                      ,//+ (maxDispX - minDispX),   // Width
+                m_winHeight                     ,//+ (maxDispY - minDispY),   // Height
                 bestMatch,
                 &correlationMap
             );
@@ -328,6 +364,64 @@ unsigned int PixelTracker::Match (
             bmd.m_yCoord = bestMatch.y;
             m_backwardsTrack->SetMatch ( x, y, bmd );
 
+            #pragma omp critical
+            {
+                m_disparityMapX ( y, x ) = fmd.m_xCoord - x;
+                m_disparityMapY ( y, x ) = fmd.m_yCoord - y;
+
+                //if ( abs(fmd.m_xCoord >= m_winWidth / 2 ) )
+                //    std::cerr << "Error DispX " << fmd.m_xCoord << " " << x << " " << y << std::endl;
+                //if ( abs(fmd.m_yCoord >= m_winHeight / 2 ) )
+                //    std::cerr << "Error DispY " << fmd.m_yCoord << " " << x << " " << y << std::endl;
+            }
+        }
+    }
+    #pragma omp parallel for
+    for ( unsigned int x = 0; x < width; x++ ) {
+        #pragma omp parallel for
+        for ( unsigned int y = 0; y < height; y++ ) {
+            MatchDescriptor& fmd = m_forwardTrack->GetMatchData ( x, y );
+            MatchDescriptor& bmd = m_backwardsTrack->GetMatchData ( x, y );
+
+            if (
+                fmd.m_matched
+            ) {
+                continue;
+            } 
+
+            bool match = true;
+
+            Eigen::Matrix3f ndX;
+            Eigen::Matrix3f ndY;
+            ndX.fill ( inf );
+            ndY.fill ( inf );
+            unsigned int count = 0;
+            unsigned int total = 0;
+            #pragma omp critical
+            {
+                for ( int xx = x - 1; xx < x + 1; xx++ ) {
+                    for ( int yy = y - 1; yy < y + 1; yy++ ) {
+                        unsigned int idX = xx - x + 1;
+                        unsigned int idY = yy - y + 1;
+                        if (
+                                ( yy >= 0 && xx >= 0 )
+                            &&  ( yy < height && xx < width )
+                        ) {
+                            float& a = ndX ( idY, idX ) = m_disparityMapX ( yy, xx );
+                            float& b = ndY ( idY, idX ) = m_disparityMapY ( yy, xx );
+
+                            if ( sqrt ( a*a + b*b ) <= 1.0f ) {
+                                count++;
+                            }
+                            total++;
+                        }
+                    }
+                }
+            }
+            if ( total ) {
+                match &= ( ( (float)count / (float)total ) >= 0.5f );
+            }
+            
             Vec3Df fme = Vec3Df (
                 (float)fmd.m_xCoord - x,
                 (float)fmd.m_yCoord - y,
@@ -338,90 +432,31 @@ unsigned int PixelTracker::Match (
                 (float)bmd.m_yCoord - fmd.m_yCoord,
                 0.0f
             );
-            Vec3Df movEst = fme + bme;
 
-            bool match = true;
-            #pragma omp critical
-            {
-                if ( x < width - 1 ) {
-                    float rDispX = m_disparityMapX ( y, x + 1 );
-                    float rDispY = m_disparityMapY ( y, x + 1 );
-                    if (
-                            !isinf ( rDispX )
-                        &&  !isinf ( rDispY )
-                    ) {
-                        match &= abs( fme[0] - rDispX ) <= 1.0f;
-                        match &= abs( fme[1] - rDispY ) <= 1.0f;
-                    }
-                }
+            float& rDispX = ndX ( 0, 1 );
+            float& rDispY = ndY ( 0, 1 );
+            if (
+                    !isinf ( rDispX )
+                &&  !isinf ( rDispY )
+            ) {
+                match &= abs( fme[0] - rDispX ) <= 1.0f;
+                match &= abs( fme[1] - rDispY ) <= 1.0f;
             }
-            match &= ( movEst.getLength() <= 1.0f );
+            match &= ( ( fme + bme ).getLength() <= 1.0f );
 
             #pragma omp critical
             {
                 if ( match ) {
                     unmatchedPixels--;
-                    m_disparityMapX ( y, x ) = fme[0];
-                    m_disparityMapY ( y, x ) = fme[1];
+                    fmd.m_matched = true;
+                    bmd.m_matched = true;
+                } else {
+                    m_disparityMapX ( y, x ) = inf;
+                    m_disparityMapY ( y, x ) = inf;
                 }
             }
         }
     }
-    //#pragma omp parallel for
-    //for ( unsigned int x = 0; x < width; x++ ) {
-    //    #pragma omp parallel for
-    //    for ( unsigned int y = 0; y < height; y++ ) {
-    //        if (
-    //                !isinf ( m_disparityMapX ( y, x ) ) 
-    //            ||  !isinf ( m_disparityMapY ( y, x ) )
-    //        ) {
-    //            continue;
-    //        } 
-    //        MatchDescriptor& fmd = m_forwardTrack->GetMatchData ( x, y );
-    //        MatchDescriptor& bmd = m_backwardsTrack->GetMatchData ( x, y );
-
-    //        Vec3Df fme = Vec3Df (
-    //            (float)fmd.m_xCoord - x,
-    //            (float)fmd.m_yCoord - y,
-    //            0.0f
-    //        );
-    //        Vec3Df bme = Vec3Df (
-    //            (float)bmd.m_xCoord - fmd.m_xCoord,
-    //            (float)bmd.m_yCoord - fmd.m_yCoord,
-    //            0.0f
-    //        );
-    //        Vec3Df movEst = fme + bme;
-
-    //        bool match = true;
-    //        #pragma omp critical
-    //        {
-    //            if ( x < width - 1 ) {
-    //                float rDispX = m_disparityMapX ( y, x + 1 );
-    //                float rDispY = m_disparityMapY ( y, x + 1 );
-    //                if (
-    //                        !isinf ( rDispX )
-    //                    &&  !isinf ( rDispY )
-    //                ) {
-    //                    match &= abs( fme[0] - rDispX ) <= 1.0f;
-    //                    match &= abs( fme[1] - rDispY ) <= 1.0f;
-    //                }
-    //            }
-    //        }
-    //        match &= ( movEst.getLength() <= 1.0f );
-
-    //        #pragma omp critical
-    //        {
-    //            if ( match ) {
-    //                std::cout << "Match: "  << x << " "
-    //                                        << y << " "
-    //                                        << fme[0] << " "
-    //                                        << fme[1] << std::endl;
-    //                unmatchedPixels--;
-    //                
-    //            }
-    //        }
-    //    }
-    //}
 
     return unmatchedPixels;
 }

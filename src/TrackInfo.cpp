@@ -25,6 +25,13 @@ void TrackInfo::SetDimensions (
     );
 }
 
+MatchDescriptor& TrackInfo::GetMatchData (
+    const unsigned int&     iRefX,
+    const unsigned int&     iRefY
+) {
+    return m_matches ( iRefY, iRefX );
+}
+
 const MatchDescriptor& TrackInfo::GetMatchData (
     const unsigned int&     iRefX,
     const unsigned int&     iRefY

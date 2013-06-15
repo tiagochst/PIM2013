@@ -388,3 +388,5 @@ void Image::CalculateAnchors (
     }
     omp_destroy_lock ( &curImgLock );
 }
+
+

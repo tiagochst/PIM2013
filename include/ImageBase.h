@@ -139,6 +139,14 @@ public:
         ImageBase&          iImageA,
         ImageBase&          iImageB
     );
+    
+    float PixelCorrelation (
+        const ImageBase& iOther,
+        const CartesianCoordinate&    p,
+        const CartesianCoordinate&    q,
+        const int&          WinWidth,
+        const int&          WinHeigh
+    ) const;
 
 };
 

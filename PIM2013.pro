@@ -42,8 +42,8 @@ SOURCES              =  src/Window.cpp                  \
                         src/Color.cpp                   \ 
                         src/Config.cpp                  \ 
                         src/PointSet.cpp                \
-                        src/main.cpp                    \
-                        #src/sandbox.cpp                 \
+                        #src/main.cpp                    \
+                        src/sandbox.cpp                 \
                         src/ParameterHandler.cpp        \
                         src/PlyFile.c                   \
                         src/FileWriterServices.cpp      \

@@ -35,11 +35,74 @@
 \newpage
 \setcounter{page}{1}
 
-\section*{Introduction}
+\section{Résume}
 
-\section*{Etat de l'art}
+\section{Introduction}
 
-\section*{Remerciement}
+Les animations faciales ont eu plusieurs aproches dans les deux décennies. Les dernières méthodes sont basée sur une capture passive dont la configuration est presque entièrement automatiques [Bradley et al. 2010; Popa et al. 2010]. 
+
+Cependant, une technique pour capturer des performances expressives très détaillées qui évite détérioration avec le temps doit encore être réalisé.
+
+L'objectif du projet est la recherche et la mise au point d'un algorithme de reconstruction 3D de surface dynamiques appliqué spécifiquement à un visage. 
+
+Les données d'entrées sont provienues d'une kinects.
+
+\section{Etat de l'art}
+
+Les animations faciales a eu plusieurs approches dans les deux décennies, 
+parmi eux: l'utilisation des modèles de visage qui sont ajustent aux images, 
+l'utilisent de l'éclairage actif et utilisent des marqueur.
+
+En vue d'avoir une méthode moins coûteux et intrusif, les dernières méthodes sur les animations faciales sont basée sur une capture passive.
+
+% dont la configuration est presque entièrement automatiques.   [Bradley et al. 2010; Popa et al. 2010]. 
+
+Dans cette section, nous aurons une bref description de chaque approche.
+
+\subsection{Ajuster les faces aux images}
+Une approche pour la capture des faces est de commencer avec un modèle de visage déformable, puis de déterminer les paramètres qui correspondent le mieux au modèle des images ou des vidéos d'un acteur performant.
+
+Un inconvenient de cette approche est qu'il exige un grande nombre de calculs et pour qu'il soit traitable, le modèle de visage doit être d'une faible résolution.
+Comme résultat, il n'est généralement pas possible d'obtenir les détails les plus fins qui sont responsables pour les expressions et réalisme de la scene.
+
+De plus, le visage déformable a tendance à être très générique, de sorte que les animations résultant souvent ne ressemblent pas à l'acteur capturé.
+
+\subsection{Marqueurs et éclairage actif}
+
+Une autre approche commune pour la capture d'une scene est l'utilisation des marqueurs placés à la main ou de la peinture pour le visage.
+
+Ces technique peuvent produire un suivi robuste des performances très expressifs et sont généralement adaptés à une variété de conditions d'éclairage.
+
+Cependant, un inconvenient de l'utilisation des marqueurs est le coût de les placer manuellement, ainsi comme la caracteristique invasive de la technique. De plus, pour acquerir la couler de la visage ou de la texture, ces marqueurs doievent être retirés.
+
+En outre, cette méthode présent aussi l'inconvenient de fournir une résolution limitée, car la capture à une échelle des pores n'a pas été démontré avec cette approche.
+
+Une alternative à placer des marqueurs sur le visage est de projeter un éclairage actif sur le sujet. D'une part, cette approche nécessite moins de la configuration manuel, mais il continue à être envahissant et constitue encore un problème pour la acquisition de la couleur.
+
+\subsection{Capture passive }
+
+Les recherches plus récents s'ont concentrées sur la reconstruction passive, c'est-à-dire, sans la nécessité de marqueurs, de la lumière structurée ou du matériel coûteux.
+
+Les résultats obtenus par ce type approche sont très satifaisants, par exemple la reconstituitions de la géométrie du visage a uné échelle des pores a été déjà réalisé.
+
+Cependant, il reste encore des improvements pour cette approche, notamment par rapport à la propagation de la maillage de points d'une trame à autre.
+
+\section{Le projet}
+
+Les cinq étapes de la méthode sont:
+\begin{enumerate}
+\item Calcul du maillage initial
+\item Ancrage
+\item Localisation image-space
+\item Propagation de la maillage
+\item Raffinement de maillage
+\end{enumerate}
+
+\section{Résultats}
+
+\section{Conclusion}
+
+\section{Remerciement}
 Nous tiendrons tout d’abord à remercier Dr Tamy Boubekeur, le professeur responsable du projet et notre tuteur, de nous avoir accueilli comme élévés au sein du projet et la confiance qu’il nous a accordé tout au long de notre projet.
 
 Nous remercions également Thierry Guillemot et Stéphane Calderon, pour leur volonté à m’aider pendant toute la période de notre projet PIM.

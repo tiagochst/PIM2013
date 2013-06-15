@@ -590,8 +590,12 @@ float PixelTracker::computeUs(
   int width  = m_disparityMapX.cols(); 
   int height = m_disparityMapX.rows(); 
 
-  for(int x = -1; x < 1; x++){
-    for(int y = -1; y < 1; y++){
+  for(int x = -1; x <= 1; x++){
+    for(int y = -1; y <= 1; y++){
+
+      /*Calculus made only with 8 neighboring pixels */
+      if(x==0 && y == 0) continue;
+
       float denom = pow(
                         abs(
                           m_depthMap -> GetGreyLvl (p.y + y,p.x + x) 
@@ -637,7 +641,7 @@ float PixelTracker::getWs()
 
 /* Calculate refinament adjustment */ 
 float PixelTracker::computeDprimeX(
-                                   float e_1, float e0, float e1,CartesianCoordinate p,CartesianCoordinate q, Image * iTarget
+   float e_1, float e0, float e1,CartesianCoordinate p,CartesianCoordinate q, Image * iTarget
 ){
   float dp = computeDpX(e_1, e0, e1,p, q);
   //float ds = computeDsX(p);
@@ -668,14 +672,16 @@ float PixelTracker::computeDprimeY(
 */
 void PixelTracker::disparityRefinement(Image * iTarget)
 {
-  int nbInteraction = 10; /* 180 for high resolution */
+  int nbInteraction = 1; /* 180 for high resolution */
   static const float inf = std::numeric_limits<float>::infinity();
+  int width = m_disparityMapX.cols();
+  int height = m_disparityMapX.rows();
 
   Eigen::MatrixXf newDisparityMapX;
   Eigen::MatrixXf newDisparityMapY;
 
-  newDisparityMapX.resize(m_disparityMapX.rows(),m_disparityMapX.cols());
-  newDisparityMapY.resize(m_disparityMapX.rows(),m_disparityMapX.cols());
+  newDisparityMapX.resize(height,width);
+  newDisparityMapY.resize(height,width);
 
   for(int i = 0; i< nbInteraction ; i++){
     /* for each pixel in disparity map calculated dprime pixel */
@@ -689,22 +695,28 @@ void PixelTracker::disparityRefinement(Image * iTarget)
         
         if (
             !isinf ( m_disparityMapX ( y, x ) ) 
-            &&  !isinf ( m_disparityMapY ( y, x ) )
+            && !isinf ( m_disparityMapY ( y, x ))
+            && m_disparityMapY ( y, x ) < height 
+            && m_disparityMapX ( y, x ) < width
+            && m_disparityMapY ( y, x ) > -height 
+            && m_disparityMapX ( y, x ) > -width
             ) {
-          dispX =  floor(m_disparityMapX(y,x)) ;
-          dispY =  floor(m_disparityMapY(y,x)) ;
+          std::cout << abs(m_disparityMapY ( y, x )) << std::endl;
+          std::cout << abs(m_disparityMapX ( y, x )) << std::endl;
+          dispX =  (int)floor(m_disparityMapX(y,x)) ;
+          dispY =  (int)floor(m_disparityMapY(y,x)) ;
         } else {
           newDisparityMapX(y,x) = inf;
+          newDisparityMapY(y,x) = inf;
           continue;
         }
         
         /*Getting points to evaluate*/
         CartesianCoordinate p (x, y);
 
-
         int q_1x = (x + dispX - 1);
         int q_1y = (y + dispY);
-        CartesianCoordinate q_1 (q_1x,q_1y);
+        CartesianCoordinate q_1h (q_1x,q_1y);
         
         int qx = (x + dispX);
         int qy = (y + dispY);
@@ -712,18 +724,29 @@ void PixelTracker::disparityRefinement(Image * iTarget)
 
         int q1x = (x + dispX + 1);
         int q1y = (y + dispY);
-        CartesianCoordinate q1 (q1x, q1y);
+        CartesianCoordinate q1h (q1x, q1y);
 
         /* Calculate mean [NCC] = (1 - NCC) / 2 */
-        e_1 = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q_1 ,3 ,3 ))/2;
+        e_1 = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q_1h ,3 ,3 ))/2;
         e0  = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q   ,3 ,3 ))/2;
-        e1  = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q1  ,3 ,3 ))/2;
+        e1  = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q1h ,3 ,3 ))/2;
         
         /* Calculates new value for each disparity value*/
         newDisparityMapX(y,x) = computeDprimeX(e_1, e0, e1, p, q, iTarget);
 
+        q_1x = (x + dispX);
+        q_1y = (y + dispY - 1 );
+        CartesianCoordinate q_1v (q_1x,q_1y);
+        
+        q1x = (x + dispX);
+        q1y = (y + dispY + 1);
+        CartesianCoordinate q1v (q1x, q1y);
 
-        //newDisparityMapY(y,x) = computeDprimeY(e_1, e0, e1, p, q, iTarget);
+        /* Calculate mean [NCC] = (1 - NCC) / 2 */
+        e_1 = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q_1v,3 ,3 ))/2;
+        e1  = (1 - m_refImage -> PixelCorrelation (*iTarget ,p, q1v ,3 ,3 ))/2;
+
+        newDisparityMapY(y,x) = computeDprimeY(e_1, e0, e1, p, q, iTarget);
       }
     }
     m_disparityMapX = newDisparityMapX;

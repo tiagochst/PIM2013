@@ -61,8 +61,10 @@ int main ( void ) {
 
     pixTracker.Track ( 15);
 
+    pixTracker.Export ( Config::OutputPath () + "/TCSNorefinement_"+toString(0.95)+"n.ppm" );
+
     pixTracker.disparityRefinement (&frame1);
-    pixTracker.Export ( Config::OutputPath () + "/TCSTracking01_"+toString(0.95)+"n.ppm" );
+    pixTracker.Export ( Config::OutputPath () + "/TCSrefinement_"+toString(0.95)+"n.ppm" );
 
     dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingTestx.pgm");
     dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingTesty.pgm");

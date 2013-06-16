@@ -54,6 +54,8 @@ public:
         const float&                iValue
     );
 
+    Image* Filter ();
+
     static void CalculateAnchors (
         const unsigned int&         iTotalFrameCount,
         const unsigned int&         iReferenceFrame,

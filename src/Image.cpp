@@ -309,6 +309,46 @@ inline const float& Image::GetNormed (
     return GetNormed ( iPos.y, iPos.x );
 }
 
+static const int GaussianResolution = 5;
+static const float GaussianCoefficients[5][5] = {
+    {  1.0f/273.0f,  4.0f/273.0f,  7.0f/273.0f,  4.0f/273.0f,  1.0f/273.0f },
+    {  4.0f/273.0f, 16.0f/273.0f, 26.0f/273.0f, 16.0f/273.0f,  4.0f/273.0f },
+    {  7.0f/273.0f, 26.0f/273.0f, 41.0f/273.0f, 26.0f/273.0f,  7.0f/273.0f },
+    {  4.0f/273.0f, 16.0f/273.0f, 26.0f/273.0f, 16.0f/273.0f,  4.0f/273.0f },
+    {  1.0f/273.0f,  4.0f/273.0f,  7.0f/273.0f,  4.0f/273.0f,  1.0f/273.0f }
+};
+//static const int GaussianResolution = 3;
+//static const float GaussianCoefficients[3][3] = {
+//    { 0.07511360795411207f, 0.12384140315297386f, 0.07511360795411207f }, 
+//    { 0.12384140315297386f, 0.20417995557165622f, 0.12384140315297386f }, 
+//    { 0.07511360795411207f, 0.12384140315297386f, 0.07511360795411207f } 
+//};
+Image* Image::Filter () {
+    Image* result = new Image ( GetWidth (), GetHeight (), GetMaxGreyLevel () );
+
+    for ( unsigned int i = 0; i < GetWidth (); i++ ) {
+        for ( unsigned int j = 0; j < GetHeight (); j++ ) {
+            float filteredValue = 0;
+            
+            for ( int ii = 0; ii < GaussianResolution; ii++ ) {
+                for ( int jj = 0; jj < GaussianResolution; jj++ ) {
+                    const float& value = GetGreyLvl (
+                        j + jj - GaussianResolution / 2,
+                        i + ii - GaussianResolution / 2
+                    );
+
+                    filteredValue   += GaussianCoefficients[jj][ii]
+                                     * value;
+
+                }
+            }
+
+            result->SetGreyLvl ( j, i, filteredValue );
+        }
+    }
+
+    return result;
+}
 void Image::CalculateAnchors (
     const unsigned int&         iTotalFrameCount,
     const unsigned int&         iReferenceFrame,

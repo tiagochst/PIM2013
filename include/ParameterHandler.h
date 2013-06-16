@@ -29,7 +29,7 @@ private:
         :   m_frame1 ( 0 ),
             m_frame2 ( 0 ),
             m_mesh ( true ),
-            m_wSize ( 9 ),
+            m_wSize ( 5 ),
             m_nSize ( 9 ),
             m_cameraFound (false),
             m_numCaptureFrames ( 35 ),

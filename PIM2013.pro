@@ -30,6 +30,7 @@ HEADERS              =  include/Window.h                \
                         include/PNMImage.h              \
                         include/PNMImageDefs.h          \
                         include/PixelTracker.h          \
+                        include/ImagePyramid.h          \
                         include/TrackInfo.h
 
 SOURCES              =  src/Window.cpp                  \
@@ -50,6 +51,7 @@ SOURCES              =  src/Window.cpp                  \
                         src/PPMImage.cpp                \
                         src/PNMImage.cpp                \
                         src/PixelTracker.cpp            \
+                        src/ImagePyramid.cpp            \
                         src/TrackInfo.cpp
 
 

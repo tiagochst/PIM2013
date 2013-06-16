@@ -335,6 +335,25 @@ Image* Image::Filter () {
 
     return result;
 }
+
+Image* Image::SubSample (
+    const unsigned int&         iFactor
+) const {
+    Image* result = new Image ( GetWidth () / iFactor, GetHeight () / iFactor, GetMaxGreyLevel () );
+
+    for ( unsigned int i = 0; ( i * iFactor ) < GetWidth (); i++ ) {
+        for ( unsigned int j = 0; ( j * iFactor ) < GetHeight (); j++ ) {
+            result->SetGreyLvl (
+                j,
+                i,
+                GetGreyLvl ( iFactor * j, iFactor * i )
+            );
+        }
+    }
+
+    return result;
+}
+
 void Image::CalculateAnchors (
     const unsigned int&         iTotalFrameCount,
     const unsigned int&         iReferenceFrame,

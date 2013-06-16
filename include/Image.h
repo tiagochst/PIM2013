@@ -56,6 +56,11 @@ public:
 
     Image* Filter ();
 
+    Image* SubSample (
+        const unsigned int&         iFactor
+    ) const;
+    
+
     static void CalculateAnchors (
         const unsigned int&         iTotalFrameCount,
         const unsigned int&         iReferenceFrame,

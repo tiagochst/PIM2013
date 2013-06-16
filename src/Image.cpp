@@ -149,6 +149,7 @@ inline void Image::ResetMatrix ()
 {
     m_figure.resize ( m_height, m_width );
     m_normalisedFigure.resize ( m_height, m_width );
+    ClearMatrix ();
 }
 
 inline void Image::SetDimensions (

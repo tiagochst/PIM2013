@@ -11,8 +11,10 @@ class ImagePyramid
 private:
     std::vector<Image*>     m_levels;
     unsigned int            m_samplingFactor;
+    unsigned int            m_numLevels;
 
 public:
+    ImagePyramid ();
     ImagePyramid (
         const Image*        iSource,
         const unsigned int& iSamplingFactor=2
@@ -22,8 +24,14 @@ public:
     void Export (
         const std::string&  iFilename
     ) const;
+    void SetSamplingFactor (
+        const unsigned int&  iSamplingFactor
+    );
     const unsigned int& GetSamplingFactor () const;
     const unsigned int& GetNumLevels () const;
+    void SetNumLevels (
+        const unsigned int& iNumLevels
+    );
     const Image* Top () const;
     Image* Top ();
 
@@ -36,6 +44,15 @@ public:
 
     Image* operator[] (
         const unsigned int& iIndex
+    );
+
+    void Assign (
+        const Image*        iBase
+    );
+    void Clear ();
+    void SetLevel (
+        const unsigned int& iIndex,
+        Image*              iLevelData
     );
 };
 

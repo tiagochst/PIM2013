@@ -16,8 +16,8 @@ private:
     int                 m_height;
     int                 m_width;
     int                 m_maxGreyLevel;
-    Eigen::MatrixXi*    m_figure;
-    Eigen::MatrixXf*    m_normalisedFigure;
+    Eigen::MatrixXi     m_figure;
+    Eigen::MatrixXf     m_normalisedFigure;
 
 public:
     Image ();

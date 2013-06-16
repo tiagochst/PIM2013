@@ -11,6 +11,40 @@
 
 #include <cmath>
 
+bool my_isnan (
+    const float&    iValue
+) {
+    const unsigned char* cval = reinterpret_cast<const unsigned char*>(&iValue);
+
+    static const float nqnan = -std::numeric_limits<float>::quiet_NaN();
+    bool nqnantest = true;
+    const unsigned char* cnan = reinterpret_cast<const unsigned char*>(&nqnan);
+    for ( unsigned int i = 0; i < sizeof (float); i++ ) {
+        nqnantest &= (cval[i] == cnan[i]);
+    }
+    static const float qnan = std::numeric_limits<float>::quiet_NaN();
+    bool qnantest = true;
+    cnan = reinterpret_cast<const unsigned char*>(&qnan);
+    for ( unsigned int i = 0; i < sizeof (float); i++ ) {
+        qnantest &= (cval[i] == cnan[i]);
+    }
+
+    static const float nsnan = -std::numeric_limits<float>::signaling_NaN();
+    bool nsnantest = true;
+    cnan = reinterpret_cast<const unsigned char*>(&nsnan);
+    for ( unsigned int i = 0; i < sizeof (float); i++ ) {
+        nsnantest &= (cval[i] == cnan[i]);
+    }
+    static const float snan = std::numeric_limits<float>::signaling_NaN();
+    bool snantest = true;
+    cnan = reinterpret_cast<const unsigned char*>(&snan);
+    for ( unsigned int i = 0; i < sizeof (float); i++ ) {
+        snantest &= (cval[i] == cnan[i]);
+    }
+
+    return (snantest || qnantest) || (nsnantest || nqnantest);
+} 
+
 PixelTracker::PixelTracker (
     const unsigned int&         iReferenceId
 )   :   m_referenceId ( iReferenceId ),

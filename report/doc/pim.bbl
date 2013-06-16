@@ -1,0 +1,14 @@
+\begin{thebibliography}{}
+
+\bibitem[Beeler et~al., 2010]{Beeler:2010:HSC:1778765.1778777}
+Beeler, T., Bickel, B., Beardsley, P., Sumner, B., and Gross, M. (2010).
+\newblock High-quality single-shot capture of facial geometry.
+\newblock {\em ACM Trans. Graph.}, 29(4):40:1--40:9.
+
+\bibitem[Beeler et~al., 2011]{Beeler:2011:HPF:2010324.1964970}
+Beeler, T., Hahn, F., Bradley, D., Bickel, B., Beardsley, P., Gotsman, C.,
+  Sumner, R.~W., and Gross, M. (2011).
+\newblock High-quality passive facial performance capture using anchor frames.
+\newblock {\em ACM Trans. Graph.}, 30(4):75:1--75:10.
+
+\end{thebibliography}

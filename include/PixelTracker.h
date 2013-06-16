@@ -4,6 +4,7 @@
 #include <string>
 #include <Eigen/Dense>
 #include <math.h>     
+#include "ImagePyramid.h"
 
 class Image;
 class TrackInfo;
@@ -11,12 +12,23 @@ class TrackInfo;
 class PixelTracker {
 private:
     unsigned int                m_referenceId;
+    unsigned int                m_targetId;
     Image*                      m_refImage;
     unsigned int                m_winHeight;
     unsigned int                m_winWidth;
     unsigned int                m_nbhHeight;
     unsigned int                m_nbhWidth;
     float                       m_rejectionTreshold;
+    
+    unsigned int                m_refId;
+    unsigned int                m_tarId;
+    ImagePyramid                m_refImgPyr;
+    ImagePyramid                m_refDepPyr;
+    ImagePyramid                m_tarImgPyr;
+    ImagePyramid                m_tarDepPyr;
+    ImagePyramid                m_dispX;
+    ImagePyramid                m_dispY;
+
     TrackInfo*                  m_forwardTrack;
     TrackInfo*                  m_backwardsTrack;
     Eigen::MatrixXf             m_disparityMapX;
@@ -115,6 +127,38 @@ public:
     /* GDB Functions */
     void displayDisparityMapY();
 
+    void SetReference (
+        const unsigned int&     iReferenceId,
+        const Image*            iReferenceImage,
+        const Image*            iReferenceDepth
+    );
+    void SetTarget (
+        const unsigned int&     iTargetId,
+        const Image*            iTargetImage,
+        const Image*            iTargetDepth
+    );
+    void Track ();
+    void PyramidTrack (
+        const unsigned int&     iLevel
+    );
+    void PyramidMatch (
+        const unsigned int&     iLevel
+    );
+    void PyramidRematch (
+        const unsigned int&     iLevel
+    );
+    void PyramidSmooth (
+        const unsigned int&     iLevel
+    );
+    void PyramidOrdering (
+        const unsigned int&     iLevel
+    );
+    void PyramidUniqueness (
+        const unsigned int&     iLevel
+    );
+    void PyramidRefine (
+        const unsigned int&     iLevel
+    );
 };
 
 #endif // _PIXELTRACKER_H_

@@ -8,6 +8,7 @@
 #include "Tools.h"
 #include "Color.h"
 #include "PPMImage.h"
+#include "MathUtils.h"
 
 #include <cmath>
 
@@ -58,8 +59,23 @@ PixelTracker::PixelTracker (
         m_backwardsTrack ( (TrackInfo*)0x0 ),
         m_disparityMapX (),
         m_disparityMapY (),
-        m_depthMap() 
-{}
+        m_depthMap (), 
+        m_refId ( 0 ),
+        m_tarId ( 0 ),
+        m_refImgPyr (),
+        m_refDepPyr (),
+        m_tarImgPyr (),
+        m_tarDepPyr (),
+        m_dispX (),
+        m_dispY ()
+{
+    m_refImgPyr.SetSamplingFactor ( 2 );
+    m_refDepPyr.SetSamplingFactor ( 2 );
+    m_tarImgPyr.SetSamplingFactor ( 2 );
+    m_tarDepPyr.SetSamplingFactor ( 2 );
+    m_dispX.SetSamplingFactor ( 2 );
+    m_dispY.SetSamplingFactor ( 2 );
+}
 
 PixelTracker::~PixelTracker () {
     if ( m_refImage ) {
@@ -86,6 +102,232 @@ void PixelTracker::Reset ()
         m_backwardsTrack = (TrackInfo*)0x0;
     }
 }
+
+void PixelTracker::SetReference (
+    const unsigned int&     iReferenceId,
+    const Image*            iReferenceImage,
+    const Image*            iReferenceDepth
+) {
+    m_refId = iReferenceId;
+    m_refImgPyr.Assign (
+        iReferenceImage
+    );
+    m_refDepPyr.Assign (
+        iReferenceDepth
+    );
+}
+void PixelTracker::SetTarget (
+    const unsigned int&     iTargetId,
+    const Image*            iTargetImage,
+    const Image*            iTargetDepth
+) {
+    m_tarId = iTargetId;
+    m_tarImgPyr.Assign (
+        iTargetImage
+    );
+    m_tarDepPyr.Assign (
+        iTargetDepth
+    );
+}
+
+void PixelTracker::Track ()
+{
+    std::cout << m_refImgPyr.GetNumLevels () << std::endl;
+
+    Image* refImage = m_refImgPyr.Bottom ();
+    Image* blankImage = new Image (
+        refImage->GetWidth (),
+        refImage->GetHeight (),
+        refImage->GetMaxGreyLevel ()        
+    );
+    m_dispX.Assign ( blankImage );
+    m_dispY.Assign ( blankImage );
+    delete blankImage;
+    blankImage = (Image*)0x0;
+
+    // Processes pyramids from top to bottom. The coarsest level is processed 
+    // once independently so we can estimate extremal motions on each direction.
+    Image* ref  = m_refImgPyr.Top ();
+    Image* tar  = m_tarImgPyr.Top ();
+    Image* dX   = m_dispX.Top ();
+    Image* dY   = m_dispY.Top ();
+
+    int mx=INT_MIN, my=INT_MIN, mx_=INT_MAX, my_=INT_MAX;
+    // Track a fixed set of features from ref to tar.
+    for ( int i = 1; i < ref->GetWidth () - 1; i += 5 ) {
+        for ( int j = 1; j < ref->GetHeight () - 1; j += 5 ) {
+            Image nbh;
+
+            // Tracks a patch of size 3x3 on target image.
+            ref->GetSubImage (
+                i - 1, j - 1,
+                3, 3,
+                nbh
+            );
+            CartesianCoordinate best;
+            tar->TemplateMatch ( nbh, best );
+
+            // Extremal movement estimation.
+            mx  = max ( mx, best.x - i ); 
+            my  = max ( mx, best.y - j ); 
+            mx_ = min ( mx_, best.x - i ); 
+            my_ = min ( my_, best.y - j ); 
+        }
+    }
+    // Initial window size calculation.
+    m_winHeight = my - my_;
+    m_winWidth  = mx - mx_;
+
+    // Process the rest of the pyramid.
+    for ( int i = m_refImgPyr.GetNumLevels () - 1; i >= 0; i-- ) {
+        PyramidTrack ( i );
+
+        // Every level but the coarsest uses a 3x3 search window for pixel tracking.
+        if ( i == ( m_refImgPyr.GetNumLevels () - 1 ) ) {
+            m_winWidth = m_winHeight = 3;
+        }
+    }
+}
+
+void PixelTracker::PyramidTrack (
+    const unsigned int&     iLevel
+) {
+    PyramidMatch        ( iLevel );
+    //PyramidSmooth       ( iLevel );
+    PyramidOrdering     ( iLevel );
+    PyramidUniqueness   ( iLevel );
+    PyramidRematch      ( iLevel );
+    PyramidUniqueness   ( iLevel );
+    PyramidRefine       ( iLevel );
+    PyramidUniqueness   ( iLevel );
+}
+
+void PixelTracker::PyramidMatch (
+    const unsigned int&     iLevel
+) {
+    Image* ref      = m_refImgPyr[iLevel]; 
+    Image* tar      = m_tarImgPyr[iLevel]; 
+    Image* dX       = m_dispX[iLevel]; 
+    Image* dY       = m_dispY[iLevel]; 
+    Image* newDX    = new Image ( dX->GetWidth (), dX->GetHeight (), dX->GetMaxGreyLevel () );
+    Image* newDY    = new Image ( dY->GetWidth (), dY->GetHeight (), dY->GetMaxGreyLevel () );
+    
+    for ( int i = 0; i < ref->GetWidth (); i++ ) {
+        for ( int j = 0; j < ref->GetHeight (); j++ ) {
+            Image nbh;
+
+            int deltaX = 0;
+            int deltaY = 0;
+            if ( iLevel < m_refImgPyr.GetNumLevels () - 1 ) {
+                float fdX = m_dispX[iLevel + 1]->GetNormed ( j/2, i/2 );
+                float fdY = m_dispY[iLevel + 1]->GetNormed ( j/2, i/2 );
+                if ( !isinf(fdX) && !isinf(fdY) ) {
+                    deltaX = floor(fdX); 
+                    deltaY = floor(fdY); 
+                }
+            }
+            ref->GetSubImage (
+                i - 2, j - 2,
+                5, 5,
+                nbh
+            );
+
+            CartesianCoordinate best;
+            tar->TemplateMatch (
+                nbh,
+                i - m_winWidth / 2  + deltaX,
+                j - m_winHeight / 2 + deltaY,
+                m_winWidth,
+                m_winHeight,
+                best
+            ); 
+
+            newDX->SetNormed ( j, i, best.x - i ) ;
+            newDY->SetNormed ( j, i, best.y - j ) ;
+        }
+    }
+    m_dispX.SetLevel ( iLevel, newDX );
+    m_dispY.SetLevel ( iLevel, newDY );
+}
+
+void PixelTracker::PyramidRematch (
+    const unsigned int&     iLevel
+) {
+
+}
+
+void PixelTracker::PyramidSmooth (
+    const unsigned int&     iLevel
+) {
+    Image* ref      = m_refImgPyr[iLevel]; 
+    Image* tar      = m_tarImgPyr[iLevel]; 
+    Image* dX       = m_dispX[iLevel]; 
+    Image* dY       = m_dispY[iLevel]; 
+    Image* newDX    = new Image ( dX->GetWidth (), dX->GetHeight (), dX->GetMaxGreyLevel () );
+    Image* newDY    = new Image ( dY->GetWidth (), dY->GetHeight (), dY->GetMaxGreyLevel () );
+
+    static const float inf = std::numeric_limits<float>::infinity ();
+    const int width = ref->GetWidth ();
+    const int height = ref->GetHeight ();
+    for ( int i = 0; i < width; i++ ) {
+        for ( int j = 0; j < height; j++ ) {
+            Eigen::Matrix3f ndX;
+            Eigen::Matrix3f ndY;
+            ndX.fill ( inf );
+            ndY.fill ( inf );
+            unsigned int count = 0;
+            unsigned int total = 0;
+            #pragma omp critical
+            {
+                const float& dispX = dX->GetNormed ( j, i );
+                const float& dispY = dY->GetNormed ( j, i );
+                for ( int ii = i - 1; ii < i + 1; ii++ ) {
+                    for ( int jj = j - 1; jj < j + 1; jj++ ) {
+                        if (ii != i && jj != j) continue;
+                        unsigned int idX = ii - i + 1;
+                        unsigned int idY = jj - j + 1;
+                        if (
+                                ( jj >= 0 && ii >= 0 )
+                            &&  ( jj < height && ii < width )
+                        ) {
+                            float& a = ndX ( idY, idX ) = dX->GetNormed ( jj, ii ) - dispX;
+                            float& b = ndY ( idY, idX ) = dY->GetNormed ( jj, ii ) - dispY;
+
+                            if ( sqrt ( a*a + b*b ) <= 1.0f ) {
+                                count++;
+                            }
+                            total++;
+                        }
+                    }
+                }
+            }
+            if ( total ) {
+                if ( ( (float)count / (float)total ) < 0.5f ) {
+                    newDX->SetNormed ( j, i, inf ) ;
+                    newDY->SetNormed ( j, i, inf ) ;
+                }
+            }
+        }
+    }
+    m_dispX.SetLevel ( iLevel, newDX );
+    m_dispY.SetLevel ( iLevel, newDY );
+}
+
+void PixelTracker::PyramidOrdering (
+    const unsigned int&     iLevel
+) {
+}
+
+void PixelTracker::PyramidUniqueness (
+    const unsigned int&     iLevel
+) {
+}
+
+void PixelTracker::PyramidRefine (
+    const unsigned int&     iLevel
+) {
+}
+
 void PixelTracker::SetUp (
     const unsigned int&     iWindowWidth,
     const unsigned int&     iWindowHeight,
@@ -106,6 +348,9 @@ void PixelTracker::SetUp (
         Config::OutputPath () + "CapturedFrames/image_" + Int2Str ( m_referenceId ) + ".pgm"
     );
 
+    if ( m_depthMap ) {
+        delete m_depthMap;
+    }
     m_depthMap = new Image (
         Config::OutputPath () + "CapturedFrames/depth_" + Int2Str ( m_referenceId ) + ".pgm"
     );
@@ -282,13 +527,13 @@ void PixelTracker::Track (
                                     * m_refImage->GetHeight ();
     std::cout << unmatchedPixels << " pixels to track." << std::endl;
     unsigned int nIter = 0;
-    //    while (
-    //        ( nIter++ < 10u )
-              //   &&  ( unmatchedPixels > 0 )
-    //) {
+    while (
+            ( nIter++ < 10u )
+        &&  ( unmatchedPixels > 0 )
+    ) {
         unmatchedPixels = Match ( unmatchedPixels, iTarget );
         std::cout << unmatchedPixels << " left. Rematching..." << std::endl;
-        //}
+    }
 }
 
 unsigned int PixelTracker::Match (
@@ -306,6 +551,11 @@ unsigned int PixelTracker::Match (
     const unsigned int width  = m_refImage->GetWidth (); 
     const unsigned int height = m_refImage->GetHeight ();
     const unsigned int totalPixels = width * height;
+    Eigen::MatrixXf disparityMapX;
+    Eigen::MatrixXf disparityMapY;
+
+    disparityMapX.resize ( height, width );
+    disparityMapY.resize ( height, width );
 
     #pragma omp parallel for
     for ( int x = 0; x < width; x++ ) {
@@ -342,6 +592,7 @@ unsigned int PixelTracker::Match (
             {
                 for ( int xx = x - 1; xx < x + 1; xx++ ) {
                     for ( int yy = y - 1; yy < y + 1; yy++ ) {
+                        if (xx != x && yy != y) continue;
                         unsigned int idX = xx - x + 1;
                         unsigned int idY = yy - y + 1;
                         if (
@@ -351,10 +602,10 @@ unsigned int PixelTracker::Match (
                             float& a = ndX ( idY, idX ) = m_disparityMapX ( yy, xx );
                             float& b = ndY ( idY, idX ) = m_disparityMapY ( yy, xx );
 
-                            minDispX = min ( a, minDispX );
-                            minDispY = min ( b, minDispY );
-                            maxDispX = max ( a, maxDispX );
-                            maxDispY = max ( b, maxDispY );
+                            minDispX = fmin ( a, minDispX );
+                            minDispY = fmin ( b, minDispY );
+                            maxDispX = fmax ( a, maxDispX );
+                            maxDispY = fmax ( b, maxDispY );
                         }
                     }
                 }
@@ -364,6 +615,13 @@ unsigned int PixelTracker::Match (
             maxDispX = ( isinf ( maxDispX ) ) ? 0 : maxDispX;
             maxDispY = ( isinf ( maxDispY ) ) ? 0 : maxDispY;
 
+            //#pragma omp critical
+            //{
+            //    if (minDispX) std::cout << "mX " << minDispX << " ";
+            //    if (minDispY) std::cout << "mY " << minDispY << " ";
+            //    if (maxDispX) std::cout << "MX " << maxDispX << " ";
+            //    if (maxDispY) std::cout << "MY " << maxDispY << " ";
+            //}
             m_refImage->GetSubImage (
                 x - m_nbhWidth / 2,     // X
                 y - m_nbhHeight / 2,    // Y
@@ -406,12 +664,12 @@ unsigned int PixelTracker::Match (
 
             #pragma omp critical
             {
-                m_disparityMapX ( y, x ) = fmd.m_xCoord - x;
-                m_disparityMapY ( y, x ) = fmd.m_yCoord - y;
+                disparityMapX ( y, x ) = fmd.m_xCoord - x;
+                disparityMapY ( y, x ) = fmd.m_yCoord - y;
 
-                //if ( abs(fmd.m_xCoord >= m_winWidth / 2 ) )
+                //if ( abs(m_disparityMapX ( y, x )) > m_winWidth / 2 )
                 //    std::cerr << "Error DispX " << fmd.m_xCoord << " " << x << " " << y << std::endl;
-                //if ( abs(fmd.m_yCoord >= m_winHeight / 2 ) )
+                //if ( abs(m_disparityMapY ( y, x )) > m_winHeight / 2 )
                 //    std::cerr << "Error DispY " << fmd.m_yCoord << " " << x << " " << y << std::endl;
             }
         }
@@ -439,18 +697,21 @@ unsigned int PixelTracker::Match (
             unsigned int total = 0;
             #pragma omp critical
             {
+                const float& dX = disparityMapX ( y, x );
+                const float& dY = disparityMapY ( y, x );
                 for ( int xx = x - 1; xx < x + 1; xx++ ) {
                     for ( int yy = y - 1; yy < y + 1; yy++ ) {
+                        if (xx != x && yy != y) continue;
                         unsigned int idX = xx - x + 1;
                         unsigned int idY = yy - y + 1;
                         if (
                                 ( yy >= 0 && xx >= 0 )
                             &&  ( yy < height && xx < width )
                         ) {
-                            float& a = ndX ( idY, idX ) = m_disparityMapX ( yy, xx );
-                            float& b = ndY ( idY, idX ) = m_disparityMapY ( yy, xx );
+                            float& a = ndX ( idY, idX ) = disparityMapX ( yy, xx ) - dX;
+                            float& b = ndY ( idY, idX ) = disparityMapY ( yy, xx ) - dY;
 
-                            if ( sqrt ( a*a + b*b ) <= 1.0f ) {
+                            if ( sqrt ( a*a + b*b ) <= 2.0f ) {
                                 count++;
                             }
                             total++;
@@ -458,7 +719,7 @@ unsigned int PixelTracker::Match (
                     }
                 }
             }
-            if ( total ) {
+            if ( total == 8 ) {
                 match &= ( ( (float)count / (float)total ) >= 0.5f );
             }
             
@@ -491,16 +752,18 @@ unsigned int PixelTracker::Match (
                     fmd.m_matched = true;
                     bmd.m_matched = true;
                 } else {
-                    m_disparityMapX ( y, x ) = inf;
-                    m_disparityMapY ( y, x ) = inf;
+                    disparityMapX ( y, x ) = inf;
+                    disparityMapY ( y, x ) = inf;
                 }
             }
         }
     }
 
+    m_disparityMapX = disparityMapX;
+    m_disparityMapY = disparityMapY;
+
     return unmatchedPixels;
 }
-
 
 void printColorChart (
     const int& width,
@@ -529,7 +792,7 @@ void printColorChart (
             } else {
                 c.FromHSV ( hue, 1.0f, value ); 
             }
-            std::cout << c.Red () << " " << c.Green () << " " << c.Blue () << std::endl;
+            //std::cout << c.Red () << " " << c.Green () << " " << c.Blue () << std::endl;
 
             colorChart.SetChannelValue ( y, x,   RED, 255.f * c.Red () );
             colorChart.SetChannelValue ( y, x, GREEN, 255.f * c.Green () );
@@ -550,47 +813,117 @@ void PixelTracker::Export (
         m_backwardsTrack->CreateOutputImage ( iFilename + "backwards" );
     }
 
+    const float inf = std::numeric_limits<float>::infinity();
+
     PPMImage disparityMap;
-    disparityMap.SetMaxValue ( 255u );
-    disparityMap.ResetDimensions (
-        m_refImage->GetWidth (),
-        m_refImage->GetHeight ()        
-    );
+    //disparityMap.SetMaxValue ( 255u );
+    //disparityMap.ResetDimensions (
+    //    m_refImage->GetWidth (),
+    //    m_refImage->GetHeight ()        
+    //);
     //PPMImage colorChart;
     //printColorChart ( 30, 30, colorChart);
 
-    const float maxDispX = m_winWidth  * 0.5f;   
-    const float maxDispY = m_winHeight * 0.5f;
-    const float maxDisp = sqrt ( maxDispX * maxDispX + maxDispY * maxDispY );
+    //const float maxDispX = m_winWidth  * 0.5f;
+    //const float maxDispY = m_winHeight * 0.5f;
+    //float maxDispX = -inf;
+    //float maxDispY = -inf;
+    //for ( unsigned int x = 0; x < m_refImage->GetWidth (); x++ ) {
+    //    for ( unsigned int y = 0; y < m_refImage->GetHeight (); y++ ) {
+    //        if ( !isinf(m_disparityMapX ( y, x ) ) ) 
+    //            maxDispX = fmax ( fabs ( m_disparityMapX ( y, x ) ), maxDispX );
+    //        if ( !isinf(m_disparityMapY ( y, x ) ) ) 
+    //            maxDispY = fmax ( fabs ( m_disparityMapY ( y, x ) ), maxDispY );
+    //    }
+    //}
+    //std::cout << maxDispX << " " << maxDispY << std::endl;
+
+    //float maxDisp = sqrt ( maxDispX * maxDispX + maxDispY * maxDispY );
+
+    //Color c;
+    //Vec3Df redDir ( 1.0f, 0.0f, 0.0f );
+    //for ( unsigned int x = 0; x < m_refImage->GetWidth (); x++ ) {
+    //    for ( unsigned int y = 0; y < m_refImage->GetHeight (); y++ ) {
+    //        const float dX = m_disparityMapX ( y, x );
+    //        const float dY = m_disparityMapY ( y, x );
+
+    //        if ( isinf(dX) || isinf(dY) ) {
+    //            disparityMap.SetChannelValue ( y, x, GREY, 255u );
+    //            continue;
+    //        }
+
+    //        Vec3Df disp ( dX, dY, 0.0f );
+    //        //std::cout << dX << " " << dY << " ";
+    //        const float value = disp.normalize () / maxDisp;
+    //        //std::cout << value << std::endl;
+
+    //        const float hue = 180.0f * acos ( Vec3Df::dotProduct ( disp, redDir ) ) / M_PI; 
+    //        if ( disp [1] < 0 ) {
+    //            c.FromHSV ( 360.0f-hue, 1.0f, value ); 
+    //        } else {
+    //            c.FromHSV ( hue, 1.0f, value ); 
+    //        }
+
+    //        disparityMap.SetChannelValue ( y, x,   RED, 255.f * c.Red () );
+    //        disparityMap.SetChannelValue ( y, x, GREEN, 255.f * c.Green () );
+    //        disparityMap.SetChannelValue ( y, x,  BLUE, 255.f * c.Blue () );
+    //    }
+    //}
+    //disparityMap.WriteToFile ( iFilename, PIXMAP | ASCII );
 
     Color c;
     Vec3Df redDir ( 1.0f, 0.0f, 0.0f );
-    for ( unsigned int x = 0; x < m_refImage->GetWidth (); x++ ) {
-        for ( unsigned int y = 0; y < m_refImage->GetHeight (); y++ ) {
-            const float dX = m_disparityMapX ( y, x );
-            const float dY = m_disparityMapY ( y, x );
-
-            if ( dX > maxDispX || dY > maxDispY ) {
-                disparityMap.SetChannelValue ( y, x, GREY, 255u );
-                continue;
+    for ( int i = m_dispX.GetNumLevels () - 1; i >= 0; i-- ) {
+        const Image* dispX = m_dispX[i];
+        const Image* dispY = m_dispY[i];
+        float maxDispX = -inf;
+        float maxDispY = -inf;
+        for ( unsigned int x = 0; x < dispX->GetWidth (); x++ ) {
+            for ( unsigned int y = 0; y < dispX->GetHeight (); y++ ) {
+                const float dX = dispX->GetNormed ( y, x );
+                const float dY = dispY->GetNormed ( y, x );
+                if ( !isinf(dX) && !isinf(dY) ) {
+                    maxDispX = std::max ( (float)abs ( dX ), maxDispX );
+                    maxDispY = std::max ( (float)abs ( dY ), maxDispY );
+                }
             }
-
-            Vec3Df disp ( dX, dY, 0.0f );
-            const float value = disp.normalize () / maxDisp;
-
-            const float hue = 180.0f * acos ( Vec3Df::dotProduct ( disp, redDir ) ) / M_PI; 
-            if ( disp [1] < 0 ) {
-                c.FromHSV ( 360.0f-hue, 1.0f, value ); 
-            } else {
-                c.FromHSV ( hue, 1.0f, value ); 
-            }
-
-            disparityMap.SetChannelValue ( y, x,   RED, 255.f * c.Red () );
-            disparityMap.SetChannelValue ( y, x, GREEN, 255.f * c.Green () );
-            disparityMap.SetChannelValue ( y, x,  BLUE, 255.f * c.Blue () );
         }
+        float maxDisp = sqrt ( maxDispX*maxDispX + maxDispY*maxDispY );
+
+        disparityMap.SetMaxValue ( 255u );
+        disparityMap.ResetDimensions (
+            dispX->GetWidth (),
+            dispX->GetHeight ()        
+        );
+        for ( unsigned int x = 0; x < dispX->GetWidth (); x++ ) {
+            for ( unsigned int y = 0; y < dispX->GetHeight (); y++ ) {
+                const float dX = dispX->GetNormed ( y, x );
+                const float dY = dispY->GetNormed ( y, x );
+
+                if ( isinf(dX) || isinf(dY) ) {
+                    disparityMap.SetChannelValue ( y, x, GREY, 255u );
+                    continue;
+                }
+
+                Vec3Df disp ( dX, dY, 0.0f );
+                //std::cout << dX << " " << dY << " ";
+                const float value = disp.normalize () / maxDisp;
+                //std::cout << value << std::endl;
+
+                const float hue = 180.0f * acos ( Vec3Df::dotProduct ( disp, redDir ) ) / M_PI; 
+                if ( disp [1] < 0 ) {
+                    c.FromHSV ( 360.0f-hue, 1.0f, value ); 
+                } else {
+                    c.FromHSV ( hue, 1.0f, value ); 
+                }
+
+                disparityMap.SetChannelValue ( y, x,   RED, 255.f * c.Red () );
+                disparityMap.SetChannelValue ( y, x, GREEN, 255.f * c.Green () );
+                disparityMap.SetChannelValue ( y, x,  BLUE, 255.f * c.Blue () );
+            }
+        }
+        disparityMap.WriteToFile ( Config::OutputPath() + "Pyramids/01/disparity_l" + toString ( i ), PIXMAP | ASCII );
     }
-    disparityMap.WriteToFile ( iFilename, PIXMAP | BINARY );
 }
 
 

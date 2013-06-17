@@ -171,10 +171,6 @@ void Window::findAutoAnchors(){
             /* Save frame as an anchor */
             bool ok;
             anchorFound.push_back(id.toInt(&ok,10));	  
-
-            ///* The anchor will be our new reference */	
-            //refFrame.LoadFromFile(Config::FramesPath() + "image_"+ id.toStdString() + ".pgm");
-
         }
 
     }
@@ -184,10 +180,10 @@ void Window::findAutoAnchors(){
 
     for(int j =0; j < anchorFound.size(); j++) {
         cout << anchorFound.at(j) << endl;
-
     }
-    updateAutoAnchorPreview ();
+
     saveAnchors ( anchorFound ) ;
+    updateAutoAnchorPreview ();
 
     if (progressDialog)
         delete progressDialog;
@@ -280,13 +276,15 @@ void Window::addAnchorListItems(){
             id = in.readLine();
 
             /* Code used for sorting */
-            QString zero = "0";
+            QString sortableID = "0";
             if(id.size() == 1){ 
-                zero.append(id);
-                id = zero;
+                sortableID.append(id);
+            }
+            else{
+                sortableID = id;
             }
             /* Show the ID in the list box*/
-            candidateAnchorList->addItem(id);
+            candidateAnchorList->addItem(sortableID);
         }
     }
 
@@ -303,19 +301,21 @@ void Window::addAnchorListItems(){
             id = in.readLine();
 
             /* Code used for sorting */
-            QString zero = "0";
+            QString sortableID = "0";
             if(id.size() == 1){ 
-                zero.append(id);
-                id = zero;
+                sortableID.append(id);
+            }
+            else{
+                sortableID = id;
             }
 
             /* Show the ID in the combo box*/
             if(!id.compare(anchorID)){ 
-                anchorList->addItem(id);
+                anchorList->addItem(sortableID);
                 anchorID = anchor.readLine();
             }
             else{
-                candidateAnchorList->addItem(id);
+                candidateAnchorList->addItem(sortableID);
             }
         }
 
@@ -362,13 +362,13 @@ void Window::saveAnchors(
         return;
 
     for(int i= 0; i < iAnchorList.size(); i++){
-        QString id("%1");
-        QString line = id   .arg(iAnchorList.operator[](i))
-                            .append("\n");
+        QString id(QString::number(iAnchorList.at(i)));
+        QString line = id.append("\n");
         anchorFile.write(line.toUtf8 ());
     }
 
     anchorFile.close();
+
 }
 
 void Window::updateManuAnchorPreview(){

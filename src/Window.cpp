@@ -46,7 +46,7 @@ void Window::enableCaptureButton () {
 void Window::updateFrameList () {
 
     /* Update the list of images in the system*/
-    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=depth* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/.pgm//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
+    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=*.png --ignore=depth* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/.pgm//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
 
     system(IMAGE_LIST.c_str());
 
@@ -455,13 +455,19 @@ void Window::updateAutoAnchorPreview(){
 
 void Window::initManuAnchorSelection(){
 
+    QLabel *candidateAnchorCaption =  new QLabel("List of no-anchors frames:",anchorManuSelection);
+   candidateAnchorCaption -> setGeometry(QRect(52, 205, 180, 21));
+
     if (candidateAnchorList) delete candidateAnchorList;
     candidateAnchorList = new QListWidget(anchorManuSelection);
-    candidateAnchorList -> setGeometry(QRect(50, 220, 180, 150));
+    candidateAnchorList -> setGeometry(QRect(50, 230, 180, 150));
+
+    QLabel *anchorListCaption =  new QLabel("List of anchors frames:",anchorManuSelection);
+    anchorListCaption -> setGeometry(QRect(373, 205, 180, 21));
 
     if (anchorList) delete anchorList;
     anchorList = new QListWidget(anchorManuSelection);
-    anchorList -> setGeometry(QRect(371, 220, 180, 150));
+    anchorList -> setGeometry(QRect(371, 230, 180, 150));
 
     addAnchorListItems();
 
@@ -553,6 +559,7 @@ void Window::initAutoAnchorSelection(){
     anchorCaptionBox -> setAutoFillBackground(true);
 
     /* green caption*/
+    /*
     palette.setBrush(QPalette::Active, QPalette::Window, green);
     QLabel *autoAnchorCaptionText =  new QLabel("Automatically selected",anchorAutoSelection);
     autoAnchorCaptionText -> setGeometry(QRect(80, 370, 150, 21));
@@ -560,13 +567,14 @@ void Window::initAutoAnchorSelection(){
     autoAnchorCaptionBox -> setGeometry(QRect(50, 370, 21, 21));
     autoAnchorCaptionBox -> setPalette(palette);
     autoAnchorCaptionBox -> setAutoFillBackground(true);
+    */
 
     /* red caption*/
     palette.setBrush(QPalette::Active, QPalette::Window, red);
     QLabel *referenceFrameCaptionText =  new QLabel("Reference frame",anchorAutoSelection);
-    referenceFrameCaptionText -> setGeometry(QRect(80, 400, 200, 21));
+    referenceFrameCaptionText -> setGeometry(QRect(80, 370, 200, 21));
     QLabel *referenceFrameCaptionBox =  new QLabel(anchorAutoSelection);
-    referenceFrameCaptionBox -> setGeometry(QRect(50, 400, 21, 21));
+    referenceFrameCaptionBox -> setGeometry(QRect(50, 370, 21, 21));
     referenceFrameCaptionBox -> setPalette(palette);
     referenceFrameCaptionBox -> setAutoFillBackground(true);
 

@@ -93,6 +93,7 @@ Dans ce projet, on essayera de réproduire les étapes réalises par Beeler et a
 Dans l'article sont matériel est un matériel d'haute définition, notre but dans le projet est de réaliser, ainsi que possible, une version moins chères de la création des visages, qui pourrait etre réalisé par toutes les personnes disposant d'une limitation matériel.
 
 \subsection{Matériel}
+
 Ci-dessous la liste de matériel utilisé dans le projet: 
 
 \begin{itemize}
@@ -105,6 +106,19 @@ Ci-dessous la liste de matériel utilisé dans le projet:
     \caption{Kinect - Dispositif utilisé pour la capture des images}
   \end{center}
 \end{figure}
+
+\subsection{L'environnement de travail}
+
+Le projet est développé sous un système d'exploitation linux, en utilisant un système de contrôle de version git (https://github.com/tiagochst/PIM2013). 
+De plus, les librairies externes utilisés sont: Eigen, OpenNI et possiblement OpenCV dans l’avenir.
+
+Pour la compilation du projet on a décidé d’utiliser l’outil qmake pour une génération des Makefiles pour faciles et aussi intégré avec le framework qt. 
+Pour cela les fichiers suivants ont été crées: PIM380.pro. 
+
+Par ailleurs, pour avoir un suivi plus visuel de l’état du projet on utilise un outil en ligne pour la création d’un kanban(http://kanbanize.com/) dont l’objectif est d’afficher la situation actuel du projet. Ainsi, le kanban peut vous montrer ce qui est en train d’être fait, ce qui a été fait, ce qui doit être fait, les tests à faire et les bugs à traiter qui ont été trouvés.
+
+Finalement, pour la création de la documentation du code du projet, le logiciel doxygen a été utilisé. 
+
 
 \subsection{Méthodes}
 
@@ -147,6 +161,43 @@ Un moyen pour propager la la maillage de référence (maillage de la trame de r�
 \subsubsection{Raffinement de maillage}
 
 Les étapes précédentes ont généré une propagation de la maille de référence pour chaque trame dans la séquence. Cette séquence de maillage déformant fournit une estimation initiale du mouvement du visage, ce qui est raffiné pour garantir la cohérence avec les données d'image en appliquant priori sur la cohérence spatiale et temporelle de la surface déformée.
+
+
+\section{Les étapes de développement}
+\subsection{Interface Kinect}
+
+Un des objectives du projet est d’avoir une interface avec la Kinect pour capturer les images nécessaires pour la reconstruction faciale.
+
+Pour qu’on puisse accéder aux données du dispositif Kinect, l’API OpenNI a été utilisé. Cette API fournit des interfaces de communication qui interagissent à la fois avec les capteurs et les composants intermédiaires, qui analysent les données provenant des capteurs.
+
+La Kinect nous fournit une image RGB et sa profondeur en niveaux de gris dans une résolution VGA (640×480).
+
+Actuellement, quand la fonction de la caméra est appelée, on accédera aux données de la Kinect et on dessinera par défaut la carte de profondeur par dessus de la carte graphique. 
+
+Pour une interaction, les actions suivantes sont possibles: 
+
+% tabela
+
+La sortie peut être vue ci-dessous:
+
+%*Figure 1: Carte de profondeur
+%*Figure 2: Image
+
+
+\subsection{Interface graphique}
+
+Pour la visualisation des images et des objets 3D, une interface graphique crée en utilisant le framework QT et la librairie QGLviewer. 
+
+Nous avons utilisé l’outil Pencil pour faire une maquette de l’interface. Ci-dessous, la maquette pour la visualisation de déplacements entre deux frames.
+
+Le résultat en utlisant le framework Qt peut être vu, ci-dessous.
+
+Pour la sélection des  frames ancres on a deux interfaces, une pour la sélection manuel et l’autre pour la sélection automatique. Les images de l’interface sont ci-dessous:
+
+Sélection d'ancres manuellement: 
+
+Sélection d'ancres automatiquement:
+
 
 \section{Résultats}
 

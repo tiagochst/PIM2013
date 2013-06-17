@@ -418,6 +418,7 @@ void Window::updateAutoAnchorPreview(){
 
     for(int i = 0; i < 15;  i++){
         referenceFrame.at(i) -> setFrameStyle(QFrame::NoFrame);
+        referenceFrame.at(i) -> setVisible(true);
     }
 
     for(int i = 15 * showingFrames, j = 0; i < 15 + 15 * showingFrames; i++,j++){
@@ -446,6 +447,7 @@ void Window::updateAutoAnchorPreview(){
         }
         else{
             referenceFrame.at(j) -> clear();
+            referenceFrame.at(j) ->setVisible(false);
             /*BUG: if nb of frames % 15 == 0, next frames has to be pressed 2 times */
             nextFrames -> setDisabled(true);
         }

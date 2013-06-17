@@ -20,6 +20,7 @@
 #include "Rectangle.h"
 #include "ParameterHandler.h"
 #include "PixelTracker.h"
+#include "ImagePyramid.h"
 
 extern void printColorChart (
     const int& width,
@@ -28,99 +29,62 @@ extern void printColorChart (
 );
 
 int main ( void ) {
-    PPMImage colorChart;
-    printColorChart (
-        30, 30, colorChart
-    );
     Config::LoadConfigs(Config::RootPath() + "settings");
 
     static const std::string RES_PTSET_PATH(Config::ResourcesPath() + "PointSets/");
     static const std::string RES_IMG_PATH(Config::ResourcesPath() + "Images/");
 
-    Image refImg, anchorImg; 
+    Image frame0i(Config::OutputPath () + "CapturedFrames/image_0.pgm");
+    Image frame0d(Config::OutputPath () + "CapturedFrames/depth_0.pgm");
+    Image frame1i(Config::OutputPath () + "CapturedFrames/image_1.pgm");
+    Image frame1d(Config::OutputPath () + "CapturedFrames/depth_1.pgm");
 
-    Image frame0(Config::OutputPath () + "CapturedFrames/image_14.pgm");
-    Image frame1(Config::OutputPath () + "CapturedFrames/image_15.pgm");
-    Image dispX( frame0.GetWidth(), frame0.GetHeight(), 255 );
-    Image dispY( frame0.GetWidth(), frame0.GetHeight(), 255 );
+    PixelTracker pixTrack (0);
+
+    pixTrack.SetReference ( 0, &frame0i, &frame0d );
+    pixTrack.SetTarget ( 1, &frame1i, &frame1d );
+    pixTrack.Track ();
+    pixTrack.Export ( Config::OutputPath() + "oi.pgm" );
+    //
+    //Image frame0(Config::OutputPath () + "CapturedFrames/image_0.pgm");
+    //Image* filtered = frame0.Filter ();
+    //filtered->CreateAsciiPgm ( Config::OutputPath () + "filtered.pgm" );
+    //delete filtered;
+
+    //Image* subsampled = frame0.SubSample ( 2 );
+    //subsampled->CreateAsciiPgm ( Config::OutputPath () + "subsampled2.pgm" );
+    //delete subsampled;
+
+    //subsampled = frame0.SubSample ( 4 );
+    //subsampled->CreateAsciiPgm ( Config::OutputPath () + "subsampled4.pgm" );
+    //delete subsampled;
+    //subsampled = (Image*)0x0;
+
+    //ImagePyramid pyr;
+    //pyr.SetSamplingFactor ( 2 );
+    //pyr.Assign ( &frame0 );
+    //pyr.Export ( Config::OutputPath () + "Pyramids/image_0" ); 
 
     ParameterHandler* params = ParameterHandler::Instance ();
     const unsigned int& wSize = params->GetWindowSize ();
     const unsigned int& nSize = params->GetNeighbourhoodSize ();
-    dispX.SetMaxGreyLevel ( wSize );
-    dispY.SetMaxGreyLevel ( wSize );
+    //dispX.SetMaxGreyLevel ( wSize );
+    //dispY.SetMaxGreyLevel ( wSize );
 
-    PixelTracker pixTracker (14);
+    PixelTracker pixTracker (0);
     pixTracker.SetUp (
-                      wSize,
-                      wSize,
-                      nSize,
-                      nSize,
-                      0.95
+        wSize,
+        wSize,
+        nSize,
+        nSize,
+        0.95
     );
 
-    pixTracker.Track ( 15);
-
+    Image frame1(Config::OutputPath () + "CapturedFrames/image_1.pgm");
+    pixTracker.Track (1, &frame1);
     pixTracker.Export ( Config::OutputPath () + "/TCSNorefinement_"+toString(0.95)+"n.ppm" );
 
     pixTracker.disparityRefinement (&frame1);
     pixTracker.Export ( Config::OutputPath () + "/TCSrefinement_"+toString(0.95)+"n.ppm" );
-
-    dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingTestx.pgm");
-    dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingTesty.pgm");
-
-    //PPMImage binImage;
-    //PPMImage asciiImage;
-
-    //PPMImage binImage;
-    //PPMImage asciiImage;
-
-    //binImage.LoadFromFile (
-    //    "./in/ppm_bin.ppm"
-    //);
-    //binImage.WriteToFile (
-    //    "./out/bin_ppm_to_bin_ppm.ppm",
-    //    PIXMAP | BINARY
-    //);
-    //binImage.WriteToFile (
-    //    "./out/bin_ppm_to_bin_pgm.pgm",
-    //    GREYMAP | BINARY
-    //);
-    //binImage.WriteToFile (
-    //    "./out/bin_ppm_to_ascii_ppm.ppm",
-    //    PIXMAP | ASCII
-    //);
-    //binImage.WriteToFile (
-    //    "./out/bin_ppm_to_ascii_pgm.pgm",
-    //    GREYMAP | ASCII
-    //);
-    //binImage.WriteToFile (
-    //    "./out/bin_ppm_to_ascii_pbm.pbm",
-    //    BITMAP | ASCII
-    //);
-
-    //asciiImage.LoadFromFile (
-    //    "./ppm_ascii.ppm"
-    //);
-    //asciiImage.WriteToFile (
-    //    "./out/ascii_ppm_to_bin_ppm.ppm",
-    //    PIXMAP | BINARY
-    //);
-    //asciiImage.WriteToFile (
-    //    "./out/ascii_ppm_to_bin_pgm.pgm",
-    //    GREYMAP | BINARY
-    //);
-    //asciiImage.WriteToFile (
-    //    "./out/ascii_ppm_to_ascii_ppm.ppm",
-    //    PIXMAP | ASCII
-    //);
-    //asciiImage.WriteToFile (
-    //    "./out/ascii_ppm_to_ascii_pgm.pgm",
-    //    GREYMAP | ASCII
-    //);
-    //asciiImage.WriteToFile (
-    //    "./out/ascii_ppm_to_ascii_pbm.pbm",
-    //    BITMAP | ASCII
-    //);
 
 }

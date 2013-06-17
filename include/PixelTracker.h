@@ -14,10 +14,10 @@ private:
     unsigned int                m_referenceId;
     unsigned int                m_targetId;
     Image*                      m_refImage;
-    unsigned int                m_winHeight;
-    unsigned int                m_winWidth;
-    unsigned int                m_nbhHeight;
-    unsigned int                m_nbhWidth;
+    int                         m_winHeight;
+    int                         m_winWidth;
+    int                         m_nbhHeight;
+    int                         m_nbhWidth;
     float                       m_rejectionTreshold;
     
     unsigned int                m_refId;

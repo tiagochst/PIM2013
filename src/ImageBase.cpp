@@ -105,10 +105,10 @@ float ImageBase::TemplateMatch (
 
 float ImageBase::TemplateMatch (
     const ImageBase&        iMask,
-    const unsigned int&     iSearchX,
-    const unsigned int&     iSearchY,
-    const unsigned int&     iSearchWidth,
-    const unsigned int&     iSearchHeight,
+    const int&              iSearchX,
+    const int&              iSearchY,
+    const int&              iSearchWidth,
+    const int&              iSearchHeight,
     CartesianCoordinate&    oBestMatch,
     ImageBase*              oCorrelationMap
 ) const {
@@ -131,14 +131,12 @@ float ImageBase::TemplateMatch(
     CartesianCoordinate&    oBestMatch,
     ImageBase*              oCorrelationMap
 ) const {
-    const Rectangle& sw( iSearchWindow );
-
     if ( oCorrelationMap != NULL ) {
-        if ( oCorrelationMap->GetHeight() != sw.Height() ) {
-            oCorrelationMap->SetHeight( sw.Height() );
+        if ( oCorrelationMap->GetHeight() != iSearchWindow.Height() ) {
+            oCorrelationMap->SetHeight( iSearchWindow.Height() );
         }
-        if ( oCorrelationMap->GetWidth() != sw.Width() ) {
-            oCorrelationMap->SetWidth( sw.Width() );
+        if ( oCorrelationMap->GetWidth() != iSearchWindow.Width() ) {
+            oCorrelationMap->SetWidth( iSearchWindow.Width() );
         }
         //if ( oCorrelationMap->GetMaxGreyLevel() != GetMaxGreyLevel() ) {
             oCorrelationMap->SetMaxGreyLevel( 255 );
@@ -149,7 +147,6 @@ float ImageBase::TemplateMatch(
     float maskDenom = 0;
     #pragma omp parallel for
     for ( int xx = 0; xx < iMask.GetWidth(); xx++ ) {
-        #pragma omp parallel for
         for ( int yy = 0; yy < iMask.GetHeight(); yy++ ) {
             float maskVal = iMask.GetGreyLvl (
                 yy,
@@ -157,16 +154,18 @@ float ImageBase::TemplateMatch(
             );
             
             #pragma omp critical
-            maskDenom += ( maskVal * maskVal ); 
+            {
+                maskDenom += ( maskVal * maskVal );
+            }
         }
     }
     
     float bestMatchVal = -1;
     CartesianCoordinate maskCenter = iMask.Center();
     #pragma omp parallel for
-    for ( int x = sw.X(); x < sw.Right(); x++ ) {
+    for ( int x = iSearchWindow.X(); x < iSearchWindow.Right(); x++ ) {
         #pragma omp parallel for
-        for ( int y = sw.Y(); y < sw.Bottom(); y++ ) {
+        for ( int y = iSearchWindow.Y(); y < iSearchWindow.Bottom(); y++ ) {
             float val = 0;
             float myDenom = 0;
             for ( int xx = 0; xx < iMask.GetWidth () ; xx++ ) {
@@ -194,8 +193,8 @@ float ImageBase::TemplateMatch(
             
             if ( oCorrelationMap != NULL ) {
                 oCorrelationMap->SetNormed (
-                    y - sw.Y(), 
-                    x - sw.X(),
+                    y - iSearchWindow.Y(), 
+                    x - iSearchWindow.X(),
                     val
                 );
             }

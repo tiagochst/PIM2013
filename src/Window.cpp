@@ -513,13 +513,14 @@ void Window::initAutoAnchorSelection(){
         );
     }
 
+    /* Places all qlabel in the UI three lines and five columns*/
     for(int i = 0; i < 3; i++){
         for(int j = 0; j < 5; j++){
             referenceFrame.at(i*5+j) -> setGeometry(QRect(50 + 120 * j, 50 + 90 * i, 100, 80));
             referenceFrame.at(i*5+j) -> setMaximumSize(QSize(100, 80));
         }
     }
-
+    
     /* Create buttons to interact with frames */
     previousFrames =  new QPushButton ("Previous Frames", anchorAutoSelection);
     previousFrames -> setGeometry( QRect(480, 340, 110, 25) );
@@ -531,12 +532,13 @@ void Window::initAutoAnchorSelection(){
     findAnchors    -> setGeometry( QRect(250, 350, 140, 31) );
     QLabel         *  thresholdLabel = new QLabel(tr("Threshold:"),anchorAutoSelection);
     thresholdLabel->setGeometry(QRect(250, 390, 75, 33));
-
     thresholdSP =  new QDoubleSpinBox(anchorAutoSelection);
     thresholdSP -> setGeometry(QRect(330, 390, 62, 25));
     thresholdSP -> setMaximum(1000000);
     thresholdSP -> setSingleStep(0.1);
     thresholdSP -> setDecimals ( 1 );
+    ParameterHandler* params = ParameterHandler::Instance();
+    thresholdSP -> setValue(params -> GetThreshold());
 
 
     /* Creating caption/explanation */

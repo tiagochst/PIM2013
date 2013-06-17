@@ -268,7 +268,6 @@ void Window::addAnchorListItems(){
 
     /* Verify if the file with anchor frames is readable*/
     if(!anchorSavedList.open(QIODevice::ReadOnly )){
-
         QTextStream in(& imageList);
 
         while(!in.atEnd())
@@ -335,16 +334,16 @@ void Window::saveAnchors(){
     static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
 
     QFile anchorFile(ANCHOR_LIST_PATH.c_str());
-    QString fileName;
-
+ 
     /* Verify if the file readable*/
     if(!anchorFile.open(QIODevice::WriteOnly))
         return;
 
     for(int i= 0; i < anchorList -> count(); i++){
-        fileName = anchorList -> item(i) -> text();
-        fileName.append("\n");
-        anchorFile.write(fileName.toUtf8());
+        bool ok;
+        QString id(QString::number(anchorList -> item(i) -> text().toInt(&ok,10)));
+        id.append("\n");
+        anchorFile.write(id.toUtf8());
     }
 
     anchorFile.close();

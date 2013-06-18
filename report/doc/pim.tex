@@ -25,7 +25,7 @@
 \def \ttxtii{Casier: 379 } % Extra text right side of name
 \def \ttdate{Juillet 25, 2013} % date
 
- \spc{1.5}
+\spc{1.5}
 \begin{document}
 \thispagestyle{empty}
 \titleTMB 
@@ -250,6 +250,19 @@ Sélection d'ancres automatiquement:
   \end{center}
 \end{figure}
 
+
+\subsection{Correspondance des pixels}
+
+Pour certifier la bonne correspondance entre les pixels, quelques constraintes on été implementées, pour validé la correpondance.
+\begin{description}
+
+\item[Lissage] Pour avoir une cohérence entre les voisins, plus de la moitié de tous les voisins dans une fenetre 3 x 3 diffèrent par un écart de moins d'un pixel de la disparité calculée au pixel $p$.  
+
+\item[Unicité] la corresponce doit etre bijective, c'est-à-dire si le pixel $p$ dans l'image $I$ correspond au pixel $q$ dans l'image $J$, alors $q$ doit également correspondre à $p$. Pour cette constrainte une disparité d'un pixel est acceptè.
+\item[Ordre] Disparité calculée au point $p$ ne dépasse pas la disparité de son pixel droit voisin par plus d'un pixel.
+
+
+\end{description}
 
 \section{Résultats}
 

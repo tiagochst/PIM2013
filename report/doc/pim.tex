@@ -7,7 +7,7 @@
 % - Vinicius Dias Gardelli                         %
 % -%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%
 
-\documentclass[a4paper,10pt]{article}
+\documentclass[a4paper,11pt]{article}
 
 \usepackage[francais,listings,algo]{pim}
 
@@ -15,27 +15,65 @@
 \bibliographystyle{apalike}  
 
 % Cover %
-\def \ttprofname{Tamy Boubekeur} % teachers name
+\def \ttprofname{Prof \textordmasculine.~Dr \textordmasculine.Tamy Boubekeur} % teachers name
 \def \ttabrv{PIM380 } % abbreviation of names class
 \def \ttabrvxt{} % period
 \def \mytitle{Reconstruction 3D temps-réel HD de visages} % Big title
-\def \ttauthi{Tiago Chedraoui Silva} % author's name
+\def \ttauthi{Tiago~Chedraoui~Silva} % author's name
 \def \ttxti{Casier: 361 } % Extra text right side of name
-\def \ttauthii{Vinicius Dias Gardelli} % author's name
+\def \ttauthii{Vinicius~Dias~Gardelli} % author's name
 \def \ttxtii{Casier: 379 } % Extra text right side of name
-\def \ttdate{Juillet 28, 2013} % date
+\def \ttdate{Juillet 25, 2013} % date
 
-% \spc{1.5}
+ \spc{1.5}
 \begin{document}
 \thispagestyle{empty}
 \titleTMB 
+ % \begin{titlepage}
+ % \thispagestyle{empty}
+ % \begin{center}  \begin{figure}[h!]
+ %   \begin{center}
+ %     \includegraphics[scale=0.1]{img/logo.jpg}
+ %   \end{center}
+ % \end{figure}
+ %\end{center}
+ % %\vspace{0.3cm}
+ % \begin{center} 
+ %   {\Large \textsc{Reconstruction 3D temps-réel HD de visages}} 
+ %   \\\vspace{0.5cm}
+ %   {\textsl{Rapport Projet PIM - Projet d’Innovation Master}}
+ %   \\\vspace{1cm}
+ %   \begin{tabular}{rl}
+ %     \textbf{Elève}:       & \ttauthi \\
+ %     \textbf{Elève}:       & \ttauthi \\
+ %     \textbf{Professeur}: & \ttprofname
+ %   \end{tabular}
+ %   % Instituto de computação\\
+ %   \vspace{0.5cm}
+ %   \\ \ttdate     
+ % \end{center}
+ % \vspace{0.5cm}
+%  \begin{abstract}
+%    Dans les deux décennies, les animations faciales ont eu plusieurs aproches. Actuellment, les dernières méthodes sont basée sur une capture passive dont la configuration est presque entièrement automatiques. 
+%    Le but de ce projet est de réproduire une reconstruction 3D de visages à travers d'une méthode de capture passive qui utilisera que des outils périphériques peu coûteux, qui sont plus accessibles à la majorité des personnes.
+ % \end{abstract}
+  % Sumário
+%\tableofcontents
+
+%\end{titlepage} 
+
+\newpage
+\thispagestyle{empty}
+  \begin{abstract}
+    Dans les deux décennies, les animations faciales ont eu plusieurs aproches. Actuellment, les dernières méthodes sont basée sur une capture passive dont la configuration est presque entièrement automatiques. 
+    Le but de ce projet est de réproduire une reconstruction 3D de visages à travers d'une méthode de capture passive qui utilisera que des outils périphériques peu coûteux, qui sont plus accessibles à la majorité des personnes.
+ \end{abstract}
+
 \newpage
 \thispagestyle{empty}
 \tableofcontents
 \newpage
 \setcounter{page}{1}
-
-\section{Résume}
 
 \section{Introduction}
 
@@ -140,31 +178,31 @@ Le projet est divisé en cinq étapes:
   \end{center}
 \end{figure}
 
-\subsubsection{Calcul du maillage initial}
+\subsubsection*{Calcul du maillage initial}
 Chaque image de la séquence est traitée indépendamment pour générer une première estimation de la maillage pour cette trame.
 
-\subsubsection{Ancrage}
+\subsubsection*{Ancrage}
 Une trame est identifié manuellemnt comme la trame de réference. Puis, les trames qui ont une apparance similaire (expression du visage samblable et l'orientation de la tête) sont identifiées automatiquement et étiquetés comme des trames d'ancrage. Ces trames ancres seront un moyen de partitionner la séquence complète des clips de trames pour le traitement dans la prochaine étape.
 
-\subsubsection{Localisation image-space}
+\subsubsection*{Localisation image-space}
 Le but de cette étape est de suivre les pixels de l'image à partir du trame de référence pour chaque image dans la séquence. 
 
 Le processus commence par le suivi de pixels d'image à partir de la trame de référence pour les trames d'ancrage, ce qui est simple, car l'aspect de l'image en deux trames est, par définition, similaire. Cela permettra d'orienter le cheminement de pixels d'image à partir de la trame de référence à toutes les autres trames dans la séquence. 
 Le suivi des trames non ancres est réalisé de manière séquentielle, à partir des trames ancres les plus proches.
 
-\subsubsection{Propagation de la maillage}
+\subsubsection*{Propagation de la maillage}
 
 Une propagation de maille désigne le calcul de nouvelles positions des sommets du maillage dans l'espace, en correspondance avec le mouvement physique de la face.
 
 Un moyen pour propager la la maillage de référence (maillage de la trame de référence calculé à l'étape 1), pour toutes les trames dans la séquence, est l'utilisation des pixels de l'image suivis obtenues à l'étape 3.
  
-\subsubsection{Raffinement de maillage}
+\subsubsection*{Raffinement de maillage}
 
 Les étapes précédentes ont généré une propagation de la maille de référence pour chaque trame dans la séquence. Cette séquence de maillage déformant fournit une estimation initiale du mouvement du visage, ce qui est raffiné pour garantir la cohérence avec les données d'image en appliquant priori sur la cohérence spatiale et temporelle de la surface déformée.
 
 
 \section{Les étapes de développement}
-\subsection{Interface Kinect}
+\subsection*{Interface Kinect}
 
 Un des objectives du projet est d’avoir une interface avec la Kinect pour capturer les images nécessaires pour la reconstruction faciale.
 
@@ -184,7 +222,7 @@ La sortie peut être vue ci-dessous:
 %*Figure 2: Image
 
 
-\subsection{Interface graphique}
+\subsection*{Interface graphique}
 
 Pour la visualisation des images et des objets 3D, une interface graphique crée en utilisant le framework QT et la librairie QGLviewer. 
 
@@ -196,7 +234,21 @@ Pour la sélection des  frames ancres on a deux interfaces, une pour la sélecti
 
 Sélection d'ancres manuellement: 
 
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[scale=0.4]{img/editAnchorList.png}
+    \caption{Edition de la liste des ancres}
+  \end{center}
+\end{figure}
+
 Sélection d'ancres automatiquement:
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[scale=0.4]{img/AnchorAutomaticSelection.png}
+    \caption{Séléction automatique des ancres. Entrée: trame de référence (rouge) et seuil. Sortie: trames ancres (bleau)}
+  \end{center}
+\end{figure}
 
 
 \section{Résultats}

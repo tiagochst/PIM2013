@@ -170,7 +170,6 @@ Le projet est divisé en cinq étapes:
 \item Raffinement de maillage
 \end{enumerate}
 
-
 \begin{figure}[h!]
   \begin{center}
     \includegraphics[scale=0.4]{img/projDiagram.png}
@@ -212,15 +211,14 @@ La Kinect nous fournit une image RGB et sa profondeur en niveaux de gris dans un
 
 Actuellement, quand la fonction de la caméra est appelée, on accédera aux données de la Kinect et on dessinera par défaut la carte de profondeur par dessus de la carte graphique. 
 
-Pour une interaction, les actions suivantes sont possibles: 
+%Pour une interaction, les actions suivantes sont possibles: 
 
 % tabela
 
-La sortie peut être vue ci-dessous:
+%La sortie peut être vue ci-dessous:
 
 %*Figure 1: Carte de profondeur
 %*Figure 2: Image
-
 
 \subsection*{Interface graphique}
 
@@ -253,16 +251,36 @@ Sélection d'ancres automatiquement:
 
 \subsection{Correspondance des pixels}
 
-Pour certifier la bonne correspondance entre les pixels, quelques constraintes on été implementées, pour validé la correpondance.
+Pour la correspondance des pixels entre deux images, on évalue utilise un algorithme basée sur la valuer de la intercorrélation normalisée calculée sur une fenêtre carrée (3x3). La valeur la plus haute est notre meilleur correspondance.
+
+D'abord, le Pixel $p$ dans l'image $I$ est comparé à tous les pixels dans l'image $J$ dans une zone de recherche donné, et la meilleure correspondance est conservée. 
+
+Après avoir la meilleur correspondance, l'écart au pixel $p$ est calculé en utilisant les valeurs de la intercorrélation normalisée avec le point $p$ et ses deux voisins dans l'image $J$. En utilisant ses trois points, on utilisé un polynôme de degré deux pour trouver la valeur maximun que sera la valeur de la disparité.
+
+Pour l'utilisation des piramides des images, la correspondance est calculée pour tous les pixels en utilisant les estimations de la disparité de la couche précédente pour limiter la zone de recherche. 
+
+En suite, pour certifier la bonne correspondance entre les pixels, quelques constraintes on été implementées, pour validé la correpondance.
 \begin{description}
 
 \item[Lissage] Pour avoir une cohérence entre les voisins, plus de la moitié de tous les voisins dans une fenetre 3 x 3 diffèrent par un écart de moins d'un pixel de la disparité calculée au pixel $p$.  
 
 \item[Unicité] la corresponce doit etre bijective, c'est-à-dire si le pixel $p$ dans l'image $I$ correspond au pixel $q$ dans l'image $J$, alors $q$ doit également correspondre à $p$. Pour cette constrainte une disparité d'un pixel est acceptè.
 \item[Ordre] Disparité calculée au point $p$ ne dépasse pas la disparité de son pixel droit voisin par plus d'un pixel.
-
-
 \end{description}
+
+Pour les pixels qui ne remplissent pas ces contraintes, la correspondance sera rafait, mais cette fois, les estimations de la disparité des pixels voisins qui on remplit les contraintes seront utilisées. 
+
+Le resultat de cette étape, est un map de disparité, contenant pour chaque pixel de l'image $I$, la valeur de displacement dans l'image $J$. 
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[scale=0.35]{img/projSystem.png}
+    \caption{Le système proposé: de la capture à la reconstruction finale}
+  \end{center}
+\end{figure}
+
+
+\subsection{Raffinement}
 
 \section{Résultats}
 

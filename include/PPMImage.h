@@ -3,6 +3,7 @@
 
 #include "PNMImage.h"
 #include "PNMImageDefs.h"
+#include <fstream>
 
 class PPMImage
     :   public PNMImage
@@ -34,9 +35,9 @@ public:
         const unsigned int&     iChannel,
         const unsigned int&     iValue
     );
-    //void LoadFromFile (
-    //    const std::string&      iFilename
-    //);
+
+    static PPMImage* TryLoadFromFile ( const std::string& iFilename );
+
     void WriteToFile (
         const std::string&      iFilename,
         const unsigned int&     iMode=(PIXMAP | BINARY)
@@ -46,5 +47,27 @@ private:
     void AllocatePixmap ();
     void ClearPixmap ();
 };
+
+inline PPMImage* PPMImage::TryLoadFromFile (
+    const std::string&          iFilename
+) {
+    std::ifstream inputFile ( iFilename.c_str() );
+
+    if (
+            inputFile.is_open()
+        &&  inputFile.good()
+    ) {
+        inputFile.close ();
+
+        PPMImage* newImage = new PPMImage ();
+
+        newImage->LoadFromFile ( iFilename );
+
+        return newImage;
+    }
+    inputFile.close ();
+
+    return (PPMImage*)0x0;
+}
 
 #endif // _PPMIMAGE_H_

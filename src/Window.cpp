@@ -761,7 +761,7 @@ void Window::calcDisp() {
     //} catch (BadIndex bi) {
     //    std::cout << bi.what();
     //}
-    //updateImages ();
+    updateImages ();
 }
 
 void Window::updateImages() {
@@ -790,7 +790,7 @@ void Window::updateImages() {
     if (dispX) delete dispX;
     dispX = new QLabel;
     dispX -> setMaximumSize(QSize(320, 240));
-    QPixmap pic3(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2 + "x.pgm").c_str()))));
+    QPixmap pic3(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "disparity_"+ frameID1 + ".ppm").c_str()))));
     if(!pic3.isNull())
         dispX -> setPixmap(pic3.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
@@ -798,7 +798,7 @@ void Window::updateImages() {
     if (dispY) delete dispY;
     dispY = new QLabel;
     dispY -> setMaximumSize(QSize(320, 240));
-    QPixmap pic4(QPixmap(QString::fromUtf8(((Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2 + "y.pgm").c_str()))));
+    QPixmap pic4(QPixmap(QString::fromUtf8(((Config::OutputPath() + "colorChart.ppm").c_str()))));
     if(!pic4.isNull())
         dispY -> setPixmap(pic4.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 

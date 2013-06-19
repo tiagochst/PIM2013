@@ -227,28 +227,42 @@ La sortie peut être vue ci-dessous:
 
 \begin{center} 
   \begin{figure}
-\begin{center} 
-    \subfloat[Carte de profondeur]{\includegraphics[scale=0.25]{img/image00}} \
-    \hspace{1cm} \
-    \subfloat[Image]{\includegraphics[scale=0.25]{img/image09}}
+    \begin{center} 
+      \subfloat[Carte de profondeur]{\includegraphics[scale=0.25]{img/image00}} \
+      \hspace{1cm} \
+      \subfloat[Image]{\includegraphics[scale=0.25]{img/image09}}
     \caption{Sortie de la Kinect}
-\end{center}
-
+    \end{center}
   \end{figure}
 \end{center}
 
 
-%*Figure 1: Carte de profondeur
-%*Figure 2: Image
-
 \subsection*{Interface graphique}
 
-Pour la visualisation des images et des objets 3D, une interface graphique crée en utilisant le framework QT et la librairie QGLviewer. 
+Pour une intéraction plus facile avec les utilisateurs, nous avons décidé de créer une interface graphique. Le processus pour la création a passé pour une identification des functionalitées qui était utiles pour l'utilisateur. Quelques fonctionalité sont listées ci-dessous:
 
-Nous avons utilisé l’outil Pencil pour faire une maquette de l’interface. Ci-dessous, la maquette pour la visualisation de déplacements entre deux frames.
+\begin{itemize}
+\item Visualisation de l'entré de la Kinect 
+\item Exportation de la maille affiché
+\item Sauvegarder une séquence des trames
+\item Séléction automatique des trames ancres
+\item Edition manuel des trames ancres
+\item Controler les paramètres principaux du programe
+\item Calculer la carte de déplacement entre deux images
+\end{itemize}
 
-Le résultat en utlisant le framework Qt peut être vu, ci-dessous.
+Après la phase d'indentification des fonctionalités, des idées on été dessinées dans l'outil pencil\cite{Pencil}, un outil pour faire la maquette de l'interface.
+Ci-dessous, la maquette pour la séléction automatique des trames ancres.
 
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[scale=0.4]{img/pencil.png}
+    \caption{Maquete: selection automatique de trames ancres}
+  \end{center}
+\end{figure}
+
+
+Puis, l'interface graphique pour la visualisation des images et des objets 3D a été crée en utilisant le framework QT et la librairie QGLviewer. 
 Pour la sélection des  frames ancres on a deux interfaces, une pour la sélection manuel et l’autre pour la sélection automatique. Les images de l’interface sont ci-dessous:
 
 Sélection d'ancres manuellement: 

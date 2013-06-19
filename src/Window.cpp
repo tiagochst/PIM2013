@@ -542,8 +542,8 @@ void Window::initAutoAnchorSelection(){
     thresholdSP =  new QDoubleSpinBox(anchorAutoSelection);
     thresholdSP -> setGeometry(QRect(330, 390, 62, 25));
     thresholdSP -> setMaximum(1000000);
-    thresholdSP -> setSingleStep(0.1);
-    thresholdSP -> setDecimals ( 1 );
+    thresholdSP -> setSingleStep(0.01);
+    thresholdSP -> setDecimals ( 3 );
     ParameterHandler* params = ParameterHandler::Instance();
     thresholdSP -> setValue(params -> GetThreshold());
 
@@ -640,14 +640,17 @@ void Window::setAutoAnchor(bool b){
  */
 void Window::setFrame1(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
-    params -> SetFrame1(iFrame);
 
-    std::string path = Config::FramesPath() + "f" + toString (iFrame) + "/";
+    if(iFrame >= 0 && !isinf(iFrame)){
+        params -> SetFrame1(iFrame);
 
-    Frame* frame = new Frame ();
-    frame->LoadFromFile ( path );
-    params->SetCurrentFrame ( frame );
+        std::string path = Config::FramesPath() + "f" + toString (iFrame) + "/";
 
+        Frame* frame = new Frame ();
+        frame->LoadFromFile ( path );
+        params->SetCurrentFrame ( frame );
+    }
+    
     if(params -> GetMesh()){
         viewer -> reset();
         viewer -> updateGL();
@@ -715,9 +718,9 @@ void Window::calcDisp() {
     pt.Calculate3DDisplacements (
        refMesh, tarMesh 
     );
-
     pt.Export ( f1path );
-
+    
+    std::cout << "Frame ID: " << Int2Str(params->GetFrame1())<< std::endl;
     params->GetCurrentFrame()->LoadFromFile ( f1path );
 
     delete refImg;
@@ -811,7 +814,8 @@ void Window::updateImages() {
 
 void Window::setFrame2(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
-    params->SetFrame2(iFrame);
+    if(iFrame >= 0 && !isinf(iFrame))
+        params->SetFrame2(iFrame);
     updateImages();
 }
 
@@ -831,6 +835,10 @@ void Window::addImageItems()
 
     QFile imageList(IMG_LIST_PATH.c_str());
     QString fileName;
+    
+    /* Clear combo box items*/
+    frame1ComboBox -> clear();
+    frame2ComboBox -> clear();
 
     /* Verify if the file readable*/
     if(!imageList.open(QIODevice::ReadOnly ))
@@ -1016,6 +1024,7 @@ void Window::initControlWidget () {
     /* Creating tables for frame selection */
     frame1ComboBox = new QComboBox (previewGroupBox);
     frame2ComboBox = new QComboBox (previewGroupBox);
+    this -> setFrame1(0); // Used for point set allocation
     addImageItems();
 
     QLabel          *   frame1Label = new QLabel(tr("Frame:"));

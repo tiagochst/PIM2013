@@ -8,6 +8,8 @@
 #include <GL/glut.h>
 #include "Camera.h"
 
+#include "Frame.h"
+
 using namespace std;
 
 GLViewer::GLViewer ()
@@ -165,17 +167,25 @@ void GLViewer::draw () {
     // Draw an axis using the QGLViewer static function
     drawAxis();
 
-    PointSet* ps = new PointSet ();
-    Camera& cam = Camera::Instance ();
-    cam.ReadFrame (
-        0x0,
-        0x0,
-        ps
-    );
+    ParameterHandler* params = ParameterHandler::Instance ();
+    if ( params->GetCamera () ) {
+        PointSet* ps = new PointSet ();
+        Camera& cam = Camera::Instance ();
+        cam.ReadFrame (
+                0x0,
+                0x0,
+                ps
+                );
 
-    ps->Draw ();
-    delete ps;
-    ps = NULL;
+        ps->Draw ();
+        delete ps;
+        ps = NULL;
+    } else {
+        const Frame* f = params->GetCurrentFrame ();
+
+        if ( f )
+            f->Draw ();
+    }
 
     // Draws the image in 3D.
     //drawPoints(m_frame,m_depth);

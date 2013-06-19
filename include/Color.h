@@ -27,6 +27,11 @@ public:
 
     int Brightness () const;
 
+    void ToHSV (
+        float&          oHue,
+        float&          oSaturation,
+        float&          oValue
+    ) const;
     void FromHSV (
         const float&    iHue,
         const float&    iSaturation,
@@ -36,6 +41,34 @@ public:
 private:
     void ClampValues();
 };
+
+inline void Color::ToHSV (
+    float&          oHue,
+    float&          oSaturation,
+    float&          oValue
+) const {
+    float maxVal = fmax ( fmax ( m_R, m_G ), m_B );
+    float minVal = fmin ( fmin ( m_R, m_G ), m_B );
+    float var = maxVal - minVal;
+
+    if ( maxVal == minVal ) {
+        oHue = 0;
+    } else if ( maxVal == m_R ) {
+        oHue = std::fmod ( (60.0f * ((m_G-m_B)/var) + 360.0f), 360.0f );
+    } else if ( maxVal == m_G ) {
+        oHue = 60.0f * ((m_B-m_R)/var) + 120.0f;
+    } else if ( maxVal == m_B ) {
+        oHue = 60.0f * ((m_R-m_G)/var) + 240.0f;
+    }
+
+    if ( maxVal == 0 ) {
+        oSaturation = 0.0f;
+    } else {
+        oSaturation = 1.0f - ( minVal / maxVal );
+    }
+
+    oValue = maxVal;
+}
 
 inline void Color::FromHSV (
     const float&    iHue,

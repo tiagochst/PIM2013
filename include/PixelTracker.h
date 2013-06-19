@@ -77,16 +77,6 @@ public:
         const std::string&      iFilename
     ) const;
 
-    /* Refinement functions*/ 
-    float computeDpX(
-        float e_1, float e0, float e1,
-        CartesianCoordinate p,CartesianCoordinate q
-    );
-    float computeDpY(
-        float e_1, float e0, float e1,
-        CartesianCoordinate p,CartesianCoordinate q
-    );
-
     float computeDsX(
         CartesianCoordinate p
     );
@@ -156,9 +146,16 @@ public:
     void PyramidUniqueness (
         const unsigned int&     iLevel
     );
+    void PyramidRefineStep0 (
+        const unsigned int&     iLevel
+    );
     void PyramidRefine (
         const unsigned int&     iLevel
     );
+    void ExportPyramidLevel (
+        const unsigned int&     iLevel,
+        const std::string&      iFilename
+    ) const; 
 };
 
 #endif // _PIXELTRACKER_H_

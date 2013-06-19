@@ -6,6 +6,7 @@
 #include "Camera.h"
 #include "ParameterHandler.h"
 #include "FileWriterServices.h"
+#include "MathUtils.h"
 
 using namespace xn;
 
@@ -385,7 +386,7 @@ void Camera::ReadFrame (
             CropWidth,
             CropHeight
         );
-        oDepth->SetMaxGreyLevel ( 1000 );
+        oDepth->SetMaxGreyLevel ( 5000 );
     }
 
     const XnRGB24Pixel* pImageRow   = m_imageMD.RGB24Data()
@@ -397,6 +398,7 @@ void Camera::ReadFrame (
 
     std::vector<XnPoint3D> projectivePoints;
     std::vector<Color> colors;
+    std::vector<CartesianCoordinate> uvCoords;
     for (XnUInt y = 0; y < CropHeight; ++y)
     {
         const XnRGB24Pixel* pImage = pImageRow;
@@ -442,6 +444,10 @@ void Camera::ReadFrame (
                     point.Z  = depthVal;
                     projectivePoints.push_back ( point );
                     colors.push_back(c);
+                    CartesianCoordinate uvc;
+                    uvc.x = x;
+                    uvc.y = y;
+                    uvCoords.push_back(uvc);
                 //}
             }
         }
@@ -460,6 +466,11 @@ void Camera::ReadFrame (
         for ( int vtx = 0; vtx < realWorld.size (); vtx++ ) {
             XnPoint3D pt = realWorld[vtx];
             Color& c = colors[vtx];
+            CartesianCoordinate& uvc = uvCoords[vtx];
+
+            unsigned int x = vtx % CropWidth;
+            unsigned int y = vtx / CropWidth;
+
             oPoints->PushVertex (
                 Vertex (
                     Vec3Df (
@@ -472,9 +483,27 @@ void Camera::ReadFrame (
                         0,
                         0
                     ),
-                    c
+                    c,
+                    uvc.x,
+                    uvc.y
                 )
             );
+
+            if ( x < (CropWidth - 1) ) {
+                if ( y < (CropHeight - 1) ) {
+                    Face f;
+                    
+                    f.v0 = vtx;
+                    f.v1 = vtx + 1;
+                    f.v2 = vtx + CropWidth;
+                    oPoints->PushFace ( f );
+
+                    f.v0 = vtx + 1;
+                    f.v1 = vtx + CropWidth;
+                    f.v2 = vtx + CropWidth + 1;
+                    oPoints->PushFace ( f );
+                }
+            }
         }
         oPoints->MoveToBarycenter ();
     }

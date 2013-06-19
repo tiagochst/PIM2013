@@ -89,44 +89,52 @@ void PNMImage::LoadFromFile (
 
         }
 
-        /* Second line : comment */
-        bool widthRead      = true;
-        bool heightRead     = true;
-        bool maxValueRead   = !( mode & BITMAP );
-        do {
-            std::string inputLine;
-            getline (
-                input,
-                inputLine
-            );
-            std::stringstream lineStream ( inputLine );
 
-            while (
-                    !lineStream.eof ()
-                &&  ( widthRead || heightRead || maxValueRead )
-            ) {
-                char peeked = lineStream.peek ();
-                while ( peeked == '#' || peeked == ' ' ) {
-                    lineStream >> peeked;
-                    peeked = lineStream.peek ();
-                }
-                if ( widthRead && !lineStream.eof () ) {
-                    lineStream >> width;
-                    std::cout << width << std::endl;
-                    widthRead = false;
-                }
-                if ( heightRead && !lineStream.eof () ) {
-                    lineStream >> height;
-                    std::cout << height << std::endl;
-                    heightRead = false;
-                }
-                if ( maxValueRead && !lineStream.eof () ) {
-                    lineStream >> maxValue;
-                    std::cout << maxValue << std::endl;
-                    maxValueRead = false;
-                }
-            }
-        } while ( widthRead || heightRead || maxValueRead );
+        /* Second line : comment */
+        std::string comment;
+        getline ( input, comment );
+        std::cout << comment << std::endl;
+        input >> width >> height >> maxValue;
+        std::cout << width << " " << height << std::endl << maxValue << std::endl;
+
+        //bool widthRead      = true;
+        //bool heightRead     = true;
+        //bool maxValueRead   = !( mode & BITMAP );
+        //do {
+        //    std::string inputLine;
+        //    getline (
+        //        input,
+        //        inputLine
+        //    );
+        //    std::stringstream lineStream ( inputLine );
+        //    std::cout << inputLine << std::endl;
+
+        //    while (
+        //            !lineStream.eof ()
+        //        &&  ( widthRead || heightRead || maxValueRead )
+        //    ) {
+        //        char peeked = lineStream.peek ();
+        //        while ( peeked == '#' || peeked == ' ' ) {
+        //            lineStream >> peeked;
+        //            peeked = lineStream.peek ();
+        //        }
+        //        if ( widthRead && !lineStream.eof () ) {
+        //            lineStream >> width;
+        //            std::cout << width << std::endl;
+        //            widthRead = false;
+        //        }
+        //        if ( heightRead && !lineStream.eof () ) {
+        //            lineStream >> height;
+        //            std::cout << height << std::endl;
+        //            heightRead = false;
+        //        }
+        //        if ( maxValueRead && !lineStream.eof () ) {
+        //            lineStream >> maxValue;
+        //            std::cout << maxValue << std::endl;
+        //            maxValueRead = false;
+        //        }
+        //    }
+        //} while ( widthRead || heightRead || maxValueRead );
 
         SetMaxValue ( maxValue );
         ResetDimensions ( width, height );

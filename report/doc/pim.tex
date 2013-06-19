@@ -25,7 +25,7 @@
 \def \ttxtii{Casier: 379 } % Extra text right side of name
 \def \ttdate{Juillet 25, 2013} % date
 
-\spc{1.5}
+%\spc{1.5}
 \begin{document}
 \thispagestyle{empty}
 \titleTMB 
@@ -205,7 +205,15 @@ Les étapes précédentes ont généré une propagation de la maille de référe
 
 Un des objectives du projet est d’avoir une interface avec la Kinect pour capturer les images nécessaires pour la reconstruction faciale.
 
-Pour qu’on puisse accéder aux données du dispositif Kinect, l’API OpenNI a été utilisé. Cette API fournit des interfaces de communication qui interagissent à la fois avec les capteurs et les composants intermédiaires, qui analysent les données provenant des capteurs.
+Pour qu’on puisse accéder aux données du dispositif Kinect, l’API OpenNI\cite{Openni2010} a été utilisé. Cette API fournit des interfaces de communication qui interagissent à la fois avec les capteurs et les composants intermédiaires, qui analysent les données provenant des capteurs.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[scale=0.4]{img/image03.png}
+    \caption{Architecture Openni}
+  \end{center}
+\end{figure}
+
 
 La Kinect nous fournit une image RGB et sa profondeur en niveaux de gris dans une résolution VGA (640×480).
 
@@ -215,7 +223,20 @@ Actuellement, quand la fonction de la caméra est appelée, on accédera aux don
 
 % tabela
 
-%La sortie peut être vue ci-dessous:
+La sortie peut être vue ci-dessous:
+
+\begin{center} 
+  \begin{figure}
+\begin{center} 
+    \subfloat[Carte de profondeur]{\includegraphics[scale=0.25]{img/image00}} \
+    \hspace{1cm} \
+    \subfloat[Image]{\includegraphics[scale=0.25]{img/image09}}
+    \caption{Sortie de la Kinect}
+\end{center}
+
+  \end{figure}
+\end{center}
+
 
 %*Figure 1: Carte de profondeur
 %*Figure 2: Image
@@ -282,6 +303,49 @@ Le resultat de cette étape, est un map de disparité, contenant pour chaque pix
 
 \subsection{Raffinement}
 
+Le processus de raffinement à deux étages, le premier est le raffinement de la carte de disparité et la deuxième est le raffinement de la surface. 
+
+Le raffinement consiste en une combinaison linéaire de deux termes: un terme cohérence photométrique $d_p$ qui privilégie les solutions à haute intercorrélation normalisée et un terme de consistance de surface $d_s$ qui privilégie les solutions lisses.
+
+Ces termes sont équilibrées à la fois par un paramètre lissage spécifié par l'utilisateur $w_s$ et $w_p$ paramètre définit en temps d'éxecution à travers des données, ce qui garantit que le terme photométrique a plus de poids dans les régions avec une bonne fonctionnalité de localisation.
+
+Les étapes pour le raffinement de la carte de disparité est:
+\begin{enumerate}
+\item Compute $d_p$:
+
+\begin{eqnarray*}
+u_{p}=\begin{cases}
+p-q-0.5 & \xi_{-1}<\xi_{0},\xi_{+1}\\
+p-q+0.5\frac{(\xi_{-1}-\xi_{-1})}{\xi_{-1}+\xi_{+1}-2\xi_{0}} & \xi_{0}<\xi_{-1},\xi_{+1}\\
+p-q+0.5 & \xi_{+1}<\xi_{0},\xi_{-1}
+\end{cases}
+\end{eqnarray*}
+
+\item Compute $w_p$:
+\begin{eqnarray*}
+w_{p}=\begin{cases}
+\xi_{-1}-\xi_{0} & \xi_{-1}<\xi_{0},\xi_{+1}\\
+0.5(\xi_{-1}+\xi_{+1}-2\xi_{0}) & \xi_{0}<\xi_{-1},\xi_{+1}\\
+\xi_{+1}-\xi_{0} & \xi_{+1}<\xi_{0},\xi_{-1}
+\end{cases}
+\end{eqnarray*}
+
+\item Compute $u_s$:
+
+\[
+u_{s}(x,y)=\sum_{(x^{'}y^{'})\epsilon\aleph(x,y)}w_{x^{'},y^{'}}u_{x^{',y^{'}}}\frac{1}{8}
+\]
+
+Où:$w_{x^{'},y^{'}}:=exp\left(\frac{\parallel\delta_{x^{'}y^{'}}-\delta_{xy}\parallel}{\sigma^{2}}\right)(1-\xi_{x^{'}y^{'}})$ et $\aleph$ désigne le voisinage de (x, y), les 8 pixels voisins. De plus, $\epsilon$ est $1mm$ selon notre matériel de capture.
+
+\item Compute $d^{'}$:
+$d^{'}=\frac{(w_{p}u_{p}+w_{s}u_{s})}{(w_{p}+w_{s})}$
+
+Où la valeur de $w_{s}$ dans notre programme vaut $0.005$.
+
+\end{enumerate}
+
+
 \section{Résultats}
 
 \section{Conclusion}
@@ -293,6 +357,7 @@ Nous remercions également Thierry Guillemot et Stéphane Calderon, pour leur vo
 
 \nocite{Beeler:2010:HSC:1778765.1778777}
 \nocite{Beeler:2011:HPF:2010324.1964970}
+\nocite{PrimeSense2010}
 
 % ******************************************************
 % REFERENCIAS BIBLIOGRÁFICAS

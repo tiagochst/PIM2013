@@ -1,5 +1,17 @@
 \begin{thebibliography}{}
 
+\bibitem[Ope, 2010]{Openni2010}
+ (2010).
+\newblock {\em OpenNI User Guide}.
+\newblock OpenNI organization.
+\newblock Last viewed 19-04-2013 11:32.
+
+\bibitem[Pri, 2010]{PrimeSense2010}
+ (2010).
+\newblock {\em Prime Sensor NITE 1.3 Algorithms notes}.
+\newblock PrimeSense Inc.
+\newblock Last viewed 19-01-2011 15:34.
+
 \bibitem[Beeler et~al., 2010]{Beeler:2010:HSC:1778765.1778777}
 Beeler, T., Bickel, B., Beardsley, P., Sumner, B., and Gross, M. (2010).
 \newblock High-quality single-shot capture of facial geometry.

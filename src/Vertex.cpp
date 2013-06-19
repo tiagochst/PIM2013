@@ -2,19 +2,25 @@
 
 // Constructors & destructors
 Vertex::Vertex(void)
-    : m_position(0, 0, 0), m_normal(0, 0, 0), m_color(1.0f, 1.0f, 1.0f, 1.0f)
+    : m_position(0, 0, 0), m_normal(0, 0, 0), m_color(1.0f, 1.0f, 1.0f, 1.0f), m_U (0u), m_V (0u)
 {}
 
 Vertex::Vertex(const Vec3Df& iPosition, const Vec3Df& iNormal, const Color& iColor)
-    : m_position(iPosition), m_normal(iNormal), m_color(iColor)
+    : m_position(iPosition), m_normal(iNormal), m_color(iColor), m_U (0u), m_V (0u)
+{}
+
+Vertex::Vertex(const Vec3Df& iPosition, const Vec3Df& iNormal, const Color& iColor, const unsigned int& iU, const unsigned int& iV)
+    : m_position(iPosition), m_normal(iNormal), m_color(iColor), m_U(iU), m_V(iV)
 {}
 
 Vertex::Vertex(const Vertex& iSource)
 {
     if ( this != &(iSource) ) {
-        m_position = iSource.m_position;
-        m_normal   = iSource.m_normal;
-        m_color    = iSource.m_color;
+        m_position  = iSource.m_position;
+        m_normal    = iSource.m_normal;
+        m_color     = iSource.m_color;
+        m_U         = iSource.m_U;
+        m_V         = iSource.m_V;
     }
 }
 Vertex::~Vertex(void)
@@ -51,6 +57,18 @@ void Vertex::SetColor(const Color& iColor)
     m_color = iColor;
 }
 
+void Vertex::GetUVCoord(unsigned int& oU, unsigned int& oV) const
+{
+    oU = m_U;
+    oV = m_V;
+}
+
+void Vertex::SetUVCoord(const unsigned int& iU, const unsigned int& iV)
+{
+    m_U = iU;
+    m_V = iV;
+}
+
 // Operators
 Vertex& Vertex::operator=(const Vertex& iOther)
 {
@@ -58,6 +76,8 @@ Vertex& Vertex::operator=(const Vertex& iOther)
         m_position  = iOther.m_position;
         m_normal    = iOther.m_normal;
         m_color     = iOther.m_color;
+        m_U         = iOther.m_U;
+        m_V         = iOther.m_V;
     }
     return (*this);
 }

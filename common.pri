@@ -30,6 +30,7 @@ HEADERS              =  include/Window.h                \
                         include/PixelTracker.h          \
                         include/ImagePyramid.h          \
                         include/Frame.h                 \
+                        include/Clip.h                  \
                         include/TrackInfo.h
 
 SOURCES              =  src/Window.cpp                  \
@@ -50,7 +51,8 @@ SOURCES              =  src/Window.cpp                  \
                         src/PixelTracker.cpp            \
                         src/ImagePyramid.cpp            \
                         src/Frame.cpp                   \
-                        src/TrackInfo.cpp
+                        src/Clip.cpp                    \
+                        src/TrackInfo.cpp 
 
 
 MOC_DIR              =  .tmp

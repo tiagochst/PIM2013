@@ -18,7 +18,6 @@
 #include "Rectangle.h"
 #include "ParameterHandler.h"
 #include "PixelTracker.h"
-//#include "ui_mainInterface.Qt4.h"
 
 class QMyApplication
     :   public QApplication
@@ -84,246 +83,31 @@ int KinectInit(int argc, char** argv)
     return 1;
 }
 
-void FindTemplateAndPrintMap(
-    const ImageBase& iBaseImage,
-    const ImageBase& iTemplate,
-    Image& oCorrelationMap,
-    CartesianCoordinate& oBestMatch,
-    float& oBestMatchVal,
-    const std::string& iMapFilename,
-    const Rectangle* iSearchWindow=NULL
-) {
-    if (iSearchWindow != NULL ) {
-        oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, *iSearchWindow, oBestMatch, &oCorrelationMap );
-    } else {
-        oBestMatchVal = iBaseImage.TemplateMatch( iTemplate, oBestMatch, &oCorrelationMap );
-    }
-    std::cout   << "Possible match found at ("  << oBestMatch.x << ", " << oBestMatch.y << ") "
-                << "with correlation value of "   << oBestMatchVal
-                << std::endl;
-    oCorrelationMap.CreateAsciiPgm(Config::OutputPath() + iMapFilename);
-}
-
 int main(int argc, char** argv) {
     Config::LoadConfigs(Config::RootPath() + "settings");
 
     static const std::string RES_PTSET_PATH(Config::ResourcesPath() + "PointSets/");
     static const std::string RES_IMG_PATH(Config::ResourcesPath() + "Images/");
 
-    /* Class image test */
-    // Image myImage(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-ascci.pgm");
+    XnStatus rc = KinectSetup ( argc, argv );
+    //CHECK_RC(rc, "Error setting up Kinect Camera");
 
-    /* Class Ply test  */
-    //PointSet psAscii, psBinary;    
-    //psAscii.LoadFromFile(RES_PTSET_PATH + "frame000-ascii.ply");
-    //psBinary.LoadFromFile(RES_PTSET_PATH + "frame000-brut.ply");
- 
-    Image frame0(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
-    Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
-    Image dispX( frame0.GetWidth(), frame0.GetHeight(), 255 );
-    Image dispY( frame0.GetWidth(), frame0.GetHeight(), 255 );
-
-    SubImage figure;
-    SubImage patch;
-    frame0.GetSubImage (
-        200,
-        140,
-        150,
-        250,
-        figure
-    );
-    figure.GetSubImage (
-        50,
-        50,
-        50,
-        50,
-        patch
-    );
-    Image smallMask(Config::DataPath() + "smallMask.pgm");
-    Image mask(Config::DataPath() + "mask.pgm");
-    Image bigMask(Config::DataPath() + "bigMask.pgm");
-    
-    Image correlationMap( 1, 1, 255 );
-    float correlationVal = 0.0f;
-    CartesianCoordinate bestMatch;
-
-    char c;
-    std::cout << "Select Mode: Kinect ('k') Image Tracking('t') UI (u) Other:('o')" << std::endl;
-    std::cin  >> c; 
-
-    if ( c == 't' ) {
-        figure.CreateAsciiPgm (
-            Config::OutputPath() + "figure.pgm"
-        );
-        patch.CreateAsciiPgm (
-            Config::OutputPath() + "patch.pgm"
-        );
-
-        std::vector<unsigned int> anchors;
-        Image::CalculateAnchors (
-            35,
-            0,
-            Config::OutputPath () + "CapturedFrames/",
-            "image_",
-            anchors
-        );
-        std::cout << "Anchor frames: ";
-        for ( unsigned int i = 0; i < anchors.size(); i++ ) {
-            std::cout << anchors[i] << " ";
-        }
-        std::cout << std::endl;
-
-        std::cout   << "Correlation between frames F0 and F0: "
-                    << frame0.Correlation ( frame0 )
-                    << std::endl;
-        std::cout   << "Correlation between frames F0 and F1: "
-                    << frame0.Correlation ( frame1 )
-                    << std::endl;
-        std::cout   << "Error score between frames F0 and F0: "
-                    << ImageBase::CalculateErrorScore ( frame0, frame0 )
-                    << std::endl;
-        std::cout   << "Error score between frames F0 and F1: "
-                    << ImageBase::CalculateErrorScore ( frame0, frame1 )
-                    << std::endl;
-        //FindTemplateAndPrintMap(
-        //    frame0,
-        //    figure,
-        //    correlationMap,
-        //    bestMatch,
-        //    correlationVal,
-        //    "frame0figureCorrelation.pgm"
-        //);
-        //FindTemplateAndPrintMap(
-        //    figure,
-        //    patch,
-        //    correlationMap,
-        //    bestMatch,
-        //    correlationVal,
-        //    "figurePatchCorrelation.pgm"
-        //);
-        FindTemplateAndPrintMap(
-            bigMask,
-            smallMask,
-            correlationMap,
-            bestMatch,
-            correlationVal,
-            "smallMaskCorrelation.pgm"
-        );
-
-       // FindTemplateAndPrintMap(
-       //     bigMask,
-       //     mask,
-       //     correlationMap,
-       //     bestMatch,
-       //     correlationVal,
-       //     "bigMaskCorrelation.pgm"
-       // );
-       // 
-       // FindTemplateAndPrintMap(
-       //     frame1,
-       //     mask,
-       //     correlationMap,
-       //     bestMatch,
-       //     correlationVal,
-       //     "frame1Correlation.pgm"
-       // );
-
-       // Rectangle window( 150, 150, 200, 200 );
-       // FindTemplateAndPrintMap(
-       //     frame1,
-       //     mask,
-       //     correlationMap,
-       //     bestMatch,
-       //     correlationVal,
-       //     "frame1WindowedCorrelation.pgm",
-       //     &window
-       // );
-        
-        try {
-            ParameterHandler* params = ParameterHandler::Instance ();
-            const unsigned int& wSize = params->GetWindowSize ();
-            const unsigned int& nSize = params->GetNeighbourhoodSize ();
-            dispX.SetMaxGreyLevel ( wSize );
-            dispY.SetMaxGreyLevel ( wSize );
-
-            PixelTracker pixTracker (0);
-            pixTracker.SetUp (
-                wSize,
-                wSize,
-                nSize,
-                nSize,
-                0.95
-            );
-            
-            pixTracker.Track ( 1 );
-            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.95)+"n.ppm" );
-            std::cout << "Track 0 Done" << std::endl;
-
-            pixTracker.SetRejectionTreshold(0.90); 
-            pixTracker.Track ( 1 );
-            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.90)+"n.ppm" );
-            std::cout << "Track 1 Done" << std::endl;
-
-            pixTracker.SetRejectionTreshold(0.85); 
-            pixTracker.Track ( 1 );
-            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.85)+"n.ppm" );
-            std::cout << "Track 2 Done" << std::endl;
-
-
-            ImageBase::TrackPixels (
-                frame0,
-                frame1,
-                wSize,
-                wSize,
-                nSize,
-                nSize,
-                dispX,
-                dispY
-            );
-            dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1x.pgm");
-            dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1y.pgm");
-        } catch (BadIndex bi) {
-            std::cout << bi.what();
-        }
-
-        Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
-        for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
-            for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {
-                int val = bigMask.GetGreyLvl( y - bigMask.GetHeight(), x - bigMask.GetWidth() );
-                
-                fullSpectre.SetGreyLvl( y, x, val );
-            }
-        }    
-        fullSpectre.CreateAsciiPgm(Config::OutputPath() + "fullSpectre.pgm");
-    }
-    
-    if ( c == 'k' ) {
-        KinectInit(argc, argv);
+    if (rc == XN_STATUS_OK){
+        ParameterHandler* params = ParameterHandler::Instance();
+        params -> SetCamera(true);
+        Camera& cam = Camera::Instance ();
+        cam.Setup(argc, argv);
     }
 
-    if ( c == 'u' ) {
-        XnStatus rc = KinectSetup ( argc, argv );
-        //CHECK_RC(rc, "Error setting up Kinect Camera");
+    QMyApplication program (argc, argv);
 
-        if (rc == XN_STATUS_OK){
-            ParameterHandler* params = ParameterHandler::Instance();
-            params -> SetCamera(true);
-            Camera& cam = Camera::Instance ();
-            cam.Setup(argc, argv);
-        }
-
-        QMyApplication program (argc, argv);
-
-        QMyApplication::setStyle ( new QPlastiqueStyle() );
-        program.setAttribute(Qt::AA_DontUseNativeMenuBar,true);
-        Window * progWindow = new Window ();
-        progWindow->setWindowTitle ("PIM380: A facial reconstruction program.");
-        progWindow -> show();
-        program.connect (&program, SIGNAL (lastWindowClosed()), &program, SLOT (quit()));
-        
-        return program.exec ();
-    }
+    QMyApplication::setStyle ( new QPlastiqueStyle() );
+    program.setAttribute(Qt::AA_DontUseNativeMenuBar,true);
+    Window * progWindow = new Window ();
+    progWindow->setWindowTitle ("PIM380: A facial reconstruction program.");
+    progWindow -> show();
+    program.connect (&program, SIGNAL (lastWindowClosed()), &program, SLOT (quit()));
     
-    return 0;
+    return program.exec ();
 }
 

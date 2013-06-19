@@ -3,6 +3,8 @@
 
 #include <cmath>
 
+#include "Frame.h"
+
 class ParameterHandler
 {    
 private:
@@ -24,6 +26,8 @@ private:
 
     double          m_threshold;
 
+    Frame*          m_frame;
+
 private:
     ParameterHandler ()
         :   m_frame1 ( 0 ),
@@ -36,7 +40,8 @@ private:
             m_nearPlane ( 0 ),
             m_farPlane ( 1500 ),
             m_depthCrop ( false ),
-            m_threshold ( 0.0 )
+            m_threshold ( 0.0 ),
+            m_frame ( (Frame*)0x0 )
     {}
     ~ParameterHandler ()
     {}
@@ -104,7 +109,24 @@ public:
 
     const double& GetThreshold () const;
 
+    const Frame* GetCurrentFrame () const;
+    Frame* GetCurrentFrame ();
+    void SetCurrentFrame ( Frame* iFrame );
+
 };
+
+inline const Frame* ParameterHandler::GetCurrentFrame () const {
+    return m_frame;
+}
+inline Frame* ParameterHandler::GetCurrentFrame () {
+    return m_frame;
+}
+inline void ParameterHandler::SetCurrentFrame ( Frame* iFrame ) {
+    if ( m_frame ) {
+        delete m_frame;
+    }
+    m_frame = iFrame;
+}
 
 
 inline const unsigned int& ParameterHandler::GetWindowSize ()

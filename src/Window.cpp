@@ -5,6 +5,12 @@
 #include <QGraphicsScene>
 #include <QImage>
 
+#include "Image.h"
+#include "PPMImage.h"
+#include "Frame.h"
+#include "PointSet.h"
+#include "PixelTracker.h"
+
 using namespace std;
 
 void Window::startCapture() {
@@ -46,7 +52,7 @@ void Window::enableCaptureButton () {
 void Window::updateFrameList () {
 
     /* Update the list of images in the system*/
-    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=*.png --ignore=depth* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/.pgm//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
+    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=depth* --ignore=disparity* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/.pgm//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
 
     system(IMAGE_LIST.c_str());
 
@@ -637,6 +643,15 @@ void Window::setFrame1(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetFrame1(iFrame);
 
+    std::string prefix = Config::OutputPath() + "CapturedFrames/";
+
+    PointSet* ps = new PointSet ( prefix + "pointset_"+Int2Str(iFrame)+".ply");
+    Image* tex = new Image ( prefix + "image_"+Int2Str(iFrame)+".pgm" );
+    Image* dep = new Image ( prefix + "depth_"+Int2Str(iFrame)+".pgm" );
+    PPMImage* disp = PPMImage::TryLoadFromFile ( prefix + "disparity_"+Int2Str(iFrame)+".ppm" ); 
+    Frame* frame = new Frame (ps, tex, dep, disp);
+    params->SetCurrentFrame ( frame );
+
     if(params -> GetMesh()){
         viewer -> reset();
         viewer -> updateGL();
@@ -679,35 +694,63 @@ void Window::removeAnchorItem(){
 void Window::calcDisp() {
     ParameterHandler* params = ParameterHandler::Instance();
 
-    const unsigned int& wSize = params->GetWindowSize ();
-    const unsigned int& nSize = params->GetNeighbourhoodSize ();
+    Image* refImg = new Image ( Config::FramesPath() + "image_" + Int2Str(params->GetFrame1())+".pgm"); 
+    Image* tarImg = new Image ( Config::FramesPath() + "image_" + Int2Str(params->GetFrame2())+".pgm");
+    Image* refDep = new Image ( Config::FramesPath() + "depth_" + Int2Str(params->GetFrame1())+".pgm");
+    Image* tarDep = new Image ( Config::FramesPath() + "depth_" + Int2Str(params->GetFrame2())+".pgm");
 
-    std::string RES_IMG_PATH(Config::FramesPath());
-    std::string frameID1 = toString(params -> GetFrame1());
-    std::string frameID2 = toString(params -> GetFrame2());
+    PixelTracker pt (0);
+    pt.SetReference (
+        params->GetFrame1 (),
+        refImg,
+        refDep
+    );
+    pt.SetTarget (
+        params->GetFrame2 (),
+        tarImg,
+        tarDep
+    );
+    pt.Track ();
 
-    Image frame1(RES_IMG_PATH + "image_"+ frameID1 + ".pgm");
-    Image frame2(RES_IMG_PATH + "image_"+ frameID2 + ".pgm");
-    Image dispX( frame1.GetWidth(), frame1.GetHeight(), wSize );
-    Image dispY( frame1.GetWidth(), frame1.GetHeight(), wSize );
+    pt.Export ( Config::FramesPath() + "disparity_" + Int2Str(params->GetFrame1()) + ".ppm");
 
-    try {
-        Image::TrackPixels (
-                frame1,
-                frame2,
-                wSize,
-                wSize,
-                nSize,
-                nSize,
-                dispX,
-                dispY
-                );
-        dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2+"x.pgm");
-        dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2+"y.pgm");
-    } catch (BadIndex bi) {
-        std::cout << bi.what();
-    }
-    updateImages ();
+    params->GetCurrentFrame()->SetDisplacements(PPMImage::TryLoadFromFile (Config::FramesPath() + "disparity_" + Int2Str(params->GetFrame1()) + ".ppm"));
+
+    delete refImg;
+    delete tarImg;
+    delete refDep;
+    delete tarDep;
+
+
+    //const unsigned int& wSize = params->GetWindowSize ();
+    //const unsigned int& nSize = params->GetNeighbourhoodSize ();
+
+    //std::string RES_IMG_PATH(Config::FramesPath());
+    //std::string frameID1 = toString(params -> GetFrame1());
+    //std::string frameID2 = toString(params -> GetFrame2());
+
+    //Image frame1(RES_IMG_PATH + "image_"+ frameID1 + ".pgm");
+    //Image frame2(RES_IMG_PATH + "image_"+ frameID2 + ".pgm");
+    //Image dispX( frame1.GetWidth(), frame1.GetHeight(), wSize );
+    //Image dispY( frame1.GetWidth(), frame1.GetHeight(), wSize );
+
+    //try {
+    //    Image::TrackPixels (
+    //            frame1,
+    //            frame2,
+    //            wSize,
+    //            wSize,
+    //            nSize,
+    //            nSize,
+    //            dispX,
+    //            dispY
+    //            );
+    //    dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2+"x.pgm");
+    //    dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingF"+ frameID1 + "F"+ frameID2+"y.pgm");
+    //} catch (BadIndex bi) {
+    //    std::cout << bi.what();
+    //}
+    //updateImages ();
 }
 
 void Window::updateImages() {
@@ -1262,7 +1305,7 @@ void Window::initControlWidget () {
     else {
         /* No device found: disable glviewer */
         meshRB -> setChecked(false);
-        meshRB -> setDisabled(true);
+        //meshRB -> setDisabled(true);
         displacementRB -> setChecked(true);
         anchorManuRB -> setChecked(false);
         anchorAutoRB -> setChecked(false);

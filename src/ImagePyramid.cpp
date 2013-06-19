@@ -31,8 +31,8 @@ void ImagePyramid::Assign (
 
     Image* newImg = (Image*)0x0;
     while ( img->GetWidth () > 100 ) {
-        img = img->Filter ();
-        m_levels.push_back ( newImg = img->SubSample ( m_samplingFactor ) );
+        img = img->SubSample ( m_samplingFactor );
+        m_levels.push_back ( newImg = img->Filter () );
         delete img;
         img = newImg;
         std::cout << img->GetWidth () << std::endl;

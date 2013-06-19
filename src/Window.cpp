@@ -767,6 +767,7 @@ void Window::calcDisp() {
 void Window::updateImages() {
     ParameterHandler* params = ParameterHandler::Instance();
     std::string RES_IMG_PATH(Config::FramesPath());
+    std::string COLOR_CHART_PATH(Config::DataPath());
     std::string frameID1 = toString(params -> GetFrame1());
     std::string frameID2 = toString(params -> GetFrame2());
 
@@ -798,7 +799,7 @@ void Window::updateImages() {
     if (dispY) delete dispY;
     dispY = new QLabel;
     dispY -> setMaximumSize(QSize(320, 240));
-    QPixmap pic4(QPixmap(QString::fromUtf8(((Config::OutputPath() + "colorChart.ppm").c_str()))));
+    QPixmap pic4(QPixmap(QString::fromUtf8(((COLOR_CHART_PATH + "colorChart.ppm").c_str()))));
     if(!pic4.isNull())
         dispY -> setPixmap(pic4.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 

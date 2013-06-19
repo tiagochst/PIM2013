@@ -52,7 +52,7 @@ void Window::enableCaptureButton () {
 void Window::updateFrameList () {
 
     /* Update the list of images in the system*/
-    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=depth* --ignore=disparity* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/f//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
+    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=*.png --ignore=depth* --ignore=disparity* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/.pgm//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
 
     system(IMAGE_LIST.c_str());
 
@@ -667,7 +667,7 @@ void Window::setFrame1(int iFrame) {
 
         Frame* frame = new Frame ();
         frame->LoadFromFile ( path );
-        frame->LoadDisplacements ( path + "track/" + toString ( params->GetFrame2 () ) + "/" );
+        frame->LoadDisplacements ( path + "track/" + toString ( params->GetFrame
         params->SetCurrentFrame ( frame );
     }
     
@@ -835,6 +835,7 @@ void Window::updateImages() {
 
 void Window::setFrame2(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
+
     if(iFrame >= 0 && !isinf(iFrame)) {
         params->SetFrame2(iFrame);
         

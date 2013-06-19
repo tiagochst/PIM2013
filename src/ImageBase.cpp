@@ -6,6 +6,8 @@
 #include "MathUtils.h"
 #include "Rectangle.h"
 
+#include <csignal>
+
 void ImageBase::CreateAsciiPgm (
     const std::string&  iFilename
 ) {
@@ -55,37 +57,56 @@ float ImageBase::CalculateErrorScore (
     unsigned int oneCount = 0;
     for ( int y = NH_SZ / 2; y < height - NH_SZ / 2; y += SAMPLING_STEP ) {
         for ( int x = NH_SZ / 2; x < width - NH_SZ / 2; x += SAMPLING_STEP ) {
-            float localScore    = 0.f;
-            float denomA        = 0.f;
-            float denomB        = 0.f;
+            float varA          = 0.0f;
+            float varB          = 0.0f;
+            float meanA         = 0.0f;
+            float meanB         = 0.0f;
+            unsigned int nPixels = NH_SZ * NH_SZ;
 
             for ( int yy = -NH_SZ / 2; yy <= NH_SZ / 2; yy++ ) {
                 for ( int xx = -NH_SZ / 2; xx <= NH_SZ / 2; xx++ ) {
                     const float valA = iImageA.GetGreyLvl ( y + yy, x + xx );
                     const float valB = iImageB.GetGreyLvl ( y + yy, x + xx );
 
-                    denomA      += ( valA * valA );
-                    denomB      += ( valB * valB );
+                    meanA       += valA;
+                    meanB       += valB;
+                }
+            }
+            meanA   /= (float)nPixels;
+            meanB   /= (float)nPixels;
+
+            float localScore    = 0.0f;
+            for ( int yy = -NH_SZ / 2; yy <= NH_SZ / 2; yy++ ) {
+                for ( int xx = -NH_SZ / 2; xx <= NH_SZ / 2; xx++ ) {
+                    const float valA = iImageA.GetGreyLvl ( y + yy, x + xx ) - meanA;
+                    const float valB = iImageB.GetGreyLvl ( y + yy, x + xx ) - meanB;
+
+                    varA        += ( valA * valA );
+                    varB        += ( valB * valB );
                     localScore  += ( valA * valB );
                 }
             }
-            if ( denomA && denomB ) {
-                localScore /= sqrt ( denomA * denomB );
-            } else if ( !denomA && !denomB ) {
-                localScore = 1.f; 
-                oneCount++;
+            varA /= (float)nPixels;
+            varB /= (float)nPixels;
+            localScore /= nPixels;
+
+            if ( ( varA != 0.0f ) && ( varB != 0.0f ) ) {
+                localScore /= sqrt ( varA * varB );
             } else {
-                localScore = 0.f;
-                zeroCount++;
+                if ( ( varA != 0.0f ) || ( varB != 0.0f ) ) {
+                    localScore = 0.0f;
+                } else {
+                    localScore = 1.f; 
+                }
             }
 
-            globalScore += ( 1.f - localScore );
+            globalScore += ( 1.f - localScore ) / 2.0f;
             featureCount++;
         }
     }
 
     //std::cerr << featureCount << " " << zeroCount << " " << oneCount << std::endl;
-    return ( globalScore );
+    return ( globalScore / (float)featureCount );
 }
 
 
@@ -144,8 +165,9 @@ float ImageBase::TemplateMatch(
     }
     oBestMatch.x = oBestMatch.y = -1;
 
-    float maskDenom = 0;
-    #pragma omp parallel for
+    float maskVar = 0;
+    float maskMean = 0;
+    unsigned int nPixels = iMask.GetWidth() * iMask.GetHeight();
     for ( int xx = 0; xx < iMask.GetWidth(); xx++ ) {
         for ( int yy = 0; yy < iMask.GetHeight(); yy++ ) {
             float maskVal = iMask.GetGreyLvl (
@@ -153,44 +175,78 @@ float ImageBase::TemplateMatch(
                 xx
             );
             
-            #pragma omp critical
-            {
-                maskDenom += ( maskVal * maskVal );
-            }
+            maskMean += maskVal;
         }
     }
+    maskMean /= (float)nPixels;
+
+    for ( int xx = 0; xx < iMask.GetWidth(); xx++ ) {
+        for ( int yy = 0; yy < iMask.GetHeight(); yy++ ) {
+            float maskVal = iMask.GetGreyLvl (
+                yy,
+                xx
+            ) - maskMean;
+            
+            maskVar += ( maskVal * maskVal );
+        }
+    }
+    maskVar /= (float)nPixels;
     
-    float bestMatchVal = -1;
+    float bestMatchVal = -100;
     CartesianCoordinate maskCenter = iMask.Center();
+
+    const int X0 = max ( iSearchWindow.X (), 0 );
+    const int Y0 = max ( iSearchWindow.Y (), 0 );
+    const int XE = min ( iSearchWindow.Right (), GetWidth  () );
+    const int YE = min ( iSearchWindow.Bottom (), GetHeight () );
+
     #pragma omp parallel for
-    for ( int x = iSearchWindow.X(); x < iSearchWindow.Right(); x++ ) {
+    for ( int x = X0; x < XE; x++ ) {
         #pragma omp parallel for
-        for ( int y = iSearchWindow.Y(); y < iSearchWindow.Bottom(); y++ ) {
+        for ( int y = Y0; y < YE; y++ ) {
             float val = 0;
-            float myDenom = 0;
+            float myMean = 0;
+            float myVar = 0;
             for ( int xx = 0; xx < iMask.GetWidth () ; xx++ ) {
                 for ( int yy = 0; yy < iMask.GetHeight (); yy++ ) {
                     float myVal   = GetGreyLvl (
                         y + yy - maskCenter.y,
                         x + xx - maskCenter.x
                     );
+
+                    myMean += myVal;
+                }
+            }
+            myMean /= (float)nPixels; 
+
+            for ( int xx = 0; xx < iMask.GetWidth () ; xx++ ) {
+                for ( int yy = 0; yy < iMask.GetHeight (); yy++ ) {
+                    float myVal   = GetGreyLvl (
+                        y + yy - maskCenter.y,
+                        x + xx - maskCenter.x
+                    ) - myMean;
                     float maskVal = iMask.GetGreyLvl (
                         yy,
                         xx
-                    );
+                    ) - maskMean;
 
-                    myDenom += myVal * myVal; 
-                    val     += myVal * maskVal;
+                    myVar += ( myVal * myVal );
+                    val += ( myVal * maskVal );
                 }
             }
-            if ( maskDenom && myDenom ) {
-                val /= sqrt ( maskDenom * myDenom );
-            } else if ( !maskDenom && !myDenom ) {
-                val = 1.f; 
+            myVar /= (float)nPixels;
+            val /= (float)nPixels;
+
+            if ( ( myVar != 0.0f ) && ( maskVar != 0.0f ) ) {
+                val /= sqrt ( myVar * maskVar );
             } else {
-                val = 0.f;
+                if ( ( myVar != 0.0f ) || ( maskVar != 0.0f ) ) {
+                    val = 0.0f;
+                } else {
+                    val = 1.0f;
+                } 
             }
-            
+
             if ( oCorrelationMap != NULL ) {
                 oCorrelationMap->SetNormed (
                     y - iSearchWindow.Y(), 
@@ -224,38 +280,9 @@ float ImageBase::Correlation (
         throw IncompatibleImages();
     }
 
-    float correlation   = 0.f;
-    float myDenom       = 0.f;
-    float otherDenom    = 0.f;
-    for (
-        int x = 0;
-        x < GetWidth ();
-        x++
-    ) {
-        for (
-            int y = 0;
-            y < GetHeight ();
-            y++
-        ) {
-            CartesianCoordinate c ( x, y );
+    CartesianCoordinate topLeft ( 0, 0 );
 
-            const float myVal       = GetGreyLvl (
-                y,
-                x
-            );
-            const float otherVal    = iOther.GetGreyLvl (
-                y,
-                x
-            );
-
-            myDenom     += ( myVal * myVal );
-            otherDenom  += ( otherVal * otherVal );
-            correlation += ( otherVal * myVal );
-        } 
-    } 
-    correlation /= sqrt ( myDenom * otherDenom );
-
-    return ( correlation );
+    return PixelCorrelation ( iOther, topLeft, topLeft, GetWidth (), GetHeight () );
 }
 
 void ImageBase::GetSubImage (
@@ -413,8 +440,11 @@ float ImageBase::PixelCorrelation (
    const int& WinHeight
 ) const {
     float correlation   = 0.f;
-    float myDenom       = 0.f;
-    float otherDenom    = 0.f;
+    float myVar         = 0.f;
+    float otherVar      = 0.f;
+    float myMean        = 0.f;
+    float otherMean     = 0.f;
+    unsigned int nPixels = WinWidth * WinHeight;
 
     for (
         int x = -WinWidth / 2;
@@ -426,7 +456,6 @@ float ImageBase::PixelCorrelation (
             y <= WinHeight / 2;
             y++
         ) {
-
             const float myVal       = GetGreyLvl (
                     p.y + y,
                     p.x + x
@@ -436,12 +465,51 @@ float ImageBase::PixelCorrelation (
                     q.x + x
                     );
 
-            myDenom     += ( myVal * myVal );
-            otherDenom  += ( otherVal * otherVal );
-            correlation += ( otherVal * myVal );
+            myMean      += myVal;
+            otherMean   += otherVal;
+        } 
+    }
+    myMean      /= (float)nPixels;
+    otherMean   /= (float)nPixels;
+
+    for (
+        int x = -WinWidth / 2;
+        x <= WinWidth / 2;
+        x++
+    ) {
+        for (
+            int y = -WinHeight / 2;
+            y <= WinHeight / 2;
+            y++
+        ) {
+            float myVal    = GetGreyLvl ( p.y + y, p.x + x ) - myMean;
+            float otherVal = iOther.GetGreyLvl ( q.y + y, q.x + x ) - otherMean;
+
+            myVar       += ( myVal * myVal );
+            otherVar    += ( otherVal * otherVal );
+            correlation += ( myVal * otherVal );
         } 
     } 
-    correlation /= sqrt ( myDenom * otherDenom );
+    myVar /= (float)nPixels;
+    otherVar /= (float)nPixels;
+    correlation /= (float)nPixels;
+
+    if ( ( myVar != 0.0f ) && ( otherVar != 0.0f ) ) {
+        correlation /= sqrt ( myVar * otherVar );
+    } else {
+        if ( ( myVar != 0.0f ) || ( otherVar != 0.0f ) ) {
+            correlation = 0.0f;
+        } else {
+            correlation = 1.0f;
+        } 
+    }
+
+    if (correlation > 1.0f) {
+        correlation = 1.0f;
+    }
+    if (correlation < -1.0f) {
+        correlation = -1.0f;
+    }
 
     return ( correlation );
 }

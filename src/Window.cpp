@@ -126,6 +126,11 @@ void Window::setFramesToCapture ( const  int& iNumber ) {
     viewer->update ();
 }
 
+void Window::setFramesToCapture ( const  int& iNumber ) {
+    ParameterHandler* params = ParameterHandler::Instance ();
+    params->SetNumCaptureFrames ( iNumber );
+}
+
 void Window::findAutoAnchors(){
 
     ParameterHandler* params = ParameterHandler::Instance ();
@@ -740,12 +745,8 @@ void Window::calcDisp() {
     );
     pt.Export ( f1path + "track/" + Int2Str(params->GetFrame2()) + "/" );
     
-<<<<<<< HEAD
     std::cout << "Frame ID: " << Int2Str(params->GetFrame1())<< std::endl;
     params->GetCurrentFrame()->LoadDisplacements ( f1path + "track/" + Int2Str (params->GetFrame2 ()) + "/" );
-=======
-    params->GetCurrentFrame()->SetDisplacements(PPMImage::TryLoadFromFile (Config::FramesPath() + "disparity_" + Int2Str(params->GetFrame1()) + ".ppm"));
->>>>>>> Correcting path for color chart
 
     delete refImg;
     refImg = (Image*)0x0;
@@ -822,13 +823,9 @@ void Window::updateImages() {
     /* Reads Y displacement */
     if (dispY) delete dispY;
     dispY = new QLabel;
-<<<<<<< HEAD
+
     dispY -> setMaximumSize(QSize(320,240));
     QPixmap pic4(QPixmap(QString::fromUtf8(((COLOR_CHART_PATH + "ColorChart.ppm").c_str()))));
-=======
-    dispY -> setMaximumSize(QSize(320, 240));
-    QPixmap pic4(QPixmap(QString::fromUtf8(((COLOR_CHART_PATH + "colorChart.ppm").c_str()))));
->>>>>>> Correcting path for color chart
     if(!pic4.isNull())
         dispY -> setPixmap(pic4.scaled( 240, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 

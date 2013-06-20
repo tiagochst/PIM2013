@@ -228,6 +228,7 @@ Le projet est divisé en cinq étapes:
 \item Raffinement de maillage
 \end{enumerate}
 
+
 \begin{figure}[h!]
   \begin{center}
     \includegraphics[scale=0.4]{img/projDiagram.png}
@@ -425,16 +426,24 @@ correspondance sera rafait, mais cette fois, les estimations de la
 disparité des pixels voisins qui on remplit les contraintes seront
 utilisées. 
 
-Le resultat de cette étape, est un map de disparité, contenant pour
-chaque pixel de l'image $I$, la valeur de displacement dans l'image
-$J$. 
-
-\begin{figure}[h!]
+\begin{figure}[ht!]
   \begin{center}
     \includegraphics[scale=0.35]{img/projSystem.png}
     \caption{Le système proposé: de la capture à la reconstruction finale}
   \end{center}
 \end{figure}
+
+Le resultat de cette étape, est un map de disparité, contenant pour
+chaque pixel de l'image $I$, la valeur de displacement dans l'image
+$J$. 
+
+\begin{figure}[ht!]
+  \begin{center}
+    \includegraphics[scale=0.4]{img/dispMap.png}
+    \caption{Sortie: Carte de déplacement}
+  \end{center}
+\end{figure}
+
 
 
 \subsection{Raffinement}

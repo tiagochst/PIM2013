@@ -1056,13 +1056,14 @@ void Window::initControlWidget () {
     QLabel          *   frame2Label = new QLabel(tr("Frame 2:"));
     frame2Label -> setBuddy(frame2ComboBox);
 
+
     QWidget *generalLayoutWidget   = new QWidget(previewGroupBox);
-    QFormLayout *generalFormLayout = new QFormLayout(generalLayoutWidget);
-    generalFormLayout -> setContentsMargins(0, 0, 0, 0);
-    generalFormLayout -> setWidget(0, QFormLayout::LabelRole, frame1Label);
-    generalFormLayout -> setWidget(0, QFormLayout::FieldRole, frame1ComboBox);
-    generalFormLayout -> setWidget(1, QFormLayout::LabelRole, frame2Label);
-    generalFormLayout -> setWidget(1, QFormLayout::FieldRole, frame2ComboBox);
+    QGridLayout *generalGridLayout = new QGridLayout(generalLayoutWidget);
+    generalGridLayout -> setContentsMargins(0, 0, 0, 0);
+    generalGridLayout -> addWidget(frame1Label,0,0);
+    generalGridLayout -> addWidget(frame1ComboBox,0,1);
+    generalGridLayout -> addWidget(frame2Label,0,2);
+    generalGridLayout -> addWidget(frame2ComboBox,0,3);
 
     /*Creating PB buttons*/
 

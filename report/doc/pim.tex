@@ -109,35 +109,38 @@ plus accessibles à la majorité des personnes, comme par exemple une Kinect.
 \section{Etat de l'art}
 
 Les animations faciales a eu plusieurs approches dans les deux décennies, 
-parmi eux: l'utilisation des modèles de visage qui sont ajustent aux images, 
-l'utilisent de l'éclairage actif et utilisent des marqueur.
+parmi eux: l'utilisation des modèles de visage qui sont ajustées aux images, 
+l'utilisation de l'éclairage actif et utilisation des marqueurs.
 
-En vue d'avoir une méthode moins coûteux et intrusif, les dernières
-méthodes sur les animations faciales sont basée sur une capture
-passive.
+En vue d'avoir une méthode moins coûteux et moins intrusif, les dernières
+méthodes sur les animations faciales sont basée sur des captures passives.
 
 % dont la configuration est presque entièrement automatiques.   [Bradley et al. 2010; Popa et al. 2010]. 
 
-Dans cette section, nous aurons une bref description de chaque approche.
+Dans cette section, nous aurons une bref description de chaque
+approche.
 
-\subsection{Ajuster les faces aux images}
-Une approche pour la capture des faces est de commencer avec un modèle
+\subsection*{Ajuster les faces aux images}
+Une approche pour la capture des faces est commencer avec un modèle
 de visage déformable, puis de déterminer les paramètres qui
 correspondent le mieux au modèle des images ou des vidéos d'un acteur
-performant.
+performant. 
 
-Un inconvenient de cette approche est qu'il exige un grande nombre de calculs et pour qu'il soit traitable, le modèle de visage doit être d'une faible résolution.
-Comme résultat, il n'est généralement pas possible d'obtenir les
+Un inconvenient de cette approche est qu'il exige un grande nombre de
+calculs et pour qu'il soit traitable, le modèle de visage doit être
+d'une faible résolution.
+
+Ainsi, comme résultat, il n'est généralement pas possible d'obtenir les
 détails les plus fins qui sont responsables pour les expressions et
-réalisme de la scene.
+réalisme de la scène.
 
 De plus, le visage déformable a tendance à être très générique, de
-sorte que les animations résultant souvent ne ressemblent pas à
-l'acteur capturé.
+sorte que les animations résultant de ce genre de téchnique souvent ne
+ressemblent pas à l'acteur capturé.
 
-\subsection{Marqueurs et éclairage actif}
+\subsection*{Marqueurs et éclairage actif}
 
-Une autre approche commune pour la capture d'une scene est
+Une autre approche commune pour la capture d'une scène est
 l'utilisation des marqueurs placés à la main ou de la peinture pour le
 visage.
 
@@ -159,7 +162,7 @@ un éclairage actif sur le sujet. D'une part, cette approche nécessite
 moins de la configuration manuel, mais il continue à être envahissant
 et constitue encore un problème pour la acquisition de la couleur. 
 
-\subsection{Capture passive }
+\subsection*{Capture passive }
 
 Les recherches plus récents s'ont concentrées sur la reconstruction
 passive, c'est-à-dire, sans la nécessité de marqueurs, de la lumière
@@ -172,6 +175,20 @@ des pores a été déjà réalisé.
 Cependant, il reste encore des improvements pour cette approche,
 notamment par rapport à la propagation de la maillage de points d'une
 trame à autre. 
+
+\subsection*{Approches géométriques pures}
+
+En raison quelques fois de l'indisponibilité des images, des approches purement
+géométriques qui utilisent juste une suite de nuages de points 3D ou
+des maillages 3D triangulées incompatiblés ont reçu aussi une grande attention
+dans le monde de la recherche.
+
+En raison des données d'image manquant, qui fournissent un haut niveau
+de détail et aide la correspondance 3D, la propagation des maillages 
+est très difficile. Des nombreauses études pour diminuer les erreurs
+pendant cette propagation ont été realisé, et en raison de cela,
+actuellement, les dernières méthodes fournissent une bonne
+correspondance entre pixels. % recent work by Sharf et al. [2008] 
 
 \section{Le projet}
 

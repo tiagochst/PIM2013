@@ -58,6 +58,10 @@ public:
     );
     const bool& GetCaptureMode () const;
 
+    void SetNumCaptureFrames (
+        const int&             iFrame
+    );
+
     const unsigned int& GetNumCaptureFrames () const;
 
     void SetFrame1 (

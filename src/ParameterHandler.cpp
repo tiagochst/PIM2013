@@ -20,6 +20,12 @@ const {
     return m_cameraFound;
 }
 
+void ParameterHandler::SetNumCaptureFrames (
+    const int&             iNumber
+){
+    m_numCaptureFrames = iNumber;
+};
+
 const unsigned int& ParameterHandler::GetNumCaptureFrames ()
 const {
     return m_numCaptureFrames;

@@ -139,8 +139,9 @@ public slots:
     void setThreshold( double iThreshold);
     void setWindowSize(int iSize);
     void setNeighbourhoodSize(int  iSize);
-    void setNearPlane ( const unsigned int& iNear );
-    void setFarPlane ( const unsigned int& iFar );
+    void setNearPlane ( const int& iNear );
+    void setFarPlane ( const int& iFar );
+    void setFramesToCapture ( const int& iNumber );
 
 private :
     void initControlWidget ();
@@ -174,7 +175,9 @@ private :
     QSpinBox        *   neighbourhoodSizeSP;
     QSpinBox        *   nearPlaneSP;
     QSpinBox        *   farPlaneSP;
-
+    QSpinBox        *   framesToCapture;
+    QRadioButton    *   meshMode;
+    QRadioButton    *   kinectMode;
 
     /* Mesh widgets*/
     GLViewer        *   viewer;           //!< The GLViewer (central window)

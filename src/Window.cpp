@@ -109,16 +109,19 @@ void Window::subtractShowingFrames(){
 
 }
 
-
-
-void Window::setFarPlane ( const unsigned int& iFar ) {
+void Window::setFarPlane ( const int& iFar ) {
     ParameterHandler* params = ParameterHandler::Instance ();
     params->SetFarPlane ( iFar );
 }
 
-void Window::setNearPlane ( const unsigned int& iNear ) {
+void Window::setNearPlane ( const int& iNear ) {
     ParameterHandler* params = ParameterHandler::Instance ();
     params->SetNearPlane ( iNear );
+}
+
+void Window::setFramesToCapture ( const  int& iNumber ) {
+    ParameterHandler* params = ParameterHandler::Instance ();
+    params->SetNumCaptureFrames ( iNumber );
 }
 
 void Window::findAutoAnchors(){
@@ -897,7 +900,12 @@ Window::Window ()
     anchorAutoSelection(NULL),
     anchorAutoIdx(0),
     showingFrames(0),
-    thresholdSP(NULL)
+    thresholdSP(NULL),
+    kinectMode(NULL),
+    meshMode(NULL),
+    framesToCapture(NULL),
+    farPlaneSP(NULL),
+    nearPlaneSP(NULL)
 {
     /* Update the list of frames captured*/
     updateFrameList();
@@ -1071,17 +1079,36 @@ void Window::initControlWidget () {
     QVBoxLayout *   parametersLayout = new QVBoxLayout (parametersGroupBox);
 
     windowSizeSP = new QSpinBox(parametersGroupBox);
-    neighbourhoodSizeSP = new QSpinBox(parametersGroupBox);
-    neighbourhoodSizeSP -> setValue(params -> GetNeighbourhoodSize());
     windowSizeSP -> setValue(params -> GetWindowSize());
     windowSizeSP -> setRange(1,30);
-    neighbourhoodSizeSP -> setRange(1,30);
+    QLabel* neighbourhoodSizeSPLabel = new QLabel(tr("Neighbourhood:"));
+    frame2Label -> setBuddy(windowSizeSP);
 
-    QLabel          *   windowSizeLabel = new QLabel(tr("Window Size:"));
+
+    neighbourhoodSizeSP = new QSpinBox(parametersGroupBox);
+    neighbourhoodSizeSP -> setValue(params -> GetNeighbourhoodSize());
+    neighbourhoodSizeSP -> setRange(1,30);
+    QLabel* windowSizeLabel = new QLabel(tr("Window Size:"));
     frame1Label -> setBuddy(neighbourhoodSizeSP);
 
-    QLabel          *   neighbourhoodSizeSPLabel = new QLabel(tr("Neighbourhood:"));
-    frame2Label -> setBuddy(windowSizeSP);
+
+    nearPlaneSP = new QSpinBox(parametersGroupBox);
+    nearPlaneSP -> setValue(params -> GetNearPlane());
+    QLabel*   nearPlaneLabel = new QLabel(tr("Near Plane:"));
+    nearPlaneLabel -> setBuddy(nearPlaneSP);
+    nearPlaneSP -> setSingleStep(10);
+    
+    farPlaneSP = new QSpinBox(parametersGroupBox);
+    QLabel*   farPlaneLabel = new QLabel(tr("Far Plane:"));
+    farPlaneLabel -> setBuddy(farPlaneSP);
+    farPlaneSP -> setMaximum(100000);
+    farPlaneSP -> setSingleStep(10);
+    farPlaneSP -> setValue(params -> GetFarPlane());
+
+    framesToCapture = new QSpinBox(parametersGroupBox);
+    framesToCapture -> setValue(params -> GetNumCaptureFrames());
+    QLabel*   framesToCaptureLabel = new QLabel(tr("Frames to Capture:"));
+    framesToCaptureLabel -> setBuddy(framesToCapture);
 
     QWidget *paramsLayoutWidget   = new QWidget(parametersGroupBox);
     QFormLayout *paramsFormLayout = new QFormLayout(paramsLayoutWidget);
@@ -1090,6 +1117,14 @@ void Window::initControlWidget () {
     paramsFormLayout -> setWidget(0, QFormLayout::FieldRole, windowSizeSP);
     paramsFormLayout -> setWidget(1, QFormLayout::LabelRole, neighbourhoodSizeSPLabel);
     paramsFormLayout -> setWidget(1, QFormLayout::FieldRole, neighbourhoodSizeSP);
+    paramsFormLayout -> setWidget(2, QFormLayout::LabelRole, nearPlaneLabel);
+    paramsFormLayout -> setWidget(2, QFormLayout::FieldRole, nearPlaneSP);
+
+    paramsFormLayout -> setWidget(3, QFormLayout::LabelRole, farPlaneLabel);
+    paramsFormLayout -> setWidget(3, QFormLayout::FieldRole, farPlaneSP);
+
+    paramsFormLayout -> setWidget(4, QFormLayout::LabelRole, framesToCaptureLabel);
+    paramsFormLayout -> setWidget(4, QFormLayout::FieldRole, framesToCapture);
 
 
     /********** Connections ***********/
@@ -1296,6 +1331,23 @@ void Window::initControlWidget () {
     connect (
             neighbourhoodSizeSP, SIGNAL (       valueChanged  (int) ), 
             this, SLOT   (setNeighbourhoodSize (int) )
+            );
+
+    /* Description: Change near plane */
+    connect (
+            nearPlaneSP, SIGNAL (       valueChanged  (int) ), 
+            this, SLOT   (setNearPlane (int) )
+            );
+
+    /* Description: Change far plane */
+    connect (
+            farPlaneSP, SIGNAL (       valueChanged  (int) ), 
+            this, SLOT   (setFarPlane (int) )
+            );
+    /* Description: Change frames to capture */
+    connect (
+            framesToCapture, SIGNAL (       valueChanged  (int) ), 
+            this, SLOT   (setFramesToCapture (int) )
             );
 
     /*** Initial situation: Default options ***/

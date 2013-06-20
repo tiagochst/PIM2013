@@ -136,12 +136,14 @@ public slots:
     void sumShowingFrames();
     void findAutoAnchors();
     void setReferenceFrame(int iFrame);
-    void setThreshold( double iThreshold);
+    void setThreshold (double iThreshold);
     void setWindowSize(int iSize);
-    void setNeighbourhoodSize(int  iSize);
+    void setNeighbourhoodSize(int iSize);
     void setNearPlane ( const int& iNear );
-    void setFarPlane ( const int& iFar );
+    void setFarPlane  ( const int& iFar );
     void setFramesToCapture ( const int& iNumber );
+    void setMeshMode   (bool b);
+    void setKinectMode (bool b);
 
 private :
     void initControlWidget ();

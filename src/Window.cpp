@@ -219,6 +219,20 @@ void Window::setMesh(bool b){
     }
 }
 
+void Window::setMeshMode(bool b){
+    ParameterHandler* params = ParameterHandler::Instance();
+    params -> SetCamera(!b);
+    viewer -> reset();
+    centerWidget->setCurrentIndex ( viewerIdx );
+}
+
+void Window::setKinectMode(bool b){
+    ParameterHandler* params = ParameterHandler::Instance();
+    params -> SetCamera(b);
+    viewer -> reset();
+    centerWidget->setCurrentIndex ( viewerIdx );
+}
+
 void Window::setDisplacement(bool b){
     if(b){
         updateImages();
@@ -1050,23 +1064,36 @@ void Window::initControlWidget () {
     generalFormLayout -> setWidget(1, QFormLayout::LabelRole, frame2Label);
     generalFormLayout -> setWidget(1, QFormLayout::FieldRole, frame2ComboBox);
 
-    /* Creation of left buttons*/
+    /*Creating PB buttons*/
+
     createMeshPB       = new QPushButton ("Create Mesh", previewGroupBox);
     calcDispPB         = new QPushButton ("Calc Displacement", previewGroupBox);
     snapshotButton     = new QPushButton ("Save preview", previewGroupBox);
     startCaptureButton = new QPushButton ("Start Capture", previewGroupBox);
 
-    /*Creating radio buttons*/
-    QButtonGroup * modeButtonGroup = new QButtonGroup (previewGroupBox);
+    /*Creating radio buttons for mode selection */
+    QGroupBox * modeGroupBox = new QGroupBox   ("View Mode", controlWidget);
+    QVBoxLayout * modeLayout = new QVBoxLayout  (modeGroupBox);
+    QButtonGroup * modeButtonGroup = new QButtonGroup (modeGroupBox);
     modeButtonGroup -> setExclusive (true);
-    displacementRB  =  new QRadioButton("Displacement", previewGroupBox);
-    meshRB          =  new QRadioButton("Mesh"        , previewGroupBox);
-    anchorManuRB    =  new QRadioButton("Edit Anchor" , previewGroupBox);
-    anchorAutoRB    =  new QRadioButton("Auto Anchor" , previewGroupBox);
+    displacementRB  =  new QRadioButton("Displacement", modeGroupBox);
+    meshRB          =  new QRadioButton("Mesh"        , modeGroupBox);
+    anchorManuRB    =  new QRadioButton("Edit Anchor" , modeGroupBox);
+    anchorAutoRB    =  new QRadioButton("Auto Anchor" , modeGroupBox);
     modeButtonGroup -> addButton (displacementRB);
     modeButtonGroup -> addButton (meshRB);
     modeButtonGroup -> addButton (anchorManuRB);
     modeButtonGroup -> addButton (anchorAutoRB);
+
+    QWidget *modeLayoutWidget   = new QWidget(modeGroupBox);
+    QFormLayout *modeFormLayout = new QFormLayout(modeLayoutWidget);
+    modeFormLayout -> setContentsMargins(0, 0, 0, 0);
+    modeFormLayout -> setFormAlignment ( Qt::AlignLeft | Qt::AlignTop );
+    modeFormLayout -> setLabelAlignment ( Qt::AlignLeft);
+    modeFormLayout -> setWidget(0, QFormLayout::LabelRole, displacementRB );
+    modeFormLayout -> setWidget(0, QFormLayout::FieldRole, meshRB);
+    modeFormLayout -> setWidget(1, QFormLayout::LabelRole, anchorManuRB);
+    modeFormLayout -> setWidget(1, QFormLayout::FieldRole, anchorAutoRB);
 
     /* Anchor buttons*/
     addAnchor    = new QPushButton ( ">", anchorManuSelection );
@@ -1075,8 +1102,27 @@ void Window::initControlWidget () {
     removeAnchor -> setGeometry( QRect(280, 300, 41, 31) );
 
 
-    QGroupBox *  parametersGroupBox = new QGroupBox   ("Parameters", controlWidget);
-    QVBoxLayout *   parametersLayout = new QVBoxLayout (parametersGroupBox);
+    /*Creating radio buttons for mesh mode*/
+    QGroupBox * meshModeGroupBox = new QGroupBox   ("Mesh mode", controlWidget);
+    QVBoxLayout * meshModeLayout = new QVBoxLayout  (meshModeGroupBox);
+    QButtonGroup * meshModeBG    = new QButtonGroup (meshModeGroupBox);
+    meshModeBG -> setExclusive (true);
+    meshMode   =  new QRadioButton("Mesh"  , meshModeGroupBox);
+    kinectMode =  new QRadioButton("Kinect", meshModeGroupBox);
+    meshModeBG -> addButton (kinectMode);
+    meshModeBG -> addButton (meshMode);
+  
+    QWidget *meshModeLayoutWidget   = new QWidget(meshModeGroupBox);
+    QFormLayout *meshModeFormLayout = new QFormLayout(meshModeLayoutWidget);
+    meshModeFormLayout -> setContentsMargins(0, 0, 0, 0);
+    meshModeFormLayout -> setFormAlignment ( Qt::AlignLeft | Qt::AlignTop );
+    meshModeFormLayout -> setLabelAlignment ( Qt::AlignLeft);
+    meshModeFormLayout -> setWidget(0, QFormLayout::LabelRole, meshMode);
+    meshModeFormLayout -> setWidget(0, QFormLayout::FieldRole, kinectMode);
+
+
+    QGroupBox * parametersGroupBox = new QGroupBox ("Parameters", controlWidget);
+    QVBoxLayout * parametersLayout = new QVBoxLayout (parametersGroupBox);
 
     windowSizeSP = new QSpinBox(parametersGroupBox);
     windowSizeSP -> setValue(params -> GetWindowSize());
@@ -1113,6 +1159,9 @@ void Window::initControlWidget () {
     QWidget *paramsLayoutWidget   = new QWidget(parametersGroupBox);
     QFormLayout *paramsFormLayout = new QFormLayout(paramsLayoutWidget);
     paramsFormLayout -> setContentsMargins(0, 0, 0, 0);
+    paramsFormLayout -> setFormAlignment ( Qt::AlignLeft | Qt::AlignTop );
+    paramsFormLayout -> setLabelAlignment ( Qt::AlignLeft);
+
     paramsFormLayout -> setWidget(0, QFormLayout::LabelRole, windowSizeLabel);
     paramsFormLayout -> setWidget(0, QFormLayout::FieldRole, windowSizeSP);
     paramsFormLayout -> setWidget(1, QFormLayout::LabelRole, neighbourhoodSizeSPLabel);
@@ -1350,11 +1399,30 @@ void Window::initControlWidget () {
             this, SLOT   (setFramesToCapture (int) )
             );
 
+    /* Description: Select mesh mode */
+    connect(
+            meshRB    , SIGNAL(    toggled (bool) ), 
+            kinectMode, SLOT  ( setEnabled (bool) )
+           );
+    connect(
+            meshRB  , SIGNAL  (    toggled (bool) ), 
+            meshMode, SLOT    ( setEnabled (bool) )
+           );
+
+    connect(
+            meshMode, SIGNAL(     toggled (bool) ), 
+            this    , SLOT  ( setMeshMode (bool) )
+           );
+
+    connect(
+            kinectMode, SIGNAL(       toggled (bool) ), 
+            this      , SLOT  ( setKinectMode (bool) )
+           );
+
     /*** Initial situation: Default options ***/
     meshRB         -> setChecked(true);
     //calcDispPB     -> setDisabled(true);
     //frame2ComboBox -> setDisabled(true);
-
 
     /* Verify if a camera is connect */
     if(params -> GetCamera()){
@@ -1371,6 +1439,7 @@ void Window::initControlWidget () {
                 viewer     , SLOT   (           update () )
                 );
         cameraTimer->start(16);
+        kinectMode -> setChecked(true);
     }
     else {
         /* No device found: disable glviewer */
@@ -1380,24 +1449,35 @@ void Window::initControlWidget () {
         anchorManuRB -> setChecked(false);
         anchorAutoRB -> setChecked(false);
         setDisplacement(true);
+        meshMode -> setChecked(true);
+
     }
 
     FileWriterServices* fws = FileWriterServices::Instance ();
 
     /* Add widgets to layout*/
     previewLayout->addWidget (generalLayoutWidget);
-    previewLayout->addWidget (displacementRB);
-    previewLayout->addWidget (meshRB);
-    previewLayout->addWidget (anchorManuRB);
-    previewLayout->addWidget (anchorAutoRB);
+    //previewLayout->addWidget (displacementRB);
+    //previewLayout->addWidget (meshRB);
+    //previewLayout->addWidget (anchorManuRB);
+    //previewLayout->addWidget (anchorAutoRB);
     previewLayout->addWidget (createMeshPB);
     previewLayout->addWidget (calcDispPB);
     previewLayout->addWidget (snapshotButton);
     previewLayout->addWidget (startCaptureButton);
-    parametersLayout->addWidget (paramsLayoutWidget);
+    previewLayout -> addStretch (0);
+    modeLayout -> addWidget (modeLayoutWidget);
+    meshModeLayout -> addWidget (meshModeLayoutWidget);
+    //meshModeLayout->addWidget (meshMode);
+    //meshModeLayout->addWidget (kinectMode);
+    meshModeLayout -> addStretch (0);
+    parametersLayout -> addWidget (paramsLayoutWidget);
+    parametersLayout -> addStretch (0);
 
     /* Add widgets to left dock layout*/
     layout -> addWidget (previewGroupBox);
+    layout -> addWidget (modeGroupBox);
+    layout -> addWidget (meshModeGroupBox);
     layout -> addWidget (parametersGroupBox);
     layout -> addStretch (0);
 }

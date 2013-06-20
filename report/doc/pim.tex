@@ -192,10 +192,16 @@ correspondance entre pixels. % recent work by Sharf et al. [2008]
 
 \section{Le projet}
 
+Le but de ce projet est de produire une reconstruction 3D d'une
+surface dynamique de visages à travers une méthode de capture passive
+qui utilisera que des outils périphériques peu coûteuses, qui sont
+plus accessibles à la majorité des personnes, comme par exemple une Kinect.
+
 Dans ce projet, on essayera de réproduire les étapes réalises par
 Beeler et al. dans le papier ``High-quality passive facial performance
-capture using anchor frame'' pour la création d'une mesh qui réproduit
-la visage. 
+capture using anchor frame''\cite{Beeler:2011:HPF:2010324.1964970}
+pour la création d'une mesh qui réproduit la visage. 
+
 Dans l'article sont matériel est un matériel d'haute définition, notre
 but dans le projet est de réaliser, ainsi que possible, une version
 moins chères de la création des visages, qui pourrait etre réalisé par
@@ -222,8 +228,14 @@ Ci-dessous la liste de matériel utilisé dans le projet:
 Le projet est développé sous un système d'exploitation linux, en
 utilisant un système de contrôle de version git
 (https://github.com/tiagochst/PIM2013).  
-De plus, les librairies externes utilisés sont: Eigen, OpenNI et
-possiblement OpenCV dans l’avenir. 
+De plus, les librairies externes utilisés sont:
+
+\begin{description}
+\item[Eigen] Une bibliothèque que met en oeuvre l'algèbre linéaire et des opérations matricielles.
+\item[OpenNI] Un framework qui fournit un ensemble d'API open source
+  pour accéder aux périphériques d'interactions naturelles.\cite{PrimeSense2010}
+  
+\end{description}
 
 Pour la compilation du projet on a décidé d’utiliser l’outil qmake
 pour une génération des Makefiles pour faciles et aussi intégré avec
@@ -391,7 +403,7 @@ de l’interface sont ci-dessous:
 
 Sélection d'ancres manuellement: 
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
   \begin{center}
     \includegraphics[scale=0.4]{img/editAnchorList.png}
     \caption{Edition de la liste des ancres}
@@ -400,14 +412,14 @@ Sélection d'ancres manuellement:
 
 Sélection d'ancres automatiquement:
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
   \begin{center}
     \includegraphics[scale=0.4]{img/AnchorAutomaticSelection.png}
     \caption{Séléction automatique des ancres. Entrée: trame de référence (rouge) et seuil. Sortie: trames ancres (bleau)}
   \end{center}
 \end{figure}
 
-
+\newpage
 \subsection{Correspondance des pixels}
 
 Pour la correspondance des pixels entre deux images, on évalue utilise
@@ -473,7 +485,7 @@ $J$.
 
 \subsection{Raffinement}
 
-Le processus de raffinement à deux étages, le premier est le
+Le processus de raffinement est réalisé à deux étages, le premier est le
 raffinement de la carte de disparité et la deuxième est le raffinement
 de la surface.  
 
@@ -483,12 +495,11 @@ haute intercorrélation normalisée et un terme de consistance de
 surface $d_s$ qui privilégie les solutions lisses.
 
 Ces termes sont équilibrées à la fois par un paramètre lissage
-spécifié par l'utilisateur $w_s$ et $w_p$ paramètre définit en temps
-d'éxecution à travers des données, ce qui garantit que le terme
-photométrique a plus de poids dans les régions avec une bonne
-fonctionnalité de localisation.
+spécifié par l'utilisateur $w_s$ et un paramètre $w_p$ définit en temps
+d'éxecution qui garantit que le terme photométrique a plus de poids
+dans les régions avec une bonne fonctionnalité de localisation.
 
-Les étapes pour le raffinement de la carte de disparité est:
+Les étapes pour les calculs de ces termes sont:
 \begin{enumerate}
 \item Compute $d_p$:
 
@@ -517,11 +528,11 @@ u_{s}(x,y)=\sum_{(x^{'}y^{'})\epsilon\aleph(x,y)}w_{x^{'},y^{'}}u_{x^{',y^{'}}}\
 \]
 
 Où:$w_{x^{'},y^{'}}:=exp\left(\frac{\parallel\delta_{x^{'}y^{'}}-\delta_{xy}\parallel}{\sigma^{2}}\right)(1-\xi_{x^{'}y^{'}})$
-et $\aleph$ désigne le voisinage de (x, y), les 8 pixels voisins plus
-le même pixel. De plus, $\epsilon$ est $1mm$ selon notre matériel de
-capture. 
+et $\aleph$ désigne le pixel plus la voisinage de (x, y), les 8 pixels
+voisins. De plus, $\epsilon$ est $1mm$ selon notre matériel de capture
+(précision de la kinect). 
 
-\item Compute $d^{'}$:
+\item Compute $d^{'}$, la nouvelle valeur de disparité pour le pixel $p$:
 $d^{'}=\frac{(w_{p}u_{p}+w_{s}u_{s})}{(w_{p}+w_{s})}$
 
 Où la valeur de $w_{s}$ dans notre programme vaut $0.005$.
@@ -540,11 +551,9 @@ accueilli comme élévés au sein du projet et la confiance qu’il nous a
 accordé tout au long de notre projet. 
 
 Nous remercions également Thierry Guillemot et Stéphane Calderon, pour
-leur volonté à m’aider pendant toute la période de notre projet PIM. 
+leur volonté à nous aider pendant toute la période de notre projet PIM. 
 
 \nocite{Beeler:2010:HSC:1778765.1778777}
-\nocite{Beeler:2011:HPF:2010324.1964970}
-\nocite{PrimeSense2010}
 
 % ******************************************************
 % REFERENCIAS BIBLIOGRÁFICAS

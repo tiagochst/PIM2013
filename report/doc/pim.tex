@@ -255,7 +255,11 @@ logiciel doxygen a été utilisé.
 
 \subsection{Méthodes}
 
-Le projet est divisé en cinq étapes: 
+Basée sur la méthode réalisé dans le papier ``High-quality passive
+facial performance capture using anchor
+frame''\cite{Beeler:2011:HPF:2010324.1964970} pour la reproduction
+d'une reconstruction 3D de visages, on a divisé le projet en cinq
+étapes listé ci-dessous: 
 
 \begin{enumerate}
 \item Calcul du maillage initial
@@ -265,19 +269,13 @@ Le projet est divisé en cinq étapes:
 \item Raffinement de maillage
 \end{enumerate}
 
+Ci-dessous une bref descrition de chaque étape:
 
-\begin{figure}[h!]
-  \begin{center}
-    \includegraphics[scale=0.4]{img/projDiagram.png}
-    \caption{Etapes du projet}
-  \end{center}
-\end{figure}
-
-\subsubsection*{Calcul du maillage initial}
+\subsubsection*{Etape 1: Calcul du maillage initial}
 Chaque image de la séquence est traitée indépendamment pour générer
 une première estimation de la maillage pour cette trame. 
 
-\subsubsection*{Ancrage}
+\subsubsection*{Etape 2: Ancrage}
 Une trame est identifié manuellemnt comme la trame de réference. Puis,
 les trames qui ont une apparance similaire (expression du visage
 samblable et l'orientation de la tête) sont identifiées
@@ -285,7 +283,7 @@ automatiquement et étiquetés comme des trames d'ancrage. Ces trames
 ancres seront un moyen de partitionner la séquence complète des clips
 de trames pour le traitement dans la prochaine étape. 
 
-\subsubsection*{Localisation image-space}
+\subsubsection*{Etape 3: Localisation image-space}
 Le but de cette étape est de suivre les pixels de l'image à partir du
 trame de référence pour chaque image dans la séquence.  
 
@@ -298,7 +296,7 @@ séquence.
 Le suivi des trames non ancres est réalisé de manière séquentielle, à
 partir des trames ancres les plus proches.
 
-\subsubsection*{Propagation de la maillage}
+\subsubsection*{Etape 4: Propagation de la maillage}
 
 Une propagation de maille désigne le calcul de nouvelles positions des
 sommets du maillage dans l'espace, en correspondance avec le mouvement
@@ -309,7 +307,7 @@ trame de référence calculé à l'étape 1, pour toutes les trames dans
 la séquence, est l'utilisation des pixels de l'image suivis obtenues à
 l'étape 3.
  
-\subsubsection*{Raffinement de maillage}
+\subsubsection*{Etape 5: Raffinement de maillage}
 
 Les étapes précédentes ont généré une propagation de la maille de
 référence pour chaque trame dans la séquence. Cette séquence de
@@ -317,6 +315,16 @@ maillage déformant fournit une estimation initiale du mouvement du
 visage, ce qui est raffiné pour garantir la cohérence avec les données
 d'image en appliquant priori sur la cohérence spatiale et temporelle
 de la surface déformée.
+
+Le diagramme ci-dessous, présent plus visuallement les étapes du projet.
+
+\begin{figure}[ht!]
+  \begin{center}
+    \includegraphics[scale=0.4]{img/projDiagram.png}
+    \caption{Etapes du projet}
+  \end{center}
+\end{figure}
+
 
 
 \section{Les étapes de développement}
@@ -401,11 +409,12 @@ Pour la sélection des  frames ancres on a deux interfaces, une pour la
 sélection manuel et l’autre pour la sélection automatique. Les images
 de l’interface sont ci-dessous:
 
+\newpage
 Sélection d'ancres manuellement: 
 
 \begin{figure}[ht!]
   \begin{center}
-    \includegraphics[scale=0.4]{img/editAnchorList.png}
+    \includegraphics[scale=0.35]{img/editAnchorList.png}
     \caption{Edition de la liste des ancres}
   \end{center}
 \end{figure}
@@ -414,7 +423,7 @@ Sélection d'ancres automatiquement:
 
 \begin{figure}[ht!]
   \begin{center}
-    \includegraphics[scale=0.4]{img/AnchorAutomaticSelection.png}
+    \includegraphics[scale=0.35]{img/AnchorAutomaticSelection.png}
     \caption{Séléction automatique des ancres. Entrée: trame de référence (rouge) et seuil. Sortie: trames ancres (bleau)}
   \end{center}
 \end{figure}
@@ -482,7 +491,7 @@ $J$.
 \end{figure}
 
 
-
+\newpage
 \subsection{Raffinement}
 
 Le processus de raffinement est réalisé à deux étages, le premier est le

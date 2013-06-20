@@ -7,11 +7,9 @@
 % - Vinicius Dias Gardelli                         %
 % -%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%-%
 
-\documentclass[a4paper,11pt]{article}
+\documentclass[a4paper,12pt]{article}
 
 \usepackage[francais,listings,algo]{pim}
-
-\usepackage[version=3]{mhchem}
 \bibliographystyle{apalike}  
 
 % Cover %
@@ -65,14 +63,16 @@
 \newpage
 \thispagestyle{empty}
 \begin{abstract}
-  Dans les deux décennies, les animations faciales ont eu plusieurs
-  aproches. Actuellment, les dernières méthodes sont basée sur une
-  capture passive dont la configuration est presque entièrement automatiques. 
-  
-  Le but de ce projet est de réproduire une reconstruction 3D de
-  visages à travers d'une méthode de capture passive qui utilisera que
-  des outils périphériques peu coûteux, qui sont plus accessibles à la
-  majorité des personnes.
+
+Dans les deux décennies, les animations faciales ont eu plusieurs approches.
+Actuellment, les dernières méthodes sont basées sur une capture
+passive dont la configuration est presque entièrement automatiques. 
+
+Le but de ce projet est de reproduire une reconstruction 3D de visages
+à travers une méthode de capture passive qui utilisera que des outils
+périphériques peu coûteux, qui sont plus accessibles à la majorité des
+personnes. 
+
 \end{abstract}
 
 \newpage
@@ -83,20 +83,28 @@
 
 \section{Introduction}
 
-Les animations faciales ont eu plusieurs aproches dans les deux
-décennies. Les dernières méthodes sont basée sur une capture passive
-dont la configuration est presque entièrement automatiques [Bradley et
-  al. 2010; Popa et al. 2010]. 
+Les animations faciales ont eu plusieurs approches dans les deux
+décennies, comme par exemple l'utilisation d'éclairage active et
+l'utilisation des marqueurs. Actuellement, les dernières recherches,
+par rapport aux méthodes de capture, ont convergé aux captures passives dont la
+configuration est presque entièrement automatiques, car ce genre de
+capture ira diminuer le temps de préparation nécessaire pour la
+capture, ainsi comme sera moins invasive aux acteurs.
 
-Cependant, une technique pour capturer des performances expressives
-très détaillées qui évite détérioration avec le temps doit encore être
-réalisé.
+Cependant, malgré des avancées majeures dans ce type de capture, une
+technique pour capturer des performances expressives très détaillées
+qui évite détérioration avec le temps doit encore être réalisée.
 
-L'objectif du projet est la recherche et la mise au point d'un
-algorithme de reconstruction 3D de surface dynamiques appliqué
-spécifiquement à un visage. 
+Le but de ce projet est de produire une reconstruction 3D d'une
+surface dynamique de visages à travers une méthode de capture passive
+qui utilisera que des outils périphériques peu coûteuses, qui sont
+plus accessibles à la majorité des personnes, comme par exemple une Kinect.
 
-Les données d'entrées sont provienues d'une kinects.
+%L'objectif du projet est la recherche et la mise au point d'un
+%algorithme de reconstruction 3D de surface dynamique appliqué
+%spécifiquement à un visage. 
+
+%Les données d'entrées sont provienues d'une kinects.
 
 \section{Etat de l'art}
 

@@ -1441,8 +1441,8 @@ void Window::initControlWidget () {
 
     /*** Initial situation: Default options ***/
     meshRB         -> setChecked(true);
-    //calcDispPB     -> setDisabled(true);
-    //frame2ComboBox -> setDisabled(true);
+    calcDispPB     -> setDisabled(true);
+    frame2ComboBox -> setDisabled(true);
 
     /* Verify if a camera is connect */
     if(params -> GetCamera()){

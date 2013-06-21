@@ -1522,7 +1522,7 @@ void PixelTracker::Calculate3DDisplacements (
 
 void PixelTracker::ExportPyramidLevel (
     const unsigned int&     iLevel,
-    const std::string&      iFilename
+    const std::string&      iPath
 ) const {
     static const float inf = std::numeric_limits<float>::infinity();
 
@@ -1549,6 +1549,8 @@ void PixelTracker::ExportPyramidLevel (
         dispX->GetHeight ()        
     );
 
+    std::ofstream rawDisp ( (iPath + "rawDisplacement.dat").c_str(), std::ofstream::binary );
+
     Color c;
     Vec3Df redDir ( 1.0f, 0.0f, 0.0f );
     for ( unsigned int x = 0; x < dispX->GetWidth (); x++ ) {
@@ -1571,12 +1573,20 @@ void PixelTracker::ExportPyramidLevel (
                 c.FromHSV ( hue, 1.0f, value ); 
             }
 
+            const float& rDX = m_displacementX ( y, x );
+            const float& rDY = m_displacementY ( y, x );
+            const float& rDZ = m_displacementZ ( y, x );
+            rawDisp.write ( (const char*)&rDX, sizeof ( float ) );
+            rawDisp.write ( (const char*)&rDY, sizeof ( float ) );
+            rawDisp.write ( (const char*)&rDZ, sizeof ( float ) );
+
             disparityMap.SetChannelValue ( y, x,   RED, 255.f * c.Red () );
             disparityMap.SetChannelValue ( y, x, GREEN, 255.f * c.Green () );
             disparityMap.SetChannelValue ( y, x,  BLUE, 255.f * c.Blue () );
         }
     }
-    disparityMap.WriteToFile ( iFilename, PIXMAP | ASCII );
+    rawDisp.close ();
+    disparityMap.WriteToFile ( iPath + "displacement.ppm", PIXMAP | BINARY );
 }
 
 float computeDp(

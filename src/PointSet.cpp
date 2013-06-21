@@ -323,11 +323,80 @@ void PointSet::Draw () const {
         const Vertex& v = m_vertices[vtx];
 
         const Color& c = v.GetColor ();
-        const Vec3Df pos = v.GetPosition()/5;
+        const Vec3Df pos = v.GetPosition();
 
         glColor4f ( c.Red(), c.Green(), c.Blue(), c.Alpha() );
+        
+        //unsigned int cu,cv;
+        //v.GetUVCoord (cu,cv);
+        //glVertex3f (cu, cv, 0);
         glVertex3f ( pos[0], pos[1], pos[2] );
     }
     glEnd();
 
 }
+
+void PointSet::PushVertex (
+    const Vertex& iVertex
+) {
+    CartesianCoordinate p;
+
+    unsigned int x, y;
+    iVertex.GetUVCoord ( x, y );
+    p.x = x;
+    p.y = y;
+
+    m_vertices.push_back ( iVertex );
+    m_imageToRealWorld.insert ( std::pair<CartesianCoordinate,unsigned int>(p, m_vtxCount++));
+}
+
+void PointSet::PushFace (
+    const Face& iFace
+) {
+    m_faceCount++;
+    m_faces.push_back ( iFace );
+}
+
+const Vertex& PointSet::GetVertex ( const unsigned int& iVertex ) const {
+    return m_vertices[iVertex];
+}
+#include <exception>
+#include <stdexcept>
+#include <sstream>
+const Vertex* PointSet::GetVertex ( const unsigned int& iU, const unsigned int& iV ) {
+    CartesianCoordinate p ( iU, iV );
+
+    for ( unsigned int i = 0; i < m_vtxCount; i++ ) {
+        const Vertex& vert = m_vertices[i];
+        
+        unsigned int x, y;
+        vert.GetUVCoord (x, y);
+        if (x == iU && y == iV ) {
+            return &vert;
+        }
+    }
+    std::cout << "Error on " << iU << " " << iV;
+    std::stringstream error;
+
+    error << "Cannot find vertex with UV coordinates ( " << iU << ", " << iV << " ).";
+    throw std::out_of_range ( error.str ().c_str () );
+
+    //if ( m_imageToRealWorld.count ( p ) > 0 ) {
+    //    unsigned int& vtx = m_imageToRealWorld[p];
+
+    //    return &(m_vertices[vtx]);
+    //}
+    //return (Vertex*)0x0; 
+}
+const Face& PointSet::GetFace ( const unsigned int& iFace ) const {
+    return m_faces[iFace];
+}
+const unsigned int& PointSet::GetNumVertices ()
+const {
+    return m_vtxCount;
+}
+const unsigned int& PointSet::GetNumFaces ()
+const {
+    return m_faceCount;
+}
+

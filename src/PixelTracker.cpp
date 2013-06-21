@@ -13,39 +13,6 @@
 
 #include <csignal>
 #include <cmath>
-inline bool my_isnan (
-    const float&    iValue
-) {
-    const unsigned char* cval = reinterpret_cast<const unsigned char*>(&iValue);
-
-    static const float nqnan = -std::numeric_limits<float>::quiet_NaN();
-    bool nqnantest = true;
-    const unsigned char* cnan = reinterpret_cast<const unsigned char*>(&nqnan);
-    for ( unsigned int i = 0; i < sizeof (float); i++ ) {
-        nqnantest &= (cval[i] == cnan[i]);
-    }
-    static const float qnan = std::numeric_limits<float>::quiet_NaN();
-    bool qnantest = true;
-    cnan = reinterpret_cast<const unsigned char*>(&qnan);
-    for ( unsigned int i = 0; i < sizeof (float); i++ ) {
-        qnantest &= (cval[i] == cnan[i]);
-    }
-
-    static const float nsnan = -std::numeric_limits<float>::signaling_NaN();
-    bool nsnantest = true;
-    cnan = reinterpret_cast<const unsigned char*>(&nsnan);
-    for ( unsigned int i = 0; i < sizeof (float); i++ ) {
-        nsnantest &= (cval[i] == cnan[i]);
-    }
-    static const float snan = std::numeric_limits<float>::signaling_NaN();
-    bool snantest = true;
-    cnan = reinterpret_cast<const unsigned char*>(&snan);
-    for ( unsigned int i = 0; i < sizeof (float); i++ ) {
-        snantest &= (cval[i] == cnan[i]);
-    }
-
-    return (snantest || qnantest) || (nsnantest || nqnantest);
-} 
 #include <stdexcept>
 
 /* Calculate  adjustment in the direction 
@@ -815,34 +782,6 @@ void PixelTracker::SetRejectionTreshold (
 void PixelTracker::Export (
     const std::string&      iFilename
 ) const {
-Vec3Df BilinearInterpolation (
-    const Vec3Df&   f00,
-    const Vec3Df&   f01,
-    const Vec3Df&   f10,
-    const Vec3Df&   f11,
-    const float&    px0,
-    const float&    py0,
-    const float&    px1,
-    const float&    py1,
-    const float&    px,
-    const float&    py
-) {
-    float denomX = (px1-px0);
-    float denomY = (py1-py0);
-    float denom = denomX*denomY;
-
-    if ( denomX != 0.0f && denomY != 0.0f ) {
-        Vec3Df fx0 = ((px1-px)*f00+(px-px0)*f10)/denomX;
-        Vec3Df fx1 = ((px1-px)*f01+(px-px0)*f11)/denomX;
-
-        return ((py1-py)*fx0 + (py-py0)*fx1)/denom;
-    } else if ( denomY != 0.0f ) {
-        return ((py1-py)*f00+(py-py0)*f01)/denomY;
-    } else if ( denomX != 0.0f ) {
-        return ((px1-px)*f00+(px-px0)*f10)/denomX;
-    } else {
-        return f00;
-    }
 }
 
 void PixelTracker::Calculate3DDisplacements (

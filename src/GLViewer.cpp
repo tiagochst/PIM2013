@@ -16,7 +16,9 @@ GLViewer::GLViewer ()
     :   QGLViewer (),
         noAutoOpenGLDisplayMode(false),
         m_frame (),
-        m_depth () 
+        m_depth (),
+        m_mesh(true),
+        m_displacements(true)
 {
 }
 
@@ -45,6 +47,28 @@ void GLViewer::reset() {
 
 void GLViewer::init() {
 
+
+    /* 
+       Keyboard shortcut customization           
+       Changes standard action key bindings       
+    */
+
+    /* Define 'Control+Q' as the new exit shortcut (default was 'Escape')*/
+    setShortcut(EXIT_VIEWER, Qt::CTRL+Qt::Key_Q);
+    
+    /* Set 'Control+F' as the FPS toggle state key.*/
+    setShortcut(DISPLAY_FPS, Qt::CTRL+Qt::Key_F);
+    
+    /* Disable draw grid toggle shortcut (default was 'G')*/
+    setShortcut(DRAW_GRID, 0);
+        
+    /* Add custom key description (see keyPressEvent).*/
+    setKeyDescription(Qt::Key_W, "Toggles wire frame display");
+    setKeyDescription(Qt::Key_F, "Toggles flat shading display");
+
+    /* Add custom mouse bindings description (see mousePressEvent()) */
+    setMouseBindingDescription(Qt::RightButton, "Opens a camera path context menu");
+
     ParameterHandler* params = ParameterHandler::Instance();
     std::string frameID = std::to_string(params -> GetFrame1());
      std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/f" + frameID + "/");
@@ -53,20 +77,14 @@ void GLViewer::init() {
 
     // Swap the CAMERA and FRAME state keys (NoButton and Control)
     // Save CAMERA binding first. See setHandlerKeyboardModifiers() documentation.
-#if QT_VERSION < 0x040000
-    setHandlerKeyboardModifiers(QGLViewer::CAMERA, Qt::AltButton);
-    setHandlerKeyboardModifiers(QGLViewer::FRAME,  Qt::NoButton);
-    setHandlerKeyboardModifiers(QGLViewer::CAMERA, Qt::ControlButton);
-#else
     setHandlerKeyboardModifiers(QGLViewer::CAMERA, Qt::AltModifier);
     setHandlerKeyboardModifiers(QGLViewer::FRAME,  Qt::NoModifier);
     setHandlerKeyboardModifiers(QGLViewer::CAMERA, Qt::ControlModifier);
-#endif
 
 #ifdef GL_RESCALE_NORMAL  // OpenGL 1.2 Only...
     glEnable(GL_RESCALE_NORMAL);
 #endif
-
+    
     /* Reset far plane*/
     qglviewer::Camera * cam = camera();
     cam -> setZNearCoefficient(0.000000001f); 
@@ -172,25 +190,75 @@ void GLViewer::draw () {
         PointSet* ps = new PointSet ();
         Camera& cam = Camera::Instance ();
         cam.ReadFrame (
-                0x0,
-                0x0,
-                ps
-                );
-
+            0x0,
+            0x0,
+            ps
+            );
+        
         ps->Draw ();
         delete ps;
         ps = NULL;
     } else {
         const Frame* f = params->GetCurrentFrame ();
-
+        
         if ( f )
             f->Draw ();
     }
-
+    
     // Draws the image in 3D.
     //drawPoints(m_frame,m_depth);
-
+    
     // Restore the original (world) coordinate system
     glPopMatrix();
+}
+
+
+
+void GLViewer::keyPressEvent(QKeyEvent *e)
+{
+    ParameterHandler* params = ParameterHandler::Instance ();
+    const Qt::KeyboardModifiers modifiers = e->modifiers();
+    
+    bool handled = false;
+    if ((e->key()==Qt::Key_W) && (modifiers==Qt::NoButton))
+        {
+            m_wireframe = !m_wireframe;
+            if (m_wireframe)
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            else
+                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            handled = true;
+            updateGL();
+        }
+    else
+        if ((e->key()==Qt::Key_F) && (modifiers==Qt::NoButton))
+            {
+                m_flatShading = !m_flatShading;
+                if (m_flatShading)
+                    glShadeModel(GL_FLAT);
+                else
+                    glShadeModel(GL_SMOOTH);
+                handled = true;
+                updateGL();
+            }
+        else
+            if ((e->key()==Qt::Key_D) && (modifiers==Qt::NoButton))
+                {
+                    m_displacements = !m_displacements;
+                    params -> SetDrawDisplacement(m_displacements);
+                    handled = true;
+                    updateGL();
+                }
+        else
+            if ((e->key()==Qt::Key_M) && (modifiers==Qt::NoButton))
+                {
+                    m_mesh = !m_mesh;
+                    params -> SetDrawMesh(m_mesh);
+                    handled = true;
+                    updateGL();
+                }
+    
+    if (!handled)
+        QGLViewer::keyPressEvent(e);
 }
 

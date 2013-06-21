@@ -96,6 +96,30 @@ const bool& ParameterHandler::GetDepthCrop ()
 const {
     return m_depthCrop;
 }
+
+const bool&  ParameterHandler::GetDrawDisplacement ()
+const{
+    return m_drawDisplacement;
+}
+
+void ParameterHandler::SetDrawDisplacement (
+    const bool& iDraw
+    ){
+    m_drawDisplacement = iDraw;
+}
+
+const bool&  ParameterHandler::GetDrawMesh ()
+const{
+    return m_drawMesh;
+};
+
+void ParameterHandler::SetDrawMesh (
+    const bool& iDraw
+    ){
+    m_drawMesh = iDraw;
+}
+
+
 void ParameterHandler::SetDepthCrop (
     const bool& iDepthCrop
 ) {

@@ -52,7 +52,7 @@ void Window::enableCaptureButton () {
 void Window::updateFrameList () {
 
     /* Update the list of images in the system*/
-    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=*.png --ignore=depth* --ignore=disparity* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/.pgm//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
+    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=*.png --ignore=depth* --ignore=disparity* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/f//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
 
     system(IMAGE_LIST.c_str());
 
@@ -124,11 +124,6 @@ void Window::setFramesToCapture ( const  int& iNumber ) {
     ParameterHandler* params = ParameterHandler::Instance ();
     params->SetNumCaptureFrames ( iNumber );
     viewer->update ();
-}
-
-void Window::setFramesToCapture ( const  int& iNumber ) {
-    ParameterHandler* params = ParameterHandler::Instance ();
-    params->SetNumCaptureFrames ( iNumber );
 }
 
 void Window::findAutoAnchors(){
@@ -668,12 +663,19 @@ void Window::setFrame1(int iFrame) {
     if(iFrame >= 0 && !isinf(iFrame)){
         params -> SetFrame1(iFrame);
 
-        std::string path = Config::FramesPath() + "f" + toString (iFrame) + "/";
-
-        Frame* frame = new Frame ();
-        frame->LoadFromFile ( path );
-        frame->LoadDisplacements ( path + "track/" + toString ( params->GetFrame
-        params->SetCurrentFrame ( frame );
+        try{
+            std::string path = Config::FramesPath() + "f" + toString (iFrame) + "/";
+            
+            Frame* frame = new Frame ();
+            frame->LoadFromFile ( path );
+            frame->LoadDisplacements ( 
+                path + "track/" + toString ( params->GetFrame2()) + "/"
+                );
+            
+            params->SetCurrentFrame ( frame );
+        } catch(...){
+        
+        }
     }
     
     if(params -> GetMesh()){
@@ -1066,7 +1068,7 @@ void Window::initControlWidget () {
     /* Creating tables for frame selection */
     frame1ComboBox = new QComboBox (previewGroupBox);
     frame2ComboBox = new QComboBox (previewGroupBox);
-    this -> setFrame1(0); // Used for point set allocation
+    this -> setFrame1(0);
     addImageItems();
 
     QLabel          *   frame1Label = new QLabel(tr("Frame:"));
@@ -1218,17 +1220,17 @@ void Window::initControlWidget () {
             );
 
     /* Description: Disabling image 2 selection */
-    //connect(
-    //        meshRB, SIGNAL (     toggled (bool) ), 
-    //        frame2ComboBox, SLOT   ( setDisabled (bool) )
-    //       );
-
+    /*    connect(
+      meshRB, SIGNAL (     toggled (bool) ), 
+      frame2ComboBox, SLOT   ( setDisabled (bool) )
+      );
+    */
     /* Description: Disabling calculate displacement push button */
-    //connect(
-    //        meshRB, SIGNAL (       toggled (bool) ), 
-    //        calcDispPB, SLOT   (   setDisabled (bool) )
-    //       );
-
+    /*    connect(
+      meshRB, SIGNAL (       toggled (bool) ), 
+      calcDispPB, SLOT   (   setDisabled (bool) )
+      );
+    */
     /* Description: Change of situation 
        Mesh selected -> update screen */
     connect(
@@ -1441,8 +1443,8 @@ void Window::initControlWidget () {
 
     /*** Initial situation: Default options ***/
     meshRB         -> setChecked(true);
-    calcDispPB     -> setDisabled(true);
-    frame2ComboBox -> setDisabled(true);
+    //calcDispPB     -> setDisabled(true);
+    //frame2ComboBox -> setDisabled(true);
 
     /* Verify if a camera is connect */
     if(params -> GetCamera()){
@@ -1488,6 +1490,7 @@ void Window::initControlWidget () {
     previewLayout -> addStretch (0);
     modeLayout -> addWidget (modeLayoutWidget);
     meshModeLayout -> addWidget (meshModeLayoutWidget);
+    meshModeLayout -> addStretch (0);
     //meshModeLayout->addWidget (meshMode);
     //meshModeLayout->addWidget (kinectMode);
     meshModeLayout -> addStretch (0);

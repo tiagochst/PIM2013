@@ -4,6 +4,12 @@
 #include <GL/glew.h>
 #include <QGLViewer/qglviewer.h>
 #include <QGLViewer/camera.h>
+#include <QKeyEvent>
+#include <QMouseEvent>
+#include <QMenu>
+#include <qcursor.h>
+#include <qmap.h>
+#include <math.h>
 #include <vector>
 #include <string>
 #include "Image.h"
@@ -33,10 +39,15 @@ public:
 protected :
     void draw ();
     QString helpString() const;
+    virtual void keyPressEvent(QKeyEvent *e);
 
  private : 
     Image m_frame;
     Image m_depth;
+    bool m_wireframe,;
+    bool m_flatShading;
+    bool m_mesh;
+    bool m_displacements;
 
 };
 #endif // GLVIEWER_H

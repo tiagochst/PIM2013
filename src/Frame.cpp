@@ -40,9 +40,18 @@ Frame::~Frame ()
 }
 
 void Frame::Draw () const {
-    DrawMesh ();
-    if ( m_displacements ) {
-        DrawDisplacements ();
+    ParameterHandler* params = ParameterHandler::Instance ();
+
+    //std::cout << "Draw disp:" << params -> GetDrawDisplacement() << std::endl;
+    //std::cout << "Draw mesh:" << params -> GetDrawMesh() << std::endl;
+
+    if ( params -> GetDrawMesh() ) {
+        DrawMesh ();
+    }
+    if ( params -> GetDrawDisplacement()){ 
+        if(m_displacements) {
+            DrawDisplacements ();
+        }
     }
 }
 
@@ -52,22 +61,25 @@ void Frame::DrawMesh () const {
     const float f = -params->GetFarPlane ();
 
     glLineWidth ( 1.0f );
-    glPolygonMode ( GL_FRONT_AND_BACK, GL_LINE );
+
+    // Default is used from class glviewer.
+    //glPolygonMode ( GL_FRONT_AND_BACK, GL_LINE );
+
     glBegin ( GL_TRIANGLES );
     for ( unsigned int face = 0; face < m_mesh->GetNumFaces (); face++ ) {
         const Face& fc = m_mesh->GetFace ( face );
 
         const Vertex&   v0  =   m_mesh->GetVertex ( fc.v0 );
         const Color&    c0  =   v0.GetColor ();
-        const Vec3Df   p0  =   v0.GetPosition ();
+        const Vec3Df   p0   =   v0.GetPosition ();
 
         const Vertex&   v1  =   m_mesh->GetVertex ( fc.v1 );
         const Color&    c1  =   v1.GetColor ();
-        const Vec3Df   p1  =   v1.GetPosition ();
+        const Vec3Df   p1   =   v1.GetPosition ();
 
         const Vertex&   v2  =   m_mesh->GetVertex ( fc.v2 );
         const Color&    c2  =   v2.GetColor ();
-        const Vec3Df   p2  =   v2.GetPosition ();
+        const Vec3Df   p2   =   v2.GetPosition ();
 
         if (
                ( p0[2] >= n ) || ( p0[2] <= f )

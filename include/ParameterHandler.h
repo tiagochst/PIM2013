@@ -24,6 +24,9 @@ private:
     float           m_farPlane;
     bool            m_depthCrop;
 
+    bool            m_drawMesh;
+    bool            m_drawDisplacement;
+
     double          m_threshold;
 
     Frame*          m_frame;
@@ -40,6 +43,8 @@ private:
             m_nearPlane ( 0 ),
             m_farPlane ( 1500 ),
             m_depthCrop ( false ),
+            m_drawMesh(true),
+            m_drawDisplacement(true),
             m_threshold ( 0.0 ),
             m_frame ( (Frame*)0x0 )
     {}
@@ -105,6 +110,16 @@ public:
     const bool& GetDepthCrop () const;
     void SetDepthCrop (
         const bool& iDepthCrop
+    );
+
+    const bool& GetDrawDisplacement () const;
+    void SetDrawDisplacement (
+        const bool& iDraw
+    );
+
+    const bool& GetDrawMesh () const;
+    void SetDrawMesh (
+        const bool& iDraw
     );
 
     void SetThreshold (

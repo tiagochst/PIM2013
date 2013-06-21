@@ -26,6 +26,8 @@ public:
     void DrawDisplacements () const;
     void Draw () const;
 
+    void LoadFromFile ( const std::string& iPath );
+
     const PointSet* GetMesh () const {
         return m_mesh; 
     }

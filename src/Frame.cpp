@@ -114,3 +114,51 @@ void Frame::DrawDisplacements () const {
     }
     glEnd ();
 }
+
+void Frame::LoadFromFile ( const std::string& iPath ) {
+    m_mesh = new PointSet ();
+    m_mesh->LoadFromFile ( iPath + "mesh.ply" );
+
+    m_texture = new Image ();
+    m_texture->LoadFromFile ( iPath + "texture.pgm" );
+
+    m_depthMap = new Image ();
+    m_depthMap->LoadFromFile ( iPath + "depthMap.pgm" ); 
+
+    m_displacements = PPMImage::TryLoadFromFile ( iPath + "displacement.ppm" );
+
+    m_rawDisplacementsX.resize (
+        m_texture->GetHeight (),
+        m_texture->GetWidth ()
+    );
+    m_rawDisplacementsY.resize (
+        m_texture->GetHeight (),
+        m_texture->GetWidth ()
+    );
+    m_rawDisplacementsZ.resize (
+        m_texture->GetHeight (),
+        m_texture->GetWidth ()
+    );
+
+    std::ifstream rawDisps ( (iPath + "rawDisplacement.dat").c_str(), std::ifstream::binary );
+    if ( rawDisps.good () && rawDisps.is_open () ) {
+        for ( unsigned int x = 0; x < m_texture->GetWidth (); x++ ) {
+            for ( unsigned int y = 0; y < m_texture->GetHeight (); y++ ) {
+                float rdx, rdy, rdz;
+
+                rawDisps.read ( (char*)&rdx, sizeof ( float ) );
+                rawDisps.read ( (char*)&rdy, sizeof ( float ) );
+                rawDisps.read ( (char*)&rdz, sizeof ( float ) );
+
+                m_rawDisplacementsX ( y, x ) = rdx;
+                m_rawDisplacementsY ( y, x ) = rdy;
+                m_rawDisplacementsZ ( y, x ) = rdz;
+
+                //std::cout   << m_rawDisplacementsX ( y, x ) << " " 
+                //            << m_rawDisplacementsY ( y, x ) << " " 
+                //            << m_rawDisplacementsZ ( y, x ) << std::endl;
+            }
+        }
+    }
+}
+

@@ -47,6 +47,7 @@ void Config::LoadConfigs(const std::string& iFilename)
     }
     if ( Config::_capturedFramesPath.empty() ) {
         Config::_capturedFramesPath = OutputPath() +  "CapturedFrames/";
+        system ( ( "mkdir -p " + Config::_capturedFramesPath ).c_str () );
     }
     if ( Config::_configPath.empty() ) {
         Config::_configPath = DataPath() + "Config/";

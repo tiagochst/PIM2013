@@ -44,7 +44,7 @@ public:
     }
 
     void WriteFrame () const {
-        std::string suffix = "_" + Int2Str(m_frameId);
+        system ( ( "mkdir -p " + m_path ).c_str() );
 
         std::string str_aux;
         if ( m_imageInfo ) {

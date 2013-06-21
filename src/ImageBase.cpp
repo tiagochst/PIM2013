@@ -7,6 +7,9 @@
 #include "Rectangle.h"
 
 #include <csignal>
+#include <cmath>
+
+using namespace std;
 
 void ImageBase::CreateAsciiPgm (
     const std::string&  iFilename
@@ -46,8 +49,8 @@ float ImageBase::CalculateErrorScore (
     assert ( iImageA.GetWidth  () == iImageB.GetWidth  () );
     assert ( iImageA.GetHeight () == iImageB.GetHeight () );
 
-    const unsigned int& SAMPLING_STEP   = 9;
-    const int&          NH_SZ           = 9;
+    const unsigned int& SAMPLING_STEP   = 3;
+    const int&          NH_SZ           = 3;
 
     float globalScore = 0.f;
     const int height  = iImageA.GetHeight ();
@@ -104,6 +107,9 @@ float ImageBase::CalculateErrorScore (
             featureCount++;
         }
     }
+
+    //globalScore += (1.f - iImageA.Correlation(iImageB) ) / 2.0f;
+    //featureCount++;
 
     //std::cerr << featureCount << " " << zeroCount << " " << oneCount << std::endl;
     return ( globalScore / (float)featureCount );

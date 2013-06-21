@@ -782,6 +782,7 @@ void PixelTracker::SetRejectionTreshold (
 void PixelTracker::Export (
     const std::string&      iFilename
 ) const {
+    ExportPyramidLevel ( 0, iFilename );
 }
 
 void PixelTracker::Calculate3DDisplacements (

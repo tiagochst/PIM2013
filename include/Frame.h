@@ -1,24 +1,25 @@
 #ifndef _FRAME_H_
 #define _FRAME_H_
 
+#include <Eigen/Dense>
+
 class PointSet;
 class Image;
 class PPMImage;
+class PointSet;
 
 class Frame {
 private:
-    PointSet*   m_mesh;
-    Image*      m_texture;
-    Image*      m_depthMap;
-    PPMImage*   m_displacements;
+    PointSet*           m_mesh;
+    Image*              m_texture;
+    Image*              m_depthMap;
+    PPMImage*           m_displacements;
+    Eigen::MatrixXf     m_rawDisplacementsX;
+    Eigen::MatrixXf     m_rawDisplacementsY;
+    Eigen::MatrixXf     m_rawDisplacementsZ;
 
 public:
-    Frame (
-        PointSet*   iMesh,
-        Image*      iTexture,
-        Image*      iDepthMap,
-        PPMImage*   iDisplacements
-    );
+    Frame ();
     ~Frame ();
 
     void DrawMesh () const;

@@ -9,15 +9,14 @@
 #include <GL/glut.h>
 
 
-Frame::Frame (
-    PointSet*   iMesh,
-    Image*      iTexture,
-    Image*      iDepthMap,
-    PPMImage*   iDisplacements
-)   :   m_mesh ( iMesh ),
-        m_texture ( iTexture ),
-        m_depthMap ( iDepthMap ),
-        m_displacements ( iDisplacements )
+Frame::Frame () 
+    :   m_mesh ( 0x0 ),
+        m_texture ( 0x0 ),
+        m_depthMap ( 0x0 ),
+        m_displacements ( 0x0 ),
+        m_rawDisplacementsX (),
+        m_rawDisplacementsY (),
+        m_rawDisplacementsZ ()
 {}
 
 Frame::~Frame ()

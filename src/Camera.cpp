@@ -505,7 +505,7 @@ void Camera::ReadFrame (
                 }
             }
         }
-        oPoints->MoveToBarycenter ();
+        //oPoints->MoveToBarycenter ();
     }
 }
 
@@ -566,7 +566,7 @@ void Camera::captureSingleFrame()
         camImg,
         camDepth,
         pointCloud,
-        Config::OutputPath() + "CapturedFrames/"
+        Config::FramesPath()
     );
 
     if ( m_nbFrames == params->GetNumCaptureFrames() ) {

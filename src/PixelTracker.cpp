@@ -9,6 +9,7 @@
 #include "Color.h"
 #include "PPMImage.h"
 #include "MathUtils.h"
+#include "PointSet.h"
 
 #include <csignal>
 #include <cmath>
@@ -80,7 +81,7 @@ inline float ComputeUs (
     const Eigen::Matrix3f&  iErr
 ) {
     float Us = 0.0f;
-    float sigma = 100.0f;/* 10 cm? */
+    float sigma = 1000.0f;/* 10 cm? */
     float sumCoefs = 0.0f;
 
     unsigned int errone = 0;
@@ -386,10 +387,6 @@ void PixelTracker::PyramidTrack (
     UNMATCHED = 0;
 
     PyramidMatch        ( iLevel );
-    ExportPyramidLevel (
-        iLevel,
-        prefix+"disparity.match"
-    );
     std::cout << UNMATCHED << " unmatched pixels." << std::endl;
     PyramidSmooth       ( iLevel );
     std::cout << UNMATCHED << " unmatched pixels." << std::endl;
@@ -398,17 +395,9 @@ void PixelTracker::PyramidTrack (
     PyramidUniqueness   ( iLevel );
     std::cout << UNMATCHED << " unmatched pixels." << std::endl;
     PyramidRematch      ( iLevel );
-    ExportPyramidLevel (
-        iLevel,
-        prefix+"disparity.rematch"
-    );
     std::cout << UNMATCHED << " unmatched pixels." << std::endl;
     PyramidUniqueness   ( iLevel );
     std::cout << UNMATCHED << " unmatched pixels. Rematching..." << std::endl;
-    ExportPyramidLevel (
-        iLevel,
-        prefix+"disparity.pre"
-    );
     const unsigned int maxIter = 180u;
     const unsigned int minIter =  40u;
     const unsigned int nIter = maxIter - ( (maxIter-minIter) * (iLevel+1) ) / m_refImgPyr.GetNumLevels ();
@@ -710,8 +699,8 @@ void PixelTracker::PyramidUniqueness (
             ); 
 
             if (
-                    ( best.x - i ) <= 1.0f
-                &&  ( best.y - j ) <= 1.0f
+                    abs ( best.x - i ) <= 1.0f
+                &&  abs ( best.y - j ) <= 1.0f
             ) {
                 newDX->SetNormed ( j, i, dispX ) ;
                 newDY->SetNormed ( j, i, dispY ) ;
@@ -895,7 +884,6 @@ void PixelTracker::SetUp (
     m_depthMap = new Image (
         Config::OutputPath () + "CapturedFrames/depth_" + Int2Str ( m_referenceId ) + ".pgm"
     );
-
     m_disparityMapX.resize (
         m_refImage->GetHeight (),
         m_refImage->GetWidth ()
@@ -904,6 +892,7 @@ void PixelTracker::SetUp (
         m_refImage->GetHeight (),
         m_refImage->GetWidth ()
     );
+
 }
 
 void PixelTracker::SetRejectionTreshold (
@@ -1342,7 +1331,7 @@ void printColorChart (
             colorChart.SetChannelValue ( y, x,  BLUE, 255.f * c.Blue () );
         }
     }
-    colorChart.WriteToFile ( "colorChart.ppm", PIXMAP | BINARY );
+    colorChart.WriteToFile ( Config::OutputPath () + "colorChart.ppm", PIXMAP | BINARY );
 }
 
 

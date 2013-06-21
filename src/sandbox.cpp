@@ -28,6 +28,19 @@ extern void printColorChart (
     PPMImage& colorChart
 );
 
+extern Vec3Df BilinearInterpolation (
+    const Vec3Df&   f00,
+    const Vec3Df&   f01,
+    const Vec3Df&   f10,
+    const Vec3Df&   f11,
+    const float&    px0,
+    const float&    py0,
+    const float&    px1,
+    const float&    py1,
+    const float&    px,
+    const float&    py
+);
+
 void FindTemplateAndPrintMap(
     const ImageBase& iBaseImage,
     const ImageBase& iTemplate,
@@ -99,12 +112,58 @@ int KinectInit(int argc, char** argv)
 }
 
 int main ( void ) {
+    //PPMImage img1; img1.LoadFromFile ( "img1.ppm" );
+    //PPMImage img2; img2.LoadFromFile ( "img2.ppm" );
+
+    PPMImage colorChart;
+    printColorChart (320,320,colorChart);
+
+    //img1.WriteToFile ( "img1_ascii.ppm", PIXMAP | ASCII );
+    //img1.WriteToFile ( "img1_binary.ppm", PIXMAP | BINARY );
+    //img2.WriteToFile ( "img2_ascii.ppm", PIXMAP | ASCII );
+    //img2.WriteToFile ( "img2_binary.ppm", PIXMAP | BINARY );
+}
+
+int main_math ( void ) {
+    Vec3Df f00 ( 0.0f, 0.0f, 0.0f );
+    Vec3Df f01 ( 0.0f, 2.0f, 0.0f );
+    Vec3Df f10 ( 2.0f, 0.0f, 0.0f );
+    Vec3Df f11 ( 2.0f, 2.0f, 0.0f );
+
+    std::cout << BilinearInterpolation (f00,f01,f10,f11,0,0,1,1,0.4,0.6) << std::endl;
+    std::cout << BilinearInterpolation (f00,f01,f10,f11,0,0,0,1,0.4,0.6) << std::endl;
+    std::cout << BilinearInterpolation (f00,f01,f10,f11,0,0,1,0,0.4,0.6) << std::endl;
+    std::cout << BilinearInterpolation (f00,f01,f10,f11,0,0,0,0,0.4,0.6) << std::endl;
+    std::cout << BilinearInterpolation (f00,f01,f10,f11,1,1,1,1,0.4,0.6) << std::endl;
+
+    Matrix33 m ( Vec3Df (1, 2, 3), Vec3Df ( 4, 5, 6), Vec3Df(7,8,9) );
+    std::cout << m.Det () << std::endl;
+    
+
+    Parabola p ( 3, 4, 5, 0, 7, 4 );
+
+    std::cout << p.Eval (  0 ) << std::endl;
+    std::cout << p.Eval (  1 ) << std::endl;
+    std::cout << p.Eval (  2 ) << std::endl;
+    std::cout << p.Eval (  3 ) << std::endl;
+    std::cout << p.Eval (  4 ) << std::endl;
+    std::cout << p.Eval (  5 ) << std::endl;
+    std::cout << p.Eval (  6 ) << std::endl;
+    std::cout << p.Eval (  7 ) << std::endl;
+    std::cout << p.Eval (  8 ) << std::endl;
+    std::cout << p.Eval (  9 ) << std::endl;
+    std::cout << p.Eval ( 10 ) << std::endl;
+
+    return 0;
+}
+
+int main_total ( void ) {
     Config::LoadConfigs(Config::RootPath() + "settings");
 
     static const std::string RES_PTSET_PATH(Config::ResourcesPath() + "PointSets/");
     static const std::string RES_IMG_PATH(Config::ResourcesPath() + "Images/");
 
-    Image frame0i(Config::OutputPath () + "CapturedFrames/image_8.pgm");
+    Image frame0i(Config::FramesPath () + "f8/texture.pgm");
     Image frame0h ( frame0i.GetWidth(), frame0i.GetHeight(), frame0i.GetMaxGreyLevel () );
     Image frame0hinv ( frame0i.GetWidth(), frame0i.GetHeight(), frame0i.GetMaxGreyLevel () );
     Image frame0inv ( frame0i.GetWidth(), frame0i.GetHeight(), frame0i.GetMaxGreyLevel () );
@@ -126,16 +185,22 @@ int main ( void ) {
     std::cout << "Correlation BL * -BL  : " << blank.Correlation ( blankinv ) << std::endl;
     std::cout << "Correlation F0 * -F0  : " << frame0i.Correlation ( frame0inv ) << std::endl;
 
-    Image frame0d(Config::OutputPath () + "CapturedFrames/depth_8.pgm");
-    Image frame1i(Config::OutputPath () + "CapturedFrames/image_9.pgm");
-    Image frame1d(Config::OutputPath () + "CapturedFrames/depth_9.pgm");
+    Image frame0d(Config::FramesPath () + "f8/depth.pgm");
+    Image frame1i(Config::FramesPath () + "f9/texture.pgm");
+    Image frame1d(Config::FramesPath () + "f9/depth.pgm");
+
+    PointSet mesh0 ( Config::FramesPath () + "f8/mesh.ply" );
+    PointSet mesh1 ( Config::FramesPath () + "f9/mesh.ply" );
 
     PixelTracker pixTrack (0);
-
     pixTrack.SetReference ( 0, &frame0i, &frame0d );
     pixTrack.SetTarget ( 1, &frame1i, &frame1d );
     pixTrack.Track ();
-    pixTrack.Export ( Config::OutputPath() + "CapturedFrames/disparity_8.ppm" );
+    pixTrack.Calculate3DDisplacements (
+        &mesh0,
+        &mesh1        
+    );
+    pixTrack.Export (Config::FramesPath () + "f8/");
 }
 
 int main_alt ( int argc, char** argv ) {

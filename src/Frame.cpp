@@ -47,70 +47,81 @@ void Frame::Draw () const {
 }
 
 void Frame::DrawMesh () const {
-    //glBegin ( GL_TRIANGLES );
-    //for ( unsigned int face = 0; face < m_mesh->GetNumFaces (); face++ ) {
-    //    const Face& f = m_mesh->GetFace ( face );
+    glLineWidth ( 1.0f );
+    glPolygonMode ( GL_FRONT_AND_BACK, GL_LINE );
+    glBegin ( GL_TRIANGLES );
+    for ( unsigned int face = 0; face < m_mesh->GetNumFaces (); face++ ) {
+        const Face& f = m_mesh->GetFace ( face );
 
-    //    const Vertex&   v0  =   m_mesh->GetVertex ( f.v0 );
-    //    const Color&    c0  =   v0.GetColor ();
-    //    const Vec3Df   p0  =   v0.GetPosition() / 32000;
+        const Vertex&   v0  =   m_mesh->GetVertex ( f.v0 );
+        const Color&    c0  =   v0.GetColor ();
+        const Vec3Df   p0  =   v0.GetPosition ();
 
-    //    const Vertex&   v1  =   m_mesh->GetVertex ( f.v1 );
-    //    const Color&    c1  =   v1.GetColor ();
-    //    const Vec3Df   p1  =   v1.GetPosition() / 32000;
+        const Vertex&   v1  =   m_mesh->GetVertex ( f.v1 );
+        const Color&    c1  =   v1.GetColor ();
+        const Vec3Df   p1  =   v1.GetPosition ();
 
-    //    const Vertex&   v2  =   m_mesh->GetVertex ( f.v2 );
-    //    const Color&    c2  =   v2.GetColor ();
-    //    const Vec3Df   p2  =   v2.GetPosition() / 32000;
+        const Vertex&   v2  =   m_mesh->GetVertex ( f.v2 );
+        const Color&    c2  =   v2.GetColor ();
+        const Vec3Df   p2  =   v2.GetPosition ();
 
-    //    glColor4f ( c0.Red(), c0.Green(), c0.Blue(), c0.Alpha() );
-    //    glVertex3f ( p0[0], p0[1], p0[2] );
+        if ( p0[2] == 0.0f || p1[2] == 0.0f || p2[2] == 0.0f ) {
+            continue;
+        }
 
-    //    glColor4f ( c1.Red(), c1.Green(), c1.Blue(), c1.Alpha() );
-    //    glVertex3f ( p1[0], p1[1], p1[2] );
-    //    
-    //    glColor4f ( c2.Red(), c2.Green(), c2.Blue(), c2.Alpha() );
-    //    glVertex3f ( p2[0], p2[1], p2[2] );
-    //}
-    //glEnd ();
-    m_mesh->Draw ();
+        glColor4f ( c0.Red(), c0.Green(), c0.Blue(), c0.Alpha() );
+        glVertex3f ( p0[0], p0[1], p0[2] );
+
+        glColor4f ( c1.Red(), c1.Green(), c1.Blue(), c1.Alpha() );
+        glVertex3f ( p1[0], p1[1], p1[2] );
+        
+        glColor4f ( c2.Red(), c2.Green(), c2.Blue(), c2.Alpha() );
+        glVertex3f ( p2[0], p2[1], p2[2] );
+    }
+    glEnd ();
+    //m_mesh->Draw ();
 }
 
 void Frame::DrawDisplacements () const {
     glLineWidth ( 2.5f );
+    
+    glShadeModel ( GL_SMOOTH );
     glBegin ( GL_LINES );
+    float maxVal = m_displacements->GetMaxValue ();
     for ( unsigned int vtx = 0; vtx < m_mesh->GetNumVertices (); vtx++ ) {
         const Vertex& vert = m_mesh->GetVertex ( vtx );
 
         unsigned int u,v;
         vert.GetUVCoord ( u, v );
 
-        float maxVal = m_displacements->GetMaxValue ();
-        float r = m_displacements->GetChannelValue ( v, u, RED   ) / maxVal;
-        float g = m_displacements->GetChannelValue ( v, u, GREEN ) / maxVal;
-        float b = m_displacements->GetChannelValue ( v, u, BLUE  ) / maxVal;
+        float r = (float)m_displacements->GetChannelValue ( v, u, RED   ) / maxVal;
+        float g = (float)m_displacements->GetChannelValue ( v, u, GREEN ) / maxVal;
+        float b = (float)m_displacements->GetChannelValue ( v, u, BLUE  ) / maxVal;
 
         Color c ( r, g, b );
         
-        float hue, sat, val;
-        c.ToHSV ( hue, sat, val );
-        hue *= M_PI / 180.0f;
+        Vec3Df disp = Vec3Df (
+            m_rawDisplacementsX ( v, u ),
+            m_rawDisplacementsY ( v, u ),
+            m_rawDisplacementsZ ( v, u )
+        );
+        Vec3Df pos0 = vert.GetPosition ();
+        Vec3Df pos1 = pos0 + disp / 5.0f;
 
-        Vec3Df disp = Vec3Df::polarToCartesian ( Vec3Df ( val, M_PI_2, -hue ) );
-
-        Vec3Df pos = vert.GetPosition ()/5;
-        const Color& col = vert.GetColor ();
-        glColor3f ( col.Red(), col.Green(), col.Blue() );
-        glVertex3f ( pos[0], pos[1], pos[2] );
-
-        pos += disp / 2;
-        glVertex3f ( pos[0], pos[1], pos[2] );
+        if ( fabs ( disp[2] )  >= 1000.0f ) {
+            continue;
+        }
+        if ( pos0[2]  > -500.0f || pos0[2]  > -500.0f || pos0[2]  > -500.0f ) {
+            continue;
+        }
+        if ( pos1[2]  > -500.0f || pos1[2]  > -500.0f || pos1[2]  > -500.0f ) {
+            continue;
+        }
 
         glColor3f ( r, g, b );
-        glVertex3f ( pos[0], pos[1], pos[2] );
+        glVertex3f ( pos0[0], pos0[1], pos0[2] );
 
-        pos += disp / 2;
-        glVertex3f ( pos[0], pos[1], pos[2] );
+        glVertex3f ( pos1[0], pos1[1], pos1[2] );
     }
     glEnd ();
 }

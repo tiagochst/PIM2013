@@ -1,65 +1,71 @@
 #include "Clip.h"
 
-Clip::Clip()
-{
-}
+#include "Frame.h"
+#include "Tools.h"
+#include "Config.h"
+#include "PixelTracker.h"
 
-Clip::~Clip()
-{
+Clip::Clip() {}
 
-    for(int i = 0; i < m_frames.size(); i++)
-        {
-            delete m_frames.at(i);
-        }
-    m_frames.clear();
-}
+Clip::~Clip() {}
 
 /* 
    Receives first and last frame (both anchor frames),
    Insert Frame in the vector
 */
-Clip::Clip(int iFrameStart,int iFrameEnd)
+Clip::Clip (
+    const unsigned int& iStartFrame,
+    const unsigned int& iEndFrame
+)   :   m_startFrame ( iStartFrame ),
+        m_endFrame ( iEndFrame )
 {
-    std::string prefix = Config::OutputPath() + "CapturedFrames/";
+    std::string prefix = Config::FramesPath() + "f";
     
-    for(int frame = iFrameStart; frame <=iFrameEnd ; frame++){
+    Frame* f1 = new Frame ();
+    f1->LoadFromFile ( prefix + Int2Str(m_startFrame) + "/" );
+    for ( unsigned int frame = m_startFrame; frame < m_endFrame; frame++ ) {
         
-        createDisplacemenMaps(frame);
-        
-        PointSet* ps = new PointSet ( prefix + "pointset_"+Int2Str(frame)+".ply");
-        Image* tex = new Image ( prefix + "image_"+Int2Str(frame)+".pgm" );
-        Image* dep = new Image ( prefix + "depth_"+Int2Str(frame)+".pgm" );
-        PPMImage* disp = PPMImage::TryLoadFromFile ( prefix + "disparity_"+Int2Str(frame)+".ppm" ); 
-        m_frames.push_back(new Frame (ps, tex, dep, disp));
+        Frame* f2 = new Frame ();
+        f2->LoadFromFile ( prefix + Int2Str(frame + 1) + "/" );
+
+        Clip::CreateDisplacementMaps ( frame, frame + 1, f1, f2 );
+        Clip::CreateDisplacementMaps ( frame + 1, frame, f2, f1 );
+
+        delete f1;
+        f1 = f2;
+        f2 = (Frame*)0x0;
     }
+    delete f1;
+    f1 = (Frame*)0x0;
 }
 
-void Clip::createDisplacemenMaps(int frame){
-    
-    Image* refImg = new Image ( Config::FramesPath() + "image_" + Int2Str(frame)+".pgm"); 
-    Image* tarImg = new Image ( Config::FramesPath() + "image_" + Int2Str(frame)+".pgm");
-    Image* refDep = new Image ( Config::FramesPath() + "depth_" + Int2Str(frame+1)+".pgm");
-    Image* tarDep = new Image ( Config::FramesPath() + "depth_" + Int2Str(frame+1)+".pgm");
-    
-    PixelTracker pt (0);
+void Clip::CreateDisplacementMaps (
+    const unsigned int&     iRefFrameId,
+    const unsigned int&     iTarFrameId,
+    Frame*                  iRefFrame,
+    Frame*                  iTarFrame
+) {
+    PixelTracker pt;
+
     pt.SetReference (
-        frame,
-        refImg,
-        refDep
+        iRefFrameId,
+        iRefFrame->GetTexture (),
+        iRefFrame->GetDepthMap ()
     );
     pt.SetTarget (
-        frame+1,
-        tarImg,
-        tarDep
+        iTarFrameId,
+        iRefFrame->GetTexture (),
+        iRefFrame->GetDepthMap ()
     );
+    
     pt.Track ();
-    
-    pt.Export ( Config::FramesPath() + "disparity_" + Int2Str(frame) + ".ppm");
-    
-    delete refImg;
-    delete tarImg;
-    delete refDep;
-    delete tarDep;
+    pt.Calculate3DDisplacements (
+        iRefFrame->GetMesh (),
+        iTarFrame->GetMesh ()
+    );
+
+    pt.Export ( Config::FramesPath() + "f" + Int2Str ( iRefFrameId ) 
+                    + "/track/" + Int2Str ( iTarFrameId ) + "/" );
 }
 
 

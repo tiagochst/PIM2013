@@ -7,7 +7,7 @@
 #include "Vec3D.hpp"
 #include <GL/gl.h>
 #include <GL/glut.h>
-
+#include "ParameterHandler.h"
 
 Frame::Frame () 
     :   m_mesh ( 0x0 ),
@@ -47,25 +47,36 @@ void Frame::Draw () const {
 }
 
 void Frame::DrawMesh () const {
+    ParameterHandler* params = ParameterHandler::Instance ();
+    const float n = -params->GetNearPlane ();
+    const float f = -params->GetFarPlane ();
+
     glLineWidth ( 1.0f );
     glPolygonMode ( GL_FRONT_AND_BACK, GL_LINE );
     glBegin ( GL_TRIANGLES );
     for ( unsigned int face = 0; face < m_mesh->GetNumFaces (); face++ ) {
-        const Face& f = m_mesh->GetFace ( face );
+        const Face& fc = m_mesh->GetFace ( face );
 
-        const Vertex&   v0  =   m_mesh->GetVertex ( f.v0 );
+        const Vertex&   v0  =   m_mesh->GetVertex ( fc.v0 );
         const Color&    c0  =   v0.GetColor ();
         const Vec3Df   p0  =   v0.GetPosition ();
 
-        const Vertex&   v1  =   m_mesh->GetVertex ( f.v1 );
+        const Vertex&   v1  =   m_mesh->GetVertex ( fc.v1 );
         const Color&    c1  =   v1.GetColor ();
         const Vec3Df   p1  =   v1.GetPosition ();
 
-        const Vertex&   v2  =   m_mesh->GetVertex ( f.v2 );
+        const Vertex&   v2  =   m_mesh->GetVertex ( fc.v2 );
         const Color&    c2  =   v2.GetColor ();
         const Vec3Df   p2  =   v2.GetPosition ();
 
-        if ( p0[2] == 0.0f || p1[2] == 0.0f || p2[2] == 0.0f ) {
+        if (
+               ( p0[2] >= n ) || ( p0[2] <= f )
+            || ( p1[2] >= n ) || ( p1[2] <= f )
+            || ( p2[2] >= n ) || ( p2[2] <= f )
+        ) {
+            //std::cout << p0 << std::endl;
+            //std::cout << p1 << std::endl;
+            //std::cout << p2 << std::endl;
             continue;
         }
 
@@ -106,7 +117,7 @@ void Frame::DrawDisplacements () const {
             m_rawDisplacementsZ ( v, u )
         );
         Vec3Df pos0 = vert.GetPosition ();
-        Vec3Df pos1 = pos0 + disp / 5.0f;
+        Vec3Df pos1 = pos0 + disp;
 
         if ( fabs ( disp[2] )  >= 1000.0f ) {
             continue;

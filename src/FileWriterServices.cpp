@@ -26,7 +26,7 @@ public:
             m_imageInfo ( iBrightnessInfo ),
             m_depthInfo ( iDepthInfo ),
             m_vertexInfo ( iVertexInfo ),
-            m_path ( iPath )
+            m_path ( iPath + "f" + Int2Str ( iFrameId ) + "/" )
     {}
     ~FrameDescriptor () {
         if ( m_imageInfo ) {
@@ -47,29 +47,27 @@ public:
         std::string suffix = "_" + Int2Str(m_frameId);
 
         std::string str_aux;
-
         if ( m_imageInfo ) {
-            str_aux = m_path + "image" + suffix +".pgm";
+            str_aux = m_path + "texture.pgm";
             m_imageInfo->CreateAsciiPgm(str_aux);
         }
 
         if ( m_depthInfo ) {
-            str_aux = m_path + "depth" + suffix +".pgm";
+            str_aux = m_path + "depthMap.pgm";
             m_depthInfo->CreateAsciiPgm(str_aux);
         }
 
         if ( m_vertexInfo ) {
-            str_aux = m_path + "pointset" + suffix +".ply";
+            str_aux = m_path + "mesh.ply";
             m_vertexInfo->WriteToFile(str_aux);
         }
     }
 
     void WriteMesh () const {
-       if ( m_vertexInfo ) {
-	 if(m_path.find(".ply") == m_path.size()-4) 
-	   m_vertexInfo -> WriteToFile(m_path);
-	 else m_vertexInfo -> WriteToFile(m_path + ".ply");
-
+        if ( m_vertexInfo ) {
+            if(m_path.find(".ply") == m_path.size()-4) 
+                m_vertexInfo -> WriteToFile(m_path);
+            else m_vertexInfo -> WriteToFile(m_path + ".ply");
         }
     }
 

@@ -52,7 +52,7 @@ void Window::enableCaptureButton () {
 void Window::updateFrameList () {
 
     /* Update the list of images in the system*/
-    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=depth* --ignore=disparity* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/.pgm//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
+    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=depth* --ignore=disparity* --ignore=*.ply " + Config::FramesPath() + " |  sed 's/f//g' | sed -r 's/^.{6}//' | sort -g >" + Config::FramesPath() + "list.txt");
 
     system(IMAGE_LIST.c_str());
 
@@ -63,7 +63,6 @@ void Window::sumShowingFrames(){
     previousFrames -> setEnabled(true);
     updateAutoAnchorPreview ();
 }
-
 
 void Window::setReferenceFrame(int iFrame){
 
@@ -152,7 +151,7 @@ void Window::findAutoAnchors(){
 
     QTextStream listOfFrames(& imageList);
 
-    Image refFrame(Config::FramesPath() + "image_"+ toString(refFrameID) + ".pgm");
+    Image refFrame(Config::FramesPath() + "f" + toString(refFrameID) + "/texture.pgm");
     cout << "Ref frame ID: "<<refFrameID << endl;
 
     while(!listOfFrames.atEnd())
@@ -168,7 +167,7 @@ void Window::findAutoAnchors(){
         ss >> i_id;
         if (i_id == refFrameID) continue;
 
-        Image frame(Config::FramesPath() + "image_"+ ss.str() + ".pgm");	      
+        Image frame(Config::FramesPath() + "f" + ss.str() + "/texture.pgm");	      
 
         float errorScore = ImageBase::CalculateErrorScore ( frame, refFrame );
         cout << errorScore << endl;
@@ -405,11 +404,11 @@ void Window::updateManuAnchorPreview(){
     std::string frameID2= toString(id);
 
 
-    QPixmap anchorCandidateImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str())));
+    QPixmap anchorCandidateImg(QString::fromUtf8(((Config::FramesPath () + "f" + frameID1 + "/texture.pgm").c_str())));
     if(!anchorCandidateImg.isNull())
         anchorCandidate -> setPixmap(anchorCandidateImg.scaled(180, 150, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
-    QPixmap anchorImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID2 + ".pgm").c_str())));
+    QPixmap anchorImg(QString::fromUtf8(((Config::FramesPath () + "f" + frameID2 + "/texture.pgm").c_str())));
     if(!anchorImg.isNull()){
         anchor -> setPixmap(anchorImg.scaled(180, 150, Qt::IgnoreAspectRatio, Qt::FastTransformation));
     }
@@ -429,7 +428,7 @@ void Window::updateAutoAnchorPreview(){
 
     for(int i = 15 * showingFrames, j = 0; i < 15 + 15 * showingFrames; i++,j++){
 
-        QPixmap anchorCandidateImg(QString::fromUtf8(((RES_IMG_PATH + "image_"+ toString(i) + ".pgm").c_str())));
+        QPixmap anchorCandidateImg(QString::fromUtf8(((Config::FramesPath () + "f"+ toString ( i ) + "/texture.pgm").c_str())));
 
         if(!anchorCandidateImg.isNull()){
             referenceFrame.at(j) -> setPixmap(anchorCandidateImg.scaled(100, 80, Qt::IgnoreAspectRatio, Qt::FastTransformation));
@@ -643,13 +642,10 @@ void Window::setFrame1(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetFrame1(iFrame);
 
-    std::string prefix = Config::OutputPath() + "CapturedFrames/";
+    std::string path = Config::FramesPath() + "f" + toString (iFrame) + "/";
 
-    PointSet* ps = new PointSet ( prefix + "pointset_"+Int2Str(iFrame)+".ply");
-    Image* tex = new Image ( prefix + "image_"+Int2Str(iFrame)+".pgm" );
-    Image* dep = new Image ( prefix + "depth_"+Int2Str(iFrame)+".pgm" );
-    PPMImage* disp = PPMImage::TryLoadFromFile ( prefix + "disparity_"+Int2Str(iFrame)+".ppm" ); 
-    Frame* frame = new Frame (ps, tex, dep, disp);
+    Frame* frame = new Frame ();
+    frame->LoadFromFile ( path );
     params->SetCurrentFrame ( frame );
 
     if(params -> GetMesh()){
@@ -694,10 +690,15 @@ void Window::removeAnchorItem(){
 void Window::calcDisp() {
     ParameterHandler* params = ParameterHandler::Instance();
 
-    Image* refImg = new Image ( Config::FramesPath() + "image_" + Int2Str(params->GetFrame1())+".pgm"); 
-    Image* tarImg = new Image ( Config::FramesPath() + "image_" + Int2Str(params->GetFrame2())+".pgm");
-    Image* refDep = new Image ( Config::FramesPath() + "depth_" + Int2Str(params->GetFrame1())+".pgm");
-    Image* tarDep = new Image ( Config::FramesPath() + "depth_" + Int2Str(params->GetFrame2())+".pgm");
+    const std::string f1path =  Config::FramesPath() + "f" + Int2Str(params->GetFrame1()) + "/";
+    const std::string f2path =  Config::FramesPath() + "f" + Int2Str(params->GetFrame2()) + "/";
+
+    PointSet* refMesh = new PointSet ( f1path + "mesh.ply" );
+    PointSet* tarMesh = new PointSet ( f2path + "mesh.ply" );
+    Image* refImg = new Image ( f1path + "texture.pgm"); 
+    Image* tarImg = new Image ( f2path + "texture.pgm");
+    Image* refDep = new Image ( f1path + "depthMap.pgm");
+    Image* tarDep = new Image ( f2path + "depthMap.pgm");
 
     PixelTracker pt (0);
     pt.SetReference (
@@ -711,15 +712,22 @@ void Window::calcDisp() {
         tarDep
     );
     pt.Track ();
+    pt.Calculate3DDisplacements (
+       refMesh, tarMesh 
+    );
 
-    pt.Export ( Config::FramesPath() + "disparity_" + Int2Str(params->GetFrame1()) + ".ppm");
+    pt.Export ( f1path );
 
-    params->GetCurrentFrame()->SetDisplacements(PPMImage::TryLoadFromFile (Config::FramesPath() + "disparity_" + Int2Str(params->GetFrame1()) + ".ppm"));
+    params->GetCurrentFrame()->LoadFromFile ( f1path );
 
     delete refImg;
+    refImg = (Image*)0x0;
     delete tarImg;
+    tarImg = (Image*)0x0;
     delete refDep;
+    refDep = (Image*)0x0;
     delete tarDep;
+    tarDep = (Image*)0x0;
 
 
     //const unsigned int& wSize = params->GetWindowSize ();
@@ -763,7 +771,7 @@ void Window::updateImages() {
     if (img1) delete img1;
     img1 = new QLabel;
     img1 -> setMaximumSize(QSize(320, 240));
-    QPixmap pic1(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID1 + ".pgm").c_str())));
+    QPixmap pic1(QString::fromUtf8(((RES_IMG_PATH + "f"+ frameID1 + "/texture.pgm").c_str())));
     if(!pic1.isNull())
         img1 -> setPixmap(pic1.scaled(320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
@@ -771,7 +779,7 @@ void Window::updateImages() {
     if (img2) delete img2;
     img2 = new QLabel;
     img2 -> setMaximumSize(QSize(320, 240));
-    QPixmap pic2(QString::fromUtf8(((RES_IMG_PATH + "image_"+ frameID2 + ".pgm").c_str())));
+    QPixmap pic2(QString::fromUtf8(((RES_IMG_PATH + "f"+ frameID2 + "/texture.pgm").c_str())));
     if(!pic2.isNull())
         img2 -> setPixmap(pic2.scaled(320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
@@ -1096,16 +1104,16 @@ void Window::initControlWidget () {
             );
 
     /* Description: Disabling image 2 selection */
-    connect(
-            meshRB, SIGNAL (     toggled (bool) ), 
-            frame2ComboBox, SLOT   ( setDisabled (bool) )
-           );
+    //connect(
+    //        meshRB, SIGNAL (     toggled (bool) ), 
+    //        frame2ComboBox, SLOT   ( setDisabled (bool) )
+    //       );
 
     /* Description: Disabling calculate displacement push button */
-    connect(
-            meshRB, SIGNAL (       toggled (bool) ), 
-            calcDispPB, SLOT   (   setDisabled (bool) )
-           );
+    //connect(
+    //        meshRB, SIGNAL (       toggled (bool) ), 
+    //        calcDispPB, SLOT   (   setDisabled (bool) )
+    //       );
 
     /* Description: Change of situation 
        Mesh selected -> update screen */
@@ -1282,8 +1290,8 @@ void Window::initControlWidget () {
 
     /*** Initial situation: Default options ***/
     meshRB         -> setChecked(true);
-    calcDispPB     -> setDisabled(true);
-    frame2ComboBox -> setDisabled(true);
+    //calcDispPB     -> setDisabled(true);
+    //frame2ComboBox -> setDisabled(true);
 
 
     /* Verify if a camera is connect */
@@ -1365,7 +1373,7 @@ void AnchorLabel::onMouseEnter () {
     frameLabel->setWindowFlags ( Qt::Window );
 
     std::string RES_IMG_PATH(Config::FramesPath());
-    QPixmap pic(QString::fromUtf8(((RES_IMG_PATH + "image_"+ toString(frameID) + ".pgm").c_str())));
+    QPixmap pic(QString::fromUtf8(((RES_IMG_PATH + "f"+ toString(frameID) + "/texture.pgm").c_str())));
     frameLabel->setPixmap (
         pic    
     );

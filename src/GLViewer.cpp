@@ -38,18 +38,18 @@ void GLViewer::reset() {
      ParameterHandler* params = ParameterHandler::Instance();
      std::string frameID = std::to_string(params -> GetFrame1());
     
-     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
-     m_frame.LoadFromFile(RES_IMG_PATH + "image_" + frameID + ".pgm");
-     m_depth.LoadFromFile(RES_IMG_PATH + "depth_" + frameID + ".pgm");
+     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/f" + frameID + "/");
+     m_frame.LoadFromFile(RES_IMG_PATH + "texture.pgm");
+     m_depth.LoadFromFile(RES_IMG_PATH + "depthMap.pgm");
 }
 
 void GLViewer::init() {
 
     ParameterHandler* params = ParameterHandler::Instance();
     std::string frameID = std::to_string(params -> GetFrame1());
-    std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/");
-    m_frame.LoadFromFile(RES_IMG_PATH + "image_" + frameID + ".pgm");
-    m_depth.LoadFromFile(RES_IMG_PATH + "depth_" + frameID + ".pgm");
+     std::string RES_IMG_PATH(Config::OutputPath() + "CapturedFrames/f" + frameID + "/");
+     m_frame.LoadFromFile(RES_IMG_PATH + "texture.pgm");
+     m_depth.LoadFromFile(RES_IMG_PATH + "depthMap.pgm");
 
     // Swap the CAMERA and FRAME state keys (NoButton and Control)
     // Save CAMERA binding first. See setHandlerKeyboardModifiers() documentation.
@@ -86,7 +86,7 @@ void GLViewer::init() {
     //restoreStateFromFile();
 
     // Make world axis visible
-    // setAxisIsDrawn();
+    //setAxisIsDrawn();
 }
 
 static void drawPoints (

@@ -307,6 +307,23 @@ void PixelTracker::Track ()
     delete blankImage;
     blankImage = (Image*)0x0;
 
+    m_displacementX.resize (
+        refImage->GetHeight (),
+        refImage->GetWidth ()
+    );
+    m_displacementY.resize (
+        refImage->GetHeight (),
+        refImage->GetWidth ()
+    );
+    m_displacementZ.resize (
+        refImage->GetHeight (),
+        refImage->GetWidth ()
+    );
+    m_displacementX.fill(0);
+    m_displacementY.fill(0);
+    m_displacementZ.fill(0);
+
+
     // Processes pyramids from top to bottom. The coarsest level is processed 
     // once independently so we can estimate extremal motions on each direction.
     Image* ref  = m_refImgPyr.Top ();
@@ -1410,6 +1427,96 @@ void PixelTracker::Export (
         m_tarDepPyr.Export ( Config::OutputPath() + "Pyramids/01/tarDep" );
         m_dispX.Export ( Config::OutputPath() + "Pyramids/01/dX" );
         m_dispY.Export ( Config::OutputPath() + "Pyramids/01/dY" );
+    }
+}
+
+Vec3Df BilinearInterpolation (
+    const Vec3Df&   f00,
+    const Vec3Df&   f01,
+    const Vec3Df&   f10,
+    const Vec3Df&   f11,
+    const float&    px0,
+    const float&    py0,
+    const float&    px1,
+    const float&    py1,
+    const float&    px,
+    const float&    py
+) {
+    float denomX = (px1-px0);
+    float denomY = (py1-py0);
+    float denom = denomX*denomY;
+
+    if ( denomX != 0.0f && denomY != 0.0f ) {
+        Vec3Df fx0 = ((px1-px)*f00+(px-px0)*f10)/denomX;
+        Vec3Df fx1 = ((px1-px)*f01+(px-px0)*f11)/denomX;
+
+        return ((py1-py)*fx0 + (py-py0)*fx1)/denom;
+    } else if ( denomY != 0.0f ) {
+        return ((py1-py)*f00+(py-py0)*f01)/denomY;
+    } else if ( denomX != 0.0f ) {
+        return ((px1-px)*f00+(px-px0)*f10)/denomX;
+    } else {
+        return f00;
+    }
+}
+
+#include <stdexcept>
+void PixelTracker::Calculate3DDisplacements (
+    PointSet*     iRefMesh,
+    PointSet*     iTarMesh
+) {
+    const Image* refDep = m_refDepPyr[0];
+    const Image* tarDep = m_tarDepPyr[0];
+    const Image* dispX  = m_dispX[0];
+    const Image* dispY  = m_dispY[0];
+
+    const unsigned int& width   = dispX->GetWidth ();
+    const unsigned int& height  = dispX->GetHeight ();
+
+    for ( unsigned int x = 0; x < width; x++ ) {
+        for ( unsigned int y = 0; y < height; y++ ) {
+            unsigned int refU = x;
+            unsigned int refV = y;
+
+            float dX = dispX->GetNormed ( y, x );
+            float dY = dispY->GetNormed ( y, x );
+
+
+            float minTarU = fmax ( 0, fmin ( width-1, floor((float)x + dX) ) );
+            float maxTarU = fmax ( 0, fmin ( width-1,  ceil((float)x + dX) ) );
+
+            float minTarV = fmax ( 0, fmin ( height-1, floor((float)y + dY) ) );
+            float maxTarV = fmax ( 0, fmin ( height-1,  ceil((float)y + dY) ) );
+
+            //std::cout << dX << " " << dY << " " << minTarU << " " << maxTarU << " " << minTarV << " " << maxTarV << std::endl;
+
+            try {
+                const Vec3Df& refPos = iRefMesh->GetVertex ( refU, refV )->GetPosition ();
+                const Vec3Df& q0 = iTarMesh->GetVertex ( minTarU, minTarV )->GetPosition ();
+                const Vec3Df& q1 = iTarMesh->GetVertex ( minTarU, maxTarV )->GetPosition ();
+                const Vec3Df& q2 = iTarMesh->GetVertex ( maxTarU, minTarV )->GetPosition ();
+                const Vec3Df& q3 = iTarMesh->GetVertex ( maxTarU, maxTarV )->GetPosition ();
+
+                Vec3Df tarPos;
+                Vec3Df displacement; 
+                tarPos = BilinearInterpolation(q0,q1,q2,q3,minTarU,minTarV,maxTarU,maxTarV,x+dX,y+dY); 
+                displacement = tarPos - refPos;
+                //std::cout   << " Tar:  "    << std::setw ( 25 ) << tarPos
+                //            << " Ref:  "    << std::setw ( 25 ) << refPos
+                //            << " Disp: "    << std::setw ( 25 ) << displacement
+                //            << std::endl;
+
+                m_displacementX ( y, x ) = displacement[0];
+                m_displacementY ( y, x ) = displacement[1];
+                m_displacementZ ( y, x ) = displacement[2];
+            } catch ( std::out_of_range ex ) {
+                std::cerr   << ex.what () << std::endl;
+                std::cerr   << "Pixel info: " << std::endl;
+                std::cerr   << "  - (  x,  y ) = " << x << " " << y << std::endl;
+                std::cerr   << "  - ( dx, dy ) = " << dX << " " << dY << std::endl;
+                std::cerr   << "  - region     = " << minTarU << " " << minTarV << " " << maxTarU << " " << maxTarV << std::endl;
+            }
+        }
     }
 }
 

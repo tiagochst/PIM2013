@@ -8,6 +8,7 @@
 
 class Image;
 class TrackInfo;
+class PointSet;
 
 class PixelTracker {
 private:
@@ -28,6 +29,9 @@ private:
     ImagePyramid                m_tarDepPyr;
     ImagePyramid                m_dispX;
     ImagePyramid                m_dispY;
+    Eigen::MatrixXf             m_displacementX;
+    Eigen::MatrixXf             m_displacementY;
+    Eigen::MatrixXf             m_displacementZ;
 
     TrackInfo*                  m_forwardTrack;
     TrackInfo*                  m_backwardsTrack;
@@ -156,6 +160,10 @@ public:
         const unsigned int&     iLevel,
         const std::string&      iFilename
     ) const; 
+    void Calculate3DDisplacements (
+        PointSet*     iRefMesh,
+        PointSet*     iTarMesh
+    );
 };
 
 #endif // _PIXELTRACKER_H_

@@ -117,11 +117,13 @@ void Window::setFarPlane ( const int& iFar ) {
 void Window::setNearPlane ( const int& iNear ) {
     ParameterHandler* params = ParameterHandler::Instance ();
     params->SetNearPlane ( iNear );
+    viewer->update ();
 }
 
 void Window::setFramesToCapture ( const  int& iNumber ) {
     ParameterHandler* params = ParameterHandler::Instance ();
     params->SetNumCaptureFrames ( iNumber );
+    viewer->update ();
 }
 
 void Window::findAutoAnchors(){
@@ -174,7 +176,7 @@ void Window::findAutoAnchors(){
 
         float errorScore = ImageBase::CalculateErrorScore ( frame, refFrame );
         cout << errorScore << endl;
-        if( errorScore < params->GetThreshold () ){
+        if( 100.0f * errorScore <= params->GetThreshold () ){
             cout << "Anchor frame found" << endl;
             /* Save frame as an anchor */
             bool ok;
@@ -665,16 +667,17 @@ void Window::setFrame1(int iFrame) {
 
         Frame* frame = new Frame ();
         frame->LoadFromFile ( path );
+        frame->LoadDisplacements ( path + "track/" + toString ( params->GetFrame2 () ) + "/" );
         params->SetCurrentFrame ( frame );
     }
     
     if(params -> GetMesh()){
         viewer -> reset();
-        viewer -> updateGL();
     }
     else{
         updateImages();
     }
+    viewer -> update();
 }
 
 /* Move Item from candidate list to anchor List*/
@@ -735,10 +738,10 @@ void Window::calcDisp() {
     pt.Calculate3DDisplacements (
        refMesh, tarMesh 
     );
-    pt.Export ( f1path );
+    pt.Export ( f1path + "track/" + Int2Str(params->GetFrame2()) + "/" );
     
     std::cout << "Frame ID: " << Int2Str(params->GetFrame1())<< std::endl;
-    params->GetCurrentFrame()->LoadFromFile ( f1path );
+    params->GetCurrentFrame()->LoadDisplacements ( f1path + "track/" + Int2Str (params->GetFrame2 ()) + "/" );
 
     delete refImg;
     refImg = (Image*)0x0;
@@ -808,17 +811,17 @@ void Window::updateImages() {
     if (dispX) delete dispX;
     dispX = new QLabel;
     dispX -> setMaximumSize(QSize(320, 240));
-    QPixmap pic3(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "disparity_"+ frameID1 + ".ppm").c_str()))));
+    QPixmap pic3(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "f"+ frameID1 + "/track/"+ frameID2 + "/displacement.ppm").c_str()))));
     if(!pic3.isNull())
         dispX -> setPixmap(pic3.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
     /* Reads Y displacement */
     if (dispY) delete dispY;
     dispY = new QLabel;
-    dispY -> setMaximumSize(QSize(320, 240));
-    QPixmap pic4(QPixmap(QString::fromUtf8(((COLOR_CHART_PATH + "colorChart.ppm").c_str()))));
+    dispY -> setMaximumSize(QSize(320,240));
+    QPixmap pic4(QPixmap(QString::fromUtf8(((COLOR_CHART_PATH + "ColorChart.ppm").c_str()))));
     if(!pic4.isNull())
-        dispY -> setPixmap(pic4.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
+        dispY -> setPixmap(pic4.scaled( 240, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
     /* Set image in a 2x2 grid*/
     if (gridLayout) delete gridLayout;
@@ -832,8 +835,17 @@ void Window::updateImages() {
 
 void Window::setFrame2(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
-    if(iFrame >= 0 && !isinf(iFrame))
+    if(iFrame >= 0 && !isinf(iFrame)) {
         params->SetFrame2(iFrame);
+        
+        if ( params->GetCurrentFrame () ) {
+            params->GetCurrentFrame ()->LoadDisplacements (
+                Config::FramesPath () + "f" + Int2Str ( params->GetFrame1 () ) +
+                "/track/" + Int2Str ( iFrame ) + "/"
+            );
+        }
+    }
+    viewer->update ();
     updateImages();
 }
 

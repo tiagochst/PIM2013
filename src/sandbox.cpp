@@ -22,7 +22,7 @@
 #include "PixelTracker.h"
 #include "ImagePyramid.h"
 
-extern void printColorChart (
+extern void PrintColorChart (
     const int& width,
     const int& height,
     PPMImage& colorChart
@@ -116,7 +116,7 @@ int main ( void ) {
     //PPMImage img2; img2.LoadFromFile ( "img2.ppm" );
 
     PPMImage colorChart;
-    printColorChart (320,320,colorChart);
+    PrintColorChart (320,320,Config::DataPath () + "ColorChart.ppm" );
 
     //img1.WriteToFile ( "img1_ascii.ppm", PIXMAP | ASCII );
     //img1.WriteToFile ( "img1_binary.ppm", PIXMAP | BINARY );
@@ -192,7 +192,7 @@ int main_total ( void ) {
     PointSet mesh0 ( Config::FramesPath () + "f8/mesh.ply" );
     PointSet mesh1 ( Config::FramesPath () + "f9/mesh.ply" );
 
-    PixelTracker pixTrack (0);
+    PixelTracker pixTrack;
     pixTrack.SetReference ( 0, &frame0i, &frame0d );
     pixTrack.SetTarget ( 1, &frame1i, &frame1d );
     pixTrack.Track ();
@@ -258,36 +258,6 @@ int main_alt ( int argc, char** argv ) {
     //pyr.Assign ( &frame0 );
     //pyr.Export ( Config::OutputPath () + "Pyramids/image_0" ); 
 
-    ParameterHandler* params = ParameterHandler::Instance ();
-    const unsigned int& wSize = params->GetWindowSize ();
-    const unsigned int& nSize = params->GetNeighbourhoodSize ();
-    //dispX.SetMaxGreyLevel ( wSize );
-    //dispY.SetMaxGreyLevel ( wSize );
-
-    PixelTracker pixTracker (0);
-    pixTracker.SetUp (
-        wSize,
-        wSize,
-        nSize,
-        nSize,
-        0.95
-    );
-
-    Image frame1c(Config::OutputPath () + "CapturedFrames/image_1.pgm");
-    pixTracker.Track (1, &frame1c);
-    pixTracker.Export ( Config::OutputPath () + "/TCSNorefinement_"+toString(0.95)+"n.ppm" );
-
-    pixTracker.disparityRefinement (&frame1c);
-    pixTracker.Export ( Config::OutputPath () + "/TCSrefinement_"+toString(0.95)+"n.ppm" );
-
-    /* Class image test */
-    // Image myImage(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-ascci.pgm");
-
-    /* Class Ply test  */
-    //PointSet psAscii, psBinary;    
-    //psAscii.LoadFromFile(RES_PTSET_PATH + "frame000-ascii.ply");
-    //psBinary.LoadFromFile(RES_PTSET_PATH + "frame000-brut.ply");
- 
     Image frame0(RES_IMG_PATH + "frame_20121108T103323.258153_rgb-brut.pgm");
     Image frame1(RES_IMG_PATH + "frame_20121108T103323.390878_rgb-brut.pgm");
     Image dispX( frame0.GetWidth(), frame0.GetHeight(), 255 );
@@ -409,53 +379,6 @@ int main_alt ( int argc, char** argv ) {
        //     &window
        // );
         
-        try {
-            ParameterHandler* params = ParameterHandler::Instance ();
-            const unsigned int& wSize = params->GetWindowSize ();
-            const unsigned int& nSize = params->GetNeighbourhoodSize ();
-            dispX.SetMaxGreyLevel ( wSize );
-            dispY.SetMaxGreyLevel ( wSize );
-
-            PixelTracker pixTracker (0);
-            pixTracker.SetUp (
-                wSize,
-                wSize,
-                nSize,
-                nSize,
-                0.95
-            );
-            
-            pixTracker.Track ( 1 );
-            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.95)+"n.ppm" );
-            std::cout << "Track 0 Done" << std::endl;
-
-            pixTracker.SetRejectionTreshold(0.90); 
-            pixTracker.Track ( 1 );
-            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.90)+"n.ppm" );
-            std::cout << "Track 1 Done" << std::endl;
-
-            pixTracker.SetRejectionTreshold(0.85); 
-            pixTracker.Track ( 1 );
-            pixTracker.Export ( Config::OutputPath () + "/Tracking01_"+toString(0.85)+"n.ppm" );
-            std::cout << "Track 2 Done" << std::endl;
-
-
-            ImageBase::TrackPixels (
-                frame0,
-                frame1,
-                wSize,
-                wSize,
-                nSize,
-                nSize,
-                dispX,
-                dispY
-            );
-            dispX.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1x.pgm");
-            dispY.CreateAsciiPgm(Config::OutputPath() + "TrackingF0F1y.pgm");
-        } catch (BadIndex bi) {
-            std::cout << bi.what();
-        }
-
         Image fullSpectre( 3 * bigMask.GetWidth(), 3 * bigMask.GetHeight(), 255 );
         for ( int x = 0; x < fullSpectre.GetWidth(); x++ ) {
             for ( int y = 0; y < fullSpectre.GetHeight(); y++ ) {

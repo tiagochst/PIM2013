@@ -20,8 +20,8 @@ private:
     bool            m_captureMode;
     unsigned int    m_numCaptureFrames;
 
-    unsigned int    m_nearPlane;
-    unsigned int    m_farPlane;
+    float           m_nearPlane;
+    float           m_farPlane;
     bool            m_depthCrop;
 
     double          m_threshold;
@@ -94,13 +94,13 @@ public:
         const unsigned int& iNeighbourhoodSize
     );
 
-    const unsigned int& GetNearPlane () const;
+    const float& GetNearPlane () const;
     void SetNearPlane (
-        const unsigned int& iNearPlane
+        const float& iNearPlane
     );
-    const unsigned int& GetFarPlane () const;
+    const float& GetFarPlane () const;
     void SetFarPlane (
-        const unsigned int& iFarPlane
+        const float& iFarPlane
     );
     const bool& GetDepthCrop () const;
     void SetDepthCrop (

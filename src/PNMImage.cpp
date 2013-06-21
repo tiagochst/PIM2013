@@ -91,52 +91,66 @@ void PNMImage::LoadFromFile (
 
 
         /* Second line : comment */
-        std::string comment;
-        getline ( input, comment );
-        std::cout << comment << std::endl;
-        input >> width >> height >> maxValue;
-        std::cout << width << " " << height << std::endl << maxValue << std::endl;
+        //std::string comment;
+        //getline ( input, comment );
+        //std::cout << comment << std::endl;
+        //input >> width >> height >> maxValue;
+        //std::cout << width << " " << height << std::endl << maxValue << std::endl;
 
-        //bool widthRead      = true;
-        //bool heightRead     = true;
-        //bool maxValueRead   = !( mode & BITMAP );
-        //do {
-        //    std::string inputLine;
-        //    getline (
-        //        input,
-        //        inputLine
-        //    );
-        //    std::stringstream lineStream ( inputLine );
-        //    std::cout << inputLine << std::endl;
+        bool widthRead      = true;
+        bool heightRead     = true;
+        bool maxValueRead   = !( mode & BITMAP );
+        do {
+            bool isComment = false;
+            std::string inputLine;
+            getline (
+                input,
+                inputLine
+            );
+            std::stringstream lineStream ( inputLine );
+            std::cout << "line read: " << inputLine << std::endl;
 
-        //    while (
-        //            !lineStream.eof ()
-        //        &&  ( widthRead || heightRead || maxValueRead )
-        //    ) {
-        //        char peeked = lineStream.peek ();
-        //        while ( peeked == '#' || peeked == ' ' ) {
-        //            lineStream >> peeked;
-        //            peeked = lineStream.peek ();
-        //        }
-        //        if ( widthRead && !lineStream.eof () ) {
-        //            lineStream >> width;
-        //            std::cout << width << std::endl;
-        //            widthRead = false;
-        //        }
-        //        if ( heightRead && !lineStream.eof () ) {
-        //            lineStream >> height;
-        //            std::cout << height << std::endl;
-        //            heightRead = false;
-        //        }
-        //        if ( maxValueRead && !lineStream.eof () ) {
-        //            lineStream >> maxValue;
-        //            std::cout << maxValue << std::endl;
-        //            maxValueRead = false;
-        //        }
-        //    }
-        //} while ( widthRead || heightRead || maxValueRead );
+            while (
+                    !lineStream.eof ()
+                &&  ( widthRead || heightRead || maxValueRead )
+            ) {
+                char peeked = lineStream.peek ();
+                while ( peeked == '#' || peeked == ' ' ) {
+                    std::cout << "blank char '" << peeked << "'" << std::endl;
+                    if ( peeked = '#' ) {
+                        isComment = true;
+                        break;
+                    }
+                    lineStream >> peeked;
+                    peeked = lineStream.peek ();
+                }
+                if ( isComment ) {
+                    isComment = false;
+                    break;
+                }
+                if ( widthRead && !lineStream.eof () ) {
+                    lineStream >> width;
+                    std::cout << "w: " << width << std::endl;
+                    widthRead = false;
+                }
+                if ( heightRead && !lineStream.eof () ) {
+                    lineStream >> height;
+                    std::cout << "w: " << height << std::endl;
+                    heightRead = false;
+                }
+                if ( maxValueRead && !lineStream.eof () ) {
+                    lineStream >> maxValue;
+                    std::cout << "m: " << maxValue << std::endl;
+                    maxValueRead = false;
+                }
+            }
+        } while ( widthRead || heightRead || maxValueRead );
 
-        SetMaxValue ( maxValue );
+        if ( mode & BINARY ) {
+            SetMaxValue ( 255u );
+        } else {
+            SetMaxValue ( maxValue );
+        }
         ResetDimensions ( width, height );
         if ( mode & BINARY ) {
             mode = mode & ~BINARY;
@@ -150,9 +164,9 @@ void PNMImage::LoadFromFile (
                         input.read ( (char*)&g, 1 );
                         input.read ( (char*)&b, 1 );
 
-                        std::cout   << (unsigned int)r << " " 
-                                    << (unsigned int)g << " " 
-                                    << (unsigned int)b << std::endl;
+                        //std::cout   << (unsigned int)r << " " 
+                        //            << (unsigned int)g << " " 
+                        //            << (unsigned int)b << std::endl;
                         SetChannelValue ( i, j,   RED, (unsigned int)r );
                         SetChannelValue ( i, j, GREEN, (unsigned int)g );
                         SetChannelValue ( i, j,  BLUE, (unsigned int)b );

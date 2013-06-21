@@ -74,21 +74,21 @@ void ParameterHandler::SetThreshold (
     m_threshold = iThreshold;
 };
 
-const unsigned int& ParameterHandler::GetNearPlane () 
+const float& ParameterHandler::GetNearPlane () 
 const {
     return m_nearPlane;
 }
 void ParameterHandler::SetNearPlane (
-    const unsigned int& iNearPlane
+    const float& iNearPlane
 ) {
     m_nearPlane = iNearPlane;
 }
-const unsigned int& ParameterHandler::GetFarPlane () 
+const float& ParameterHandler::GetFarPlane () 
 const {
     return m_farPlane;
 }
 void ParameterHandler::SetFarPlane (
-    const unsigned int& iFarPlane
+    const float& iFarPlane
 ) {
     m_farPlane = iFarPlane;
 }

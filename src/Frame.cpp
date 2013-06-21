@@ -126,16 +126,11 @@ void Frame::DrawDisplacements () const {
     glEnd ();
 }
 
-void Frame::LoadFromFile ( const std::string& iPath ) {
-    m_mesh = new PointSet ();
-    m_mesh->LoadFromFile ( iPath + "mesh.ply" );
-
-    m_texture = new Image ();
-    m_texture->LoadFromFile ( iPath + "texture.pgm" );
-
-    m_depthMap = new Image ();
-    m_depthMap->LoadFromFile ( iPath + "depthMap.pgm" ); 
-
+void Frame::LoadDisplacements ( const std::string& iPath ) {
+    if ( m_displacements ) {
+        delete m_displacements;
+        m_displacements = (PPMImage*)0x0;
+    }
     m_displacements = PPMImage::TryLoadFromFile ( iPath + "displacement.ppm" );
 
     m_rawDisplacementsX.resize (
@@ -164,12 +159,31 @@ void Frame::LoadFromFile ( const std::string& iPath ) {
                 m_rawDisplacementsX ( y, x ) = rdx;
                 m_rawDisplacementsY ( y, x ) = rdy;
                 m_rawDisplacementsZ ( y, x ) = rdz;
-
-                //std::cout   << m_rawDisplacementsX ( y, x ) << " " 
-                //            << m_rawDisplacementsY ( y, x ) << " " 
-                //            << m_rawDisplacementsZ ( y, x ) << std::endl;
             }
         }
     }
+}
+
+void Frame::LoadFromFile ( const std::string& iPath ) {
+    if ( m_mesh ) {
+        delete m_mesh;
+        m_mesh = (PointSet*)0x0;
+    }
+    m_mesh = new PointSet ();
+    m_mesh->LoadFromFile ( iPath + "mesh.ply" );
+
+    if ( m_texture ) {
+        delete m_texture;
+        m_texture = (Image*)0x0;
+    }
+    m_texture = new Image ();
+    m_texture->LoadFromFile ( iPath + "texture.pgm" );
+
+    if ( m_depthMap ) {
+        delete m_depthMap;
+        m_depthMap = (Image*)0x0;
+    }
+    m_depthMap = new Image ();
+    m_depthMap->LoadFromFile ( iPath + "depthMap.pgm" ); 
 }
 

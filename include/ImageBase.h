@@ -124,17 +124,6 @@ public:
         ImageBase*              oCorrelationMap=NULL
     ) const;
 
-    static void TrackPixels(
-        ImageBase&          iRefImage,
-        ImageBase&          iTargetImage,
-        const int&          iWindowWidth,
-        const int&          iWindowHeight,
-        const int&          iNeighbourhoodWidth,
-        const int&          iNeighbourhoodHeight,
-        ImageBase&          oDisplacementMapX,
-        ImageBase&          oDisplacementMapY
-    );
-
     static float CalculateErrorScore (
         ImageBase&          iImageA,
         ImageBase&          iImageB

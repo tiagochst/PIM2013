@@ -720,7 +720,7 @@ void Window::calcDisp() {
     Image* refDep = new Image ( f1path + "depthMap.pgm");
     Image* tarDep = new Image ( f2path + "depthMap.pgm");
 
-    PixelTracker pt (0);
+    PixelTracker pt;
     pt.SetReference (
         params->GetFrame1 (),
         refImg,

@@ -204,7 +204,7 @@ pour la création d'une mesh qui réproduit la visage.
 
 Dans l'article sont matériel est un matériel d'haute définition, notre
 but dans le projet est de réaliser, ainsi que possible, une version
-moins chères de la création des visages, qui pourrait etre réalisé par
+moins chères de la création des visages, qui pourrait être réalisé par
 toutes les personnes disposant d'une limitation matériel. 
 
 \subsection{Matériel}
@@ -456,10 +456,10 @@ correpondance.
 \begin{description}
 
 \item[Lissage] Pour avoir une cohérence entre les voisins, plus de la
-  moitié de tous les voisins dans une fenetre 3 x 3 diffèrent par un
+  moitié de tous les voisins dans une fenêtre 3 x 3 diffèrent par un
   écart de moins d'un pixel de la disparité calculée au pixel $p$.  
 
-\item[Unicité] la corresponce doit etre bijective, c'est-à-dire si le
+\item[Unicité] la corresponce doit être bijective, c'est-à-dire si le
   pixel $p$ dans l'image $I$ correspond au pixel $q$ dans l'image $J$,
   alors $q$ doit également correspondre à $p$. Pour cette constrainte
   une disparité d'un pixel est acceptè.
@@ -552,6 +552,73 @@ Où la valeur de $w_{s}$ dans notre programme vaut $0.005$.
 \section{Résultats}
 
 \section{Conclusion}
+
+Nous avons implementé dans ce projet une méthode de capture 
+passive qui emploi deux tecnhiques clées baseés sur l'article de Beeler et
+al. \cite{Beeler:2011:HPF:2010324.1964970,}.
+
+%Tout d'abord, nous employons un algorithme de corresponsance qui intègre
+%toutes les correspondence de pixels dans l'espace image, le résultat
+%de cette étape est intégré pour propager une seule maille de référence pour chaque trame cible en parallèle. 
+% 
+%Deuxièmement, comme les performances du visage ont tendance à contenir
+%les mouvements répétitifs, l'idée des «trames d'ancrage»
+%définis comme ceux dont l'expression du visage est semblable au cadre de référence.
+% 
+%Après localisation automatique des trames d'ancrage, on calcule le
+%suivi des pixels directement à partir de la trame de référence à des
+%trames d'ancrage. En utilisant les trames d'ancrage à la partition de
+%la séquence dans les clips et l'appariement indépendamment clips, nous
+%sommes en mesure de dérive tracker lié, gérer correctement occlusion
+%et le flou de mouvement, et des séquences de capture de processus en parallèle. 
+
+%Notre méthode produit une géométrie 3D détaillées en correspondance
+%temporelle complète, même pour le plus expressif des performances en
+%cours de mouvement très rapide, sans qu'il soit nécessaire de
+%marqueurs placés à la main ou le maquillage du visage. 
+%Nous avons démontré notre technique sur un certain nombre d'exemples de
+%représentations données par les différents acteurs, et nous avons
+%également montré comment notre approche ancrée de reconstruction
+%combiné avec notre méthode de tracking image-espace robuste peut
+%donner des résultats plus précis qu'un-of-the-art de l'État actuel
+%technique [Bradley et al. 2010], en particulier en présence de motion
+%blur et les rides très expressives où dérive a tendance à s'accumuler
+%plus rapidement.
+
+La qualité du équipement de capture a eu une grand influence sur notre
+résultat. Téoriquement la précision de la Kinect pour les valuers de
+profondeurs est de 1mm, par contre, nous avons aperçu dans nos
+premières résultat que, pour les points plus loins, cette
+précision n'est pas valable, car la kinect produissait une sortie avec
+des erreurs bien plus grands que $10 mm$. 
+En raison de ce problème, nous avons dévélopper notre algorithme de
+manière a minimizer ce problème.
+
+De plus, pour quelques points la kinect ne reconnait pas la
+profondeur, ce qui a introduit un problème en plus pour l'algorithme. 
+Pour contourne ce problème, nous avons fixer ces valerus inconnues à
+0. 
+
+Une autre question lié à la kinect qui influencie nos résultats et
+implémentation sont les images dont la résolution est 13 fois plus
+petite que celles de l'article, ainsi, en raison de notre situation
+quelques paramètres on été adaptées.
+
+A titre d'exemple, pour la sélection automatique des trames, l'article
+prennait un pixel sur 20 pour faire une comparaison de similarité
+entre deux images. Pour une image $1176 x 864$ pixels, cela nous donne
+environ $50803$ pixels. Dans notre cas por une image $320 \times 240$ pixels,
+cela nous donne seulement $3840$ pixels. C'est-à-dire, moins que 10\% du
+nombre de pixels utilisé dans article. Pour résoudré cela, on a pris 1
+pixel sur 3, ce qui nous donne environ $25600$ pixels un nombre de
+pixels plus acceptable.
+
+Une autre modification lié à la résolution des images, est
+l'utilisation d'un patch de $17 \times 17$ au lieu d'utiliser un patch
+$9 \times 9$ pour faire le calcul de similarité à travers de la
+intercorrélation normalisée. Cela nous a aporté une réponse plus
+fiable de la similarité.   
+
 
 \section{Remerciement}
 Nous tiendrons tout d’abord à remercier Dr Tamy Boubekeur, le

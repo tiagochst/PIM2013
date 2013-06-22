@@ -86,10 +86,10 @@ personnes.
 Les animations faciales ont eu plusieurs approches dans les deux
 décennies, comme par exemple l'utilisation d'éclairage active et
 l'utilisation des marqueurs. Actuellement, les dernières recherches,
-par rapport aux méthodes de capture, ont convergé aux captures passives dont la
-configuration est presque entièrement automatiques, car ce genre de
-capture ira diminuer le temps de préparation nécessaire pour la
-capture, ainsi comme sera moins invasive aux acteurs.
+ont convergé aux captures passives dont la configuration est presque
+entièrement automatiques, ce qui diminuera le temps de préparation
+nécessaire pour que la capture soit possible, ainsi comme sera moins invasive aux
+acteurs.
 
 Cependant, malgré des avancées majeures dans ce type de capture, une
 technique pour capturer des performances expressives très détaillées
@@ -97,12 +97,13 @@ qui évite détérioration avec le temps doit encore être réalisée.
 
 Le but de ce projet est de produire une reconstruction 3D d'une
 surface dynamique de visages à travers une méthode de capture passive
-qui utilisera que des outils périphériques peu coûteuses, qui sont
-plus accessibles à la majorité des personnes, comme par exemple une Kinect.
+qui utilisera des outils périphériques peu coûteuses, par conséquent
+en étant plus accessibles à la majorité des personnes, comme par
+exemple une Kinect.
 
-%L'objectif du projet est la recherche et la mise au point d'un
-%algorithme de reconstruction 3D de surface dynamique appliqué
-%spécifiquement à un visage. 
+% L'objectif du projet est la recherche et la mise au point d'un
+% algorithme de reconstruction 3D de surface dynamique appliqué
+% spécifiquement à un visage. 
 
 %Les données d'entrées sont provienues d'une kinects.
 
@@ -131,7 +132,7 @@ calculs et pour qu'il soit traitable, le modèle de visage doit être
 d'une faible résolution.
 
 Ainsi, comme résultat, il n'est généralement pas possible d'obtenir les
-détails les plus fins qui sont responsables pour les expressions et
+détails les plus fins, qui sont responsables pour les expressions et
 réalisme de la scène.
 
 De plus, le visage déformable a tendance à être très générique, de
@@ -212,7 +213,7 @@ toutes les personnes disposant d'une limitation matériel.
 Ci-dessous la liste de matériel utilisé dans le projet: 
 
 \begin{itemize}
-\item Une Kinect responsable pour captures des images 640 × 480 en
+\item Une Kinect responsable pour captures des images $640 \times 480$ en
   couleur 32 bits ainsi comme une image de profondeur.  
 \end{itemize}
 
@@ -231,13 +232,21 @@ utilisant un système de contrôle de version git
 De plus, les librairies externes utilisés sont:
 
 \begin{description}
-\item[Eigen] Une bibliothèque que met en oeuvre l'algèbre linéaire et des opérations matricielles.
+
+\item[Eigen] Une bibliothèque que met en oeuvre l'algèbre linéaire et des opérations matricielles.\cite{Eigen}
+
 \item[OpenNI] Un framework qui fournit un ensemble d'API open source
   pour accéder aux périphériques d'interactions naturelles.\cite{PrimeSense2010}
-  
+
+\item[QT] Un framework qui fournit un ensemble d'API open source
+  pour la création des interfaces.\cite{QT}
+
+\item[OpenMP] Une interface de programmation pour le calcul parallèle
+  sur architecture à mémoire partagée.\cite{OpenMP} 
+
 \end{description}
 
-Pour la compilation du projet on a décidé d’utiliser l’outil qmake
+Pour la compilation du projet nous l’outil qmake
 pour une génération des Makefiles pour faciles et aussi intégré avec
 le framework qt.  
 Pour cela les fichiers suivants ont été crées: PIM380.pro. 
@@ -553,9 +562,9 @@ Où la valeur de $w_{s}$ dans notre programme vaut $0.005$.
 
 \section{Conclusion}
 
-Nous avons implementé dans ce projet une méthode de capture 
-passive qui emploi deux tecnhiques clées baseés sur l'article de Beeler et
-al. \cite{Beeler:2011:HPF:2010324.1964970,}.
+%Nous avons implementé dans ce projet une méthode de capture 
+%passive qui emploi deux tecnhiques clées baseés sur l'article de Beeler et
+%al. \cite{Beeler:2011:HPF:2010324.1964970,}.
 
 %Tout d'abord, nous employons un algorithme de corresponsance qui intègre
 %toutes les correspondence de pixels dans l'espace image, le résultat

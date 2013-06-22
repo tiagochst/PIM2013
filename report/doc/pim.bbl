@@ -4,17 +4,27 @@
  (2010).
 \newblock {\em OpenNI User Guide}.
 \newblock OpenNI organization.
-\newblock Last viewed 19-04-2013 11:32.
 
 \bibitem[Pri, 2010]{PrimeSense2010}
  (2010).
 \newblock {\em Prime Sensor NITE 1.3 Algorithms notes}.
 \newblock PrimeSense Inc.
-\newblock Last viewed 19-01-2011 15:34.
 
 \bibitem[Pen, 2012]{Pencil}
  (2012).
-\newblock Pencil project.
+\newblock Pencil project: An open-source gui prototyping tool.
+
+\bibitem[Eig, 2013]{Eigen}
+ (2013).
+\newblock Eigen: a c++ template library for linear algebra.
+
+\bibitem[Ope, 2013]{OpenMP}
+ (2013).
+\newblock Openmp: specification for parallel programming.
+
+\bibitem[QT, 2013]{QT}
+ (2013).
+\newblock Qt project: a cross-platform application and ui framework.
 
 \bibitem[Beeler et~al., 2010]{Beeler:2010:HSC:1778765.1778777}
 Beeler, T., Bickel, B., Beardsley, P., Sumner, B., and Gross, M. (2010).

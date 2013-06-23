@@ -336,6 +336,8 @@ Le diagramme ci-dessous, présent plus visuallement les étapes du projet.
 
 
 
+
+\newpage
 \section{Les étapes de développement}
 \subsection*{Interface Kinect}
 
@@ -371,12 +373,18 @@ La sortie peut être vue ci-dessous:
 
 \begin{center} 
   \begin{figure}
-    \begin{center} 
-      \subfloat[Carte de profondeur]{\includegraphics[scale=0.25]{img/image00}}\
-      \hspace{1cm} \
-      \subfloat[Image]{\includegraphics[scale=0.25]{img/image09}}
-    \caption{Sortie de la Kinect}
-    \end{center}
+    \centering
+      \begin{subfigure}[b]{0.3\textwidth}
+      \includegraphics[scale=0.25]{img/image00}
+      \caption{Carte de profundeur}
+      \label{fig:cartedeprofondeur}
+      \end{subfigure}%
+      ~
+      \begin{subfigure}[b]{0.3\textwidth}
+        \includegraphics[scale=0.25]{img/image09}
+      \caption{Sortie de la Kinect}
+      \label{fig:kinectsortie}
+      \end{subfigure}%
   \end{figure}
 \end{center}
 
@@ -557,8 +565,67 @@ Où la valeur de $w_{s}$ dans notre programme vaut $0.005$.
 
 \end{enumerate}
 
-
+\newpage
 \section{Résultats}
+
+La figure ci-dessous (figure \ref{fig:trames910}) présent notre
+dernière trame d'une séquence pendant laquelle notre acteur ouvre la bouche. 
+
+\begin{figure}[ht!]
+        \centering
+        \begin{subfigure}[b]{0.5\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{img/f9}
+                \caption{Trame 9}
+                \label{fig:trame9}
+        \end{subfigure}%
+        ~ %add desired spacing between images, e. g. ~, \quad, \qquad etc.
+          %(or a blank line to force the subfigure onto a new line)
+        \begin{subfigure}[b]{0.5\textwidth}
+                \centering
+                \includegraphics[width=\textwidth]{img/f10}
+                \caption{Trame 10}
+                \label{fig:trame10}
+        \end{subfigure}
+        \caption{Séquence d'ouverture de la bouche}
+        \label{fig:trames910}
+\end{figure}
+
+Nous pouvons vérifier en utilisant la carte de couleur de déplacement
+(figure \ref{fig:colorChart}), que la région de la buche a une valeur
+vert ce qui répresent un déplacement vers le bas.
+
+\begin{figure}[h!]
+  \begin{center}
+    \includegraphics[scale=0.6]{img/ColorChart}
+    \caption{Valeurs de déplacement répresentés par les coulers}
+    \label{fig:colorChart}
+  \end{center}
+\end{figure}
+
+Nous pouvons vérifier en utilisant la carte de couleur de déplacement
+(figure \ref{fig:colorChart}), que la région de la buche a une valeur
+vert ce qui répresent un déplacement vers le bas.
+
+Après le calcul de déplacement entre les trames, on commence a
+propager les sommets de la maillage de référence en utilisant les
+cartes de déplacements calculés. Notre résultat, est affiché dans
+l'image ci-dessous (figure \ref{fig:result}). La figure en haute à
+gauche est notre maillage de réference propagé jusqu'au trame 10.
+
+% 37
+% 250
+% 305
+ 
+\begin{figure}[ht!]
+  \begin{center}
+    \includegraphics[scale=0.4]{img/frame10}
+    \caption{Résultats: haute gauche: maillage propragée,haute droite:
+      trame actuelle, bas gauche: maillage avec les déplacement em 3D,
+      bash droite: carte de déplacement }
+    \label{fig:result}
+  \end{center}
+\end{figure}
 
 \section{Conclusion}
 

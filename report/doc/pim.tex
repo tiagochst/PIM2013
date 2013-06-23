@@ -64,7 +64,7 @@
 \section*{Remerciement}
 Nous tiendrons tout d’abord à remercier Dr Tamy Boubekeur, le
 professeur responsable du projet et notre tuteur, de nous avoir
-accueilli comme élévés au sein du projet et la confiance qu’il nous a
+accueilli comme élèves au sein du projet et la confiance qu’il nous a
 accordé tout au long de notre projet. 
 
 Nous remercions également Thierry Guillemot et Stéphane Calderon, pour
@@ -75,7 +75,7 @@ leur volonté à nous aider pendant toute la période de notre projet PIM.
 \begin{abstract}
 
 Dans les deux décennies, les animations faciales ont eu plusieurs approches.
-Actuellment, les dernières méthodes sont basées sur une capture
+Actuellement, les dernières méthodes sont basées sur une capture
 passive dont la configuration est presque entièrement automatiques. 
 
 Le but de ce projet est de reproduire une reconstruction 3D de visages
@@ -118,7 +118,7 @@ exemple une Kinect.
 
 %Les données d'entrées sont provienues d'une kinects.
 
-\section{Etat de l'art}
+\section{État de l'art}
 
 Les animations faciales a eu plusieurs approches dans les deux décennies, 
 parmi eux: l'utilisation des modèles de visage qui sont ajustées aux images, 
@@ -138,7 +138,7 @@ de visage déformable, puis de déterminer les paramètres qui
 correspondent le mieux au modèle des images ou des vidéos d'un acteur
 performant. 
 
-Un inconvenient de cette approche est qu'il exige un grande nombre de
+Un inconvénient de cette approche est qu'il exige un grande nombre de
 calculs et pour qu'il soit traitable, le modèle de visage doit être
 d'une faible résolution.
 
@@ -147,7 +147,7 @@ détails les plus fins, qui sont responsables pour les expressions et
 réalisme de la scène.
 
 De plus, le visage déformable a tendance à être très générique, de
-sorte que les animations résultant de ce genre de téchnique souvent ne
+sorte que les animations résultant de ce genre de technique souvent ne
 ressemblent pas à l'acteur capturé.
 
 \subsection*{Marqueurs et éclairage actif}
@@ -160,12 +160,12 @@ Ces technique peuvent produire un suivi robuste des performances très
 expressifs et sont généralement adaptés à une variété de conditions
 d'éclairage.
 
-Cependant, un inconvenient de l'utilisation des marqueurs est le coût
-de les placer manuellement, ainsi comme la caracteristique invasive de
-la technique. De plus, pour acquerir la couler de la visage ou de la
-texture, ces marqueurs doievent être retirés. 
+Cependant, un inconvénient de l'utilisation des marqueurs est le coût
+de les placer manuellement, ainsi comme la caractéristique invasive de
+la technique. De plus, pour acquérir la couler de la visage ou de la
+texture, ces marqueurs doivent être retirés. 
 
-En outre, cette méthode présent aussi l'inconvenient de fournir une
+En outre, cette méthode présent aussi l'inconvénient de fournir une
 résolution limitée, car la capture à une échelle des pores n'a pas été
 démontré avec cette approche. 
 
@@ -176,12 +176,12 @@ et constitue encore un problème pour la acquisition de la couleur.
 
 \subsection*{Capture passive }
 
-Les recherches plus récents s'ont concentrées sur la reconstruction
+Les recherches plus récents sont concentrées sur la reconstruction
 passive, c'est-à-dire, sans la nécessité de marqueurs, de la lumière
 structurée ou du matériel coûteux. 
 
-Les résultats obtenus par ce type approche sont très satifaisants, par
-exemple la reconstituitions de la géométrie du visage a uné échelle
+Les résultats obtenus par ce type approche sont très satisfaisants, par
+exemple la reconstitutions de la géométrie du visage a une échelle
 des pores a été déjà réalisé. 
  
 Cependant, il reste encore des improvements pour cette approche,
@@ -192,13 +192,13 @@ trame à autre.
 
 En raison quelques fois de l'indisponibilité des images, des approches purement
 géométriques qui utilisent juste une suite de nuages de points 3D ou
-des maillages 3D triangulées incompatiblés ont reçu aussi une grande attention
+des maillages 3D triangulées incompatibles ont reçu aussi une grande attention
 dans le monde de la recherche.
 
 En raison des données d'image manquant, qui fournissent un haut niveau
 de détail et aide la correspondance 3D, la propagation des maillages 
-est très difficile. Des nombreauses études pour diminuer les erreurs
-pendant cette propagation ont été realisé, et en raison de cela,
+est très difficile. Des nombreuses études pour diminuer les erreurs
+pendant cette propagation ont été réalisés, et en raison de cela,
 actuellement, les dernières méthodes fournissent une bonne
 correspondance entre pixels. % recent work by Sharf et al. [2008] 
 
@@ -209,10 +209,10 @@ surface dynamique de visages à travers une méthode de capture passive
 qui utilisera que des outils périphériques peu coûteuses, qui sont
 plus accessibles à la majorité des personnes, comme par exemple une Kinect.
 
-Dans ce projet, on essayera de réproduire les étapes réalises par
+Dans ce projet, on essayera de reproduire les étapes réalises par
 Beeler et al. dans le papier ``High-quality passive facial performance
 capture using anchor frame''\cite{Beeler:2011:HPF:2010324.1964970}
-pour la création d'une mesh qui réproduit la visage. 
+pour la création d'une mesh qui reproduit la visage. 
 
 Dans l'article sont matériel est un matériel d'haute définition, notre
 but dans le projet est de réaliser, ainsi que possible, une version
@@ -289,21 +289,21 @@ d'une reconstruction 3D de visages, on a divisé le projet en cinq
 \item Raffinement de maillage
 \end{enumerate}
 
-Ci-dessous une bref descrition de chaque étape:
+Ci-dessous une bref description de chaque étape:
 
-\subsubsection*{Etape 1: Calcul du maillage initial}
+\subsubsection*{Étape 1: Calcul du maillage initial}
 Chaque image de la séquence est traitée indépendamment pour générer
 une première estimation de la maillage pour cette trame. 
 
-\subsubsection*{Etape 2: Ancrage}
-Une trame est identifié manuellemnt comme la trame de réference. Puis,
-les trames qui ont une apparance similaire (expression du visage
-samblable et l'orientation de la tête) sont identifiées
+\subsubsection*{Étape 2: Ancrage}
+Une trame est identifié manuellement comme la trame de référence. Puis,
+les trames qui ont une apparence similaire (expression du visage
+semblable et l'orientation de la tête) sont identifiées
 automatiquement et étiquetés comme des trames d'ancrage. Ces trames
 ancres seront un moyen de partitionner la séquence complète des clips
 de trames pour le traitement dans la prochaine étape. 
 
-\subsubsection*{Etape 3: Localisation image-space}
+\subsubsection*{Étape 3: Localisation image-space}
 Le but de cette étape est de suivre les pixels de l'image à partir du
 trame de référence pour chaque image dans la séquence.  
 
@@ -316,7 +316,7 @@ séquence.
 Le suivi des trames non ancres est réalisé de manière séquentielle, à
 partir des trames ancres les plus proches.
 
-\subsubsection*{Etape 4: Propagation de la maillage}
+\subsubsection*{Étape 4: Propagation de la maillage}
 
 Une propagation de maille désigne le calcul de nouvelles positions des
 sommets du maillage dans l'espace, en correspondance avec le mouvement
@@ -327,7 +327,7 @@ trame de référence calculé à l'étape 1, pour toutes les trames dans
 la séquence, est l'utilisation des pixels de l'image suivis obtenues à
 l'étape 3.
  
-\subsubsection*{Etape 5: Raffinement de maillage}
+\subsubsection*{Étape 5: Raffinement de maillage}
 
 Les étapes précédentes ont généré une propagation de la maille de
 référence pour chaque trame dans la séquence. Cette séquence de
@@ -336,12 +336,12 @@ visage, ce qui est raffiné pour garantir la cohérence avec les données
 d'image en appliquant priori sur la cohérence spatiale et temporelle
 de la surface déformée.
 
-Le diagramme ci-dessous, présent plus visuallement les étapes du projet.
+Le diagramme ci-dessous, présent plus visuellement les étapes du projet.
 
 \begin{figure}[ht!]
   \begin{center}
     \includegraphics[scale=0.4]{img/projDiagram.png}
-    \caption{Etapes du projet}
+    \caption{Étapes du projet}
   \end{center}
 \end{figure}
 
@@ -387,7 +387,7 @@ La sortie peut être vue ci-dessous:
     \centering
       \begin{subfigure}[b]{0.3\textwidth}
       \includegraphics[scale=0.25]{img/image00}
-      \caption{Carte de profundeur}
+      \caption{Carte de profondeur}
       \label{fig:cartedeprofondeur}
       \end{subfigure}%
       ~
@@ -402,30 +402,30 @@ La sortie peut être vue ci-dessous:
 
 \subsection*{Interface graphique}
 
-Pour une intéraction plus facile avec les utilisateurs, nous avons
+Pour une interaction plus facile avec les utilisateurs, nous avons
 décidé de créer une interface graphique. Le processus pour la création
-a passé pour une identification des functionalitées qui était utiles
-pour l'utilisateur. Quelques fonctionalité sont listées ci-dessous:
+a passé pour une identification des fonctionnalités qui était utiles
+pour l'utilisateur. Quelques fonctionnalités sont listées ci-dessous:
 
 \begin{itemize}
-\item Visualisation de l'entré de la Kinect 
+\item Visualisation de l'entrée de la Kinect 
 \item Exportation de la maille affiché
 \item Sauvegarder une séquence des trames
-\item Séléction automatique des trames ancres
-\item Edition manuel des trames ancres
-\item Controler les paramètres principaux du programe
+\item Sélection automatique des trames ancres
+\item Édition manuel des trames ancres
+\item Contrôler les paramètres principaux du programme
 \item Calculer la carte de déplacement entre deux images
 \end{itemize}
 
-Après la phase d'indentification des fonctionalités, des idées on été
+Après la phase d'identification des fonctionnalités, des idées on été
 dessinées dans l'outil pencil\cite{Pencil}, un outil pour faire la
 maquette de l'interface. 
-Ci-dessous, la maquette pour la séléction automatique des trames ancres.
+Ci-dessous, la maquette pour la sélection automatique des trames ancres.
 
 \begin{figure}[h!]
   \begin{center}
     \includegraphics[scale=0.4]{img/pencil.png}
-    \caption{Maquete: selection automatique de trames ancres}
+    \caption{Maquettes: sélection automatique de trames ancres}
   \end{center}
 \end{figure}
 
@@ -443,7 +443,7 @@ Sélection d'ancres manuellement:
 \begin{figure}[ht!]
   \begin{center}
     \includegraphics[scale=0.35]{img/editAnchorList.png}
-    \caption{Edition de la liste des ancres}
+    \caption{Édition de la liste des ancres}
   \end{center}
 \end{figure}
 
@@ -452,7 +452,7 @@ Sélection d'ancres automatiquement:
 \begin{figure}[ht!]
   \begin{center}
     \includegraphics[scale=0.35]{img/AnchorAutomaticSelection.png}
-    \caption{Séléction automatique des ancres. Entrée: trame de référence (rouge) et seuil. Sortie: trames ancres (bleau)}
+    \caption{Sélection automatique des ancres. Entrée: trame de référence (rouge) et seuil. Sortie: trames ancres (bleu)}
   \end{center}
 \end{figure}
 
@@ -460,7 +460,7 @@ Sélection d'ancres automatiquement:
 \subsection{Correspondance des pixels}
 
 Pour la correspondance des pixels entre deux images, on évalue utilise
-un algorithme basée sur la valuer de la intercorrélation normalisée
+un algorithme basée sur la valeur de la inter-corrélation normalisée
 calculée sur une fenêtre carrée (3x3). La valeur la plus haute est
 notre meilleur correspondance. 
 
@@ -469,34 +469,34 @@ dans l'image $J$ dans une zone de recherche donné, et la meilleure
 correspondance est conservée.  
 
 Après avoir la meilleur correspondance, l'écart au pixel $p$ est
-calculé en utilisant les valeurs de la intercorrélation normalisée
+calculé en utilisant les valeurs de la inter-corrélation normalisée
 avec le point $p$ et ses deux voisins dans l'image $J$. En utilisant
 ses trois points, on utilisé un polynôme de degré deux pour trouver la
-valeur maximun que sera la valeur de la disparité. 
+valeur maximum que sera la valeur de la disparité. 
 
-Pour l'utilisation des piramides des images, la correspondance est
+Pour l'utilisation des pyramides des images, la correspondance est
 calculée pour tous les pixels en utilisant les estimations de la
 disparité de la couche précédente pour limiter la zone de recherche.  
 
 En suite, pour certifier la bonne correspondance entre les pixels,
-quelques constraintes on été implementées, pour validé la
-correpondance.
+quelques contraintes on été implémentées, pour validé la
+correspondance.
 \begin{description}
 
 \item[Lissage] Pour avoir une cohérence entre les voisins, plus de la
   moitié de tous les voisins dans une fenêtre 3 x 3 diffèrent par un
   écart de moins d'un pixel de la disparité calculée au pixel $p$.  
 
-\item[Unicité] la corresponce doit être bijective, c'est-à-dire si le
+\item[Unicité] la corresponde doit être bijective, c'est-à-dire si le
   pixel $p$ dans l'image $I$ correspond au pixel $q$ dans l'image $J$,
-  alors $q$ doit également correspondre à $p$. Pour cette constrainte
-  une disparité d'un pixel est acceptè.
+  alors $q$ doit également correspondre à $p$. Pour cette contrainte
+  une disparité d'un pixel est accepté.
 \item[Ordre] Disparité calculée au point $p$ ne dépasse pas la
   disparité de son pixel droit voisin par plus d'un pixel.
 \end{description}
 
 Pour les pixels qui ne remplissent pas ces contraintes, la
-correspondance sera rafait, mais cette fois, les estimations de la
+correspondance sera refait, mais cette fois, les estimations de la
 disparité des pixels voisins qui on remplit les contraintes seront
 utilisées. 
 
@@ -507,8 +507,8 @@ utilisées.
   \end{center}
 \end{figure}
 
-Le resultat de cette étape, est un map de disparité, contenant pour
-chaque pixel de l'image $I$, la valeur de displacement dans l'image
+Le résultat de cette étape, est un map de disparité, contenant pour
+chaque pixel de l'image $I$, la valeur de déplacement dans l'image
 $J$. 
 
 \begin{figure}[ht!]
@@ -528,12 +528,12 @@ de la surface.
 
 Le raffinement consiste en une combinaison linéaire de deux termes: un
 terme cohérence photométrique $d_p$ qui privilégie les solutions à
-haute intercorrélation normalisée et un terme de consistance de
+haute inter-corrélation normalisée et un terme de consistance de
 surface $d_s$ qui privilégie les solutions lisses.
 
 Ces termes sont équilibrées à la fois par un paramètre lissage
 spécifié par l'utilisateur $w_s$ et un paramètre $w_p$ définit en temps
-d'éxecution qui garantit que le terme photométrique a plus de poids
+d'exécution qui garantit que le terme photométrique a plus de poids
 dans les régions avec une bonne fonctionnalité de localisation.
 
 Les étapes pour les calculs de ces termes sont:
@@ -603,27 +603,27 @@ dernière trame d'une séquence pendant laquelle notre acteur ouvre la bouche.
 \end{figure}
 
 Nous pouvons vérifier en utilisant la carte de couleur de déplacement
-(figure \ref{fig:colorChart}), que la région de la buche a une valeur
-vert ce qui répresent un déplacement vers le bas.
+(figure \ref{fig:colorChart}), que la région de la bouche a une valeur
+vert ce qui représente un déplacement vers le bas.
 
 \begin{figure}[h!]
   \begin{center}
     \includegraphics[scale=0.6]{img/ColorChart}
-    \caption{Valeurs de déplacement répresentés par les coulers}
+    \caption{Valeurs de déplacement représentés par les couleurs}
     \label{fig:colorChart}
   \end{center}
 \end{figure}
 
 Nous pouvons vérifier en utilisant la carte de couleur de déplacement
-(figure \ref{fig:colorChart}), que la région de la buche a une valeur
-vert ce qui répresent un déplacement vers le bas.
+(figure \ref{fig:colorChart}), que la région de la bouche a une valeur
+vert ce qui représente un déplacement vers le bas.
 
 Après le calcul de déplacement entre les trames, on commence a
 propager les sommets de la maillage de référence en utilisant les
 cartes de déplacements calculés. Notre résultat, est affiché dans
 l'image ci-dessous (figure \ref{fig:result}). 
 
-La figure en haute à gauche est notre maillage de réference propagé
+La figure en haute à gauche est notre maillage de référence propagé
 jusqu'au trame 10. On peut vérifier que en gros la maillage a été bien
 propagé, en résultant dans une maillage proche de notre image.
 Par contre, il existe toujours des bruits liés à la qualité de la
@@ -632,7 +632,7 @@ images, sont aussi perdues dans les maillages. Et, les points dont la
 kinect nous donné des valeurs erronés sont aussi présents dans la maillage. 
 
 Pour une suite du projet, l'étape de raffinement de la maillage doit
-etre implémenté. Cette partie pourra amélliorer notre résultat, en
+être implémenté. Cette partie pourra améliorer notre résultat, en
 réduisant le bruit.
 
 % 37
@@ -642,9 +642,9 @@ réduisant le bruit.
 \begin{figure}[ht!]
   \begin{center}
     \includegraphics[scale=0.4]{img/frame10}
-    \caption{Résultats: haute gauche: maillage propragée,haute droite:
-      trame actuelle, bas gauche: maillage avec les déplacement em 3D,
-      bash droite: carte de déplacement }
+    \caption{Résultats: haute gauche: maillage propagée,haute droite:
+      trame actuelle, bas gauche: maillage avec les déplacement en 3D,
+      bas droite: carte de déplacement }
     \label{fig:result}
   \end{center}
 \end{figure}
@@ -685,37 +685,37 @@ réduisant le bruit.
 %plus rapidement.
 
 La qualité du équipement de capture a eu une grand influence sur notre
-résultat. Téoriquement la précision de la Kinect pour les valuers de
+résultat. Théoriquement la précision de la Kinect pour les valeurs de
 profondeurs est de 1mm, par contre, nous avons aperçu dans nos
-premières résultat que, pour les points plus loins, cette
-précision n'est pas valable, car la kinect produissait une sortie avec
+premières résultat que, pour les points plus loin, cette
+précision n'est pas valable, car la kinect produisais une sortie avec
 des erreurs bien plus grands que $10 mm$. 
-En raison de ce problème, nous avons dévélopper notre algorithme de
-manière a minimizer ce problème.
+En raison de ce problème, nous avons développé notre algorithme de
+manière a minimiser ce problème.
 
-De plus, pour quelques points la kinect ne reconnait pas la
+De plus, pour quelques points la kinect ne reconnaît pas la
 profondeur, ce qui a introduit un problème en plus pour l'algorithme. 
-Pour contourne ce problème, nous avons fixer ces valerus inconnues à
+Pour contourne ce problème, nous avons fixer ces valeurs inconnues à
 0. 
 
-Une autre question lié à la kinect qui influencie nos résultats et
-implémentation sont les images dont la résolution est 13 fois plus
+Une autre question lié à la kinect qui influence nos résultats et
+implémentassions sont les images dont la résolution est 13 fois plus
 petite que celles de l'article, ainsi, en raison de notre situation
 quelques paramètres on été adaptées.
 
 A titre d'exemple, pour la sélection automatique des trames, l'article
-prennait un pixel sur 20 pour faire une comparaison de similarité
+prenait un pixel sur 20 pour faire une comparaison de similarité
 entre deux images. Pour une image $1176 x 864$ pixels, cela nous donne
-environ $50803$ pixels. Dans notre cas por une image $320 \times 240$ pixels,
+environ $50803$ pixels. Dans notre cas pour une image $320 \times 240$ pixels,
 cela nous donne seulement $3840$ pixels. C'est-à-dire, moins que 10\% du
-nombre de pixels utilisé dans article. Pour résoudré cela, on a pris 1
+nombre de pixels utilisé dans article. Pour résoudre cela, on a pris 1
 pixel sur 3, ce qui nous donne environ $25600$ pixels un nombre de
 pixels plus acceptable.
 
 Une autre modification lié à la résolution des images, est
 l'utilisation d'un patch de $17 \times 17$ au lieu d'utiliser un patch
 $9 \times 9$ pour faire le calcul de similarité à travers de la
-intercorrélation normalisée. Cela nous a aporté une réponse plus
+inter-corrélation normalisée. Cela nous a apporté une réponse plus
 fiable de la similarité.   
 
 

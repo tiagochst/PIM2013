@@ -61,6 +61,16 @@
 %\end{titlepage} 
 
 \newpage
+\section*{Remerciement}
+Nous tiendrons tout d’abord à remercier Dr Tamy Boubekeur, le
+professeur responsable du projet et notre tuteur, de nous avoir
+accueilli comme élévés au sein du projet et la confiance qu’il nous a
+accordé tout au long de notre projet. 
+
+Nous remercions également Thierry Guillemot et Stéphane Calderon, pour
+leur volonté à nous aider pendant toute la période de notre projet PIM. 
+
+\newpage
 \thispagestyle{empty}
 \begin{abstract}
 
@@ -74,6 +84,7 @@ périphériques peu coûteux, qui sont plus accessibles à la majorité des
 personnes. 
 
 \end{abstract}
+
 
 \newpage
 \thispagestyle{empty}
@@ -610,8 +621,19 @@ vert ce qui répresent un déplacement vers le bas.
 Après le calcul de déplacement entre les trames, on commence a
 propager les sommets de la maillage de référence en utilisant les
 cartes de déplacements calculés. Notre résultat, est affiché dans
-l'image ci-dessous (figure \ref{fig:result}). La figure en haute à
-gauche est notre maillage de réference propagé jusqu'au trame 10.
+l'image ci-dessous (figure \ref{fig:result}). 
+
+La figure en haute à gauche est notre maillage de réference propagé
+jusqu'au trame 10. On peut vérifier que en gros la maillage a été bien
+propagé, en résultant dans une maillage proche de notre image.
+Par contre, il existe toujours des bruits liés à la qualité de la
+sortie de notre équipement. Les points qui n'existent pas dans les
+images, sont aussi perdues dans les maillages. Et, les points dont la
+kinect nous donné des valeurs erronés sont aussi présents dans la maillage. 
+
+Pour une suite du projet, l'étape de raffinement de la maillage doit
+etre implémenté. Cette partie pourra amélliorer notre résultat, en
+réduisant le bruit.
 
 % 37
 % 250
@@ -627,6 +649,7 @@ gauche est notre maillage de réference propagé jusqu'au trame 10.
   \end{center}
 \end{figure}
 
+\newpage
 \section{Conclusion}
 
 %Nous avons implementé dans ce projet une méthode de capture 
@@ -696,14 +719,6 @@ intercorrélation normalisée. Cela nous a aporté une réponse plus
 fiable de la similarité.   
 
 
-\section{Remerciement}
-Nous tiendrons tout d’abord à remercier Dr Tamy Boubekeur, le
-professeur responsable du projet et notre tuteur, de nous avoir
-accueilli comme élévés au sein du projet et la confiance qu’il nous a
-accordé tout au long de notre projet. 
-
-Nous remercions également Thierry Guillemot et Stéphane Calderon, pour
-leur volonté à nous aider pendant toute la période de notre projet PIM. 
 
 \nocite{Beeler:2010:HSC:1778765.1778777}
 

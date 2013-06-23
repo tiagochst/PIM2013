@@ -114,16 +114,17 @@ int KinectInit(int argc, char** argv)
 int main ( void ) {
     Config::LoadConfigs(Config::RootPath() + "settings");
 
-    Clip cl ( 0, 15 );
+//    Clip cl ( 0, 15 );
 
     PointSet mesh;
     mesh.LoadFromFile (Config::FramesPath () + "f0/mesh.ply" );
+    mesh.WriteToFile ( Config::OutputPath () + "Animation/0/frame0.ply");
     for ( unsigned int i = 0; i < 10; i++ ) {
         Frame f;
-        f.LoadMotionField ( Config::FramesPath () + "f" + toString(i) + "/track/" + toString (i+1));
+        f.LoadMotionField ( Config::FramesPath () + "f" + toString(i) + "/track/" + toString (i+1) + "/" );
 
         f.ApplyMotionField ( mesh );
-        mesh.WriteToFile ( Config::OutputPath () + "Animation/0/frame" + toString(i) + ".ply");
+        mesh.WriteToFile ( Config::OutputPath () + "Animation/0/frame" + toString(i+1) + ".ply");
     }
 
     return 0;

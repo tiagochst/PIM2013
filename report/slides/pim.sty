@@ -67,6 +67,7 @@
 
 %%% Beamer style %%%
 \usetheme{Warsaw}
+%\usetheme{Madrid}
 
 % fontes em negrito
 \usefonttheme[onlylarge]{structurebold}
@@ -79,3 +80,29 @@
 % \setbeamercovered{transparent}
 
 
+\newenvironment<>{bkblock}[1]{%
+  \begin{actionenv}#2%
+    \def\insertblocktitle{#1}%
+    \par%
+    \mode<presentation>{%
+      \setbeamercolor{block title}{fg=white,bg=black}
+      \setbeamercolor{block body}{fg=black,bg=white}
+      \setbeamercolor{itemize item}{fg=orange!20!black}
+      \setbeamertemplate{itemize item}[triangle]
+    }%
+    \usebeamertemplate{block begin}}
+                 {\par\usebeamertemplate{block end}\end{actionenv}}
+
+\newenvironment<>{greyblock}[1]{%
+  \begin{actionenv}#2%
+    \def\insertblocktitle{#1}%
+    \par%
+    \mode<presentation>{%
+      \setbeamercolor{block title}{fg=white,bg=black!50!white}
+      \setbeamercolor{block body}{fg=black,bg=white}
+      \setbeamercolor{itemize item}{fg=orange!20!black}
+      \setbeamertemplate{itemize item}[triangle]
+    }%
+    \usebeamertemplate{block begin}}
+                 {\par\usebeamertemplate{block end}\end{actionenv}}
+                 

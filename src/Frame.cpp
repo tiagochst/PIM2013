@@ -13,10 +13,10 @@ Frame::Frame ()
     :   m_mesh ( 0x0 ),
         m_texture ( 0x0 ),
         m_depthMap ( 0x0 ),
-        m_displacements ( 0x0 ),
-        m_rawDisplacementsX (),
-        m_rawDisplacementsY (),
-        m_rawDisplacementsZ ()
+        m_disparityMap ( 0x0 ),
+        m_motionFieldX (),
+        m_motionFieldY (),
+        m_motionFieldZ ()
 {}
 
 Frame::~Frame ()
@@ -33,9 +33,9 @@ Frame::~Frame ()
         delete m_depthMap;
         m_depthMap = (Image*)0x0;
     }
-    if ( m_displacements ) {
-        delete m_displacements;
-        m_displacements = (PPMImage*)0x0;
+    if ( m_disparityMap ) {
+        delete m_disparityMap;
+        m_disparityMap = (PPMImage*)0x0;
     }
 }
 
@@ -49,7 +49,7 @@ void Frame::Draw () const {
         DrawMesh ();
     }
     if ( params -> GetDrawDisplacement()){ 
-        if(m_displacements) {
+        if(m_disparityMap) {
             DrawDisplacements ();
         }
     }
@@ -106,38 +106,42 @@ void Frame::DrawMesh () const {
 }
 
 void Frame::DrawDisplacements () const {
+    ParameterHandler* params = ParameterHandler::Instance ();
+    const float n = -params->GetNearPlane ();
+    const float f = -params->GetFarPlane ();
+
     glLineWidth ( 2.5f );
     
     glShadeModel ( GL_SMOOTH );
     glBegin ( GL_LINES );
-    float maxVal = m_displacements->GetMaxValue ();
+    float maxVal = m_disparityMap->GetMaxValue ();
     for ( unsigned int vtx = 0; vtx < m_mesh->GetNumVertices (); vtx++ ) {
         const Vertex& vert = m_mesh->GetVertex ( vtx );
 
-        unsigned int u,v;
+        float u,v;
         vert.GetUVCoord ( u, v );
 
-        float r = (float)m_displacements->GetChannelValue ( v, u, RED   ) / maxVal;
-        float g = (float)m_displacements->GetChannelValue ( v, u, GREEN ) / maxVal;
-        float b = (float)m_displacements->GetChannelValue ( v, u, BLUE  ) / maxVal;
+        float r = (float)m_disparityMap->GetChannelValue ( v, u, RED   ) / maxVal;
+        float g = (float)m_disparityMap->GetChannelValue ( v, u, GREEN ) / maxVal;
+        float b = (float)m_disparityMap->GetChannelValue ( v, u, BLUE  ) / maxVal;
 
         Color c ( r, g, b );
         
         Vec3Df disp = Vec3Df (
-            m_rawDisplacementsX ( v, u ),
-            m_rawDisplacementsY ( v, u ),
-            m_rawDisplacementsZ ( v, u )
+            m_motionFieldX ( v, u ),
+            m_motionFieldY ( v, u ),
+            m_motionFieldZ ( v, u )
         );
         Vec3Df pos0 = vert.GetPosition ();
         Vec3Df pos1 = pos0 + disp;
 
-        if ( fabs ( disp[2] )  >= 1000.0f ) {
-            continue;
-        }
-        if ( pos0[2]  > -500.0f || pos0[2]  > -500.0f || pos0[2]  > -500.0f ) {
-            continue;
-        }
-        if ( pos1[2]  > -500.0f || pos1[2]  > -500.0f || pos1[2]  > -500.0f ) {
+        if (
+               ( pos0[2] >= n ) || ( pos0[2] <= f )
+            || ( pos1[2] >= n ) || ( pos1[2] <= f )
+        ) {
+            //std::cout << p0 << std::endl;
+            //std::cout << p1 << std::endl;
+            //std::cout << p2 << std::endl;
             continue;
         }
 
@@ -149,39 +153,51 @@ void Frame::DrawDisplacements () const {
     glEnd ();
 }
 
-void Frame::LoadDisplacements ( const std::string& iPath ) {
-    if ( m_displacements ) {
-        delete m_displacements;
-        m_displacements = (PPMImage*)0x0;
+void Frame::LoadMotionField ( const std::string& iPath ) {
+    if ( m_disparityMap ) {
+        delete m_disparityMap;
+        m_disparityMap = (PPMImage*)0x0;
     }
-    m_displacements = PPMImage::TryLoadFromFile ( iPath + "displacement.ppm" );
+    m_disparityMap = PPMImage::TryLoadFromFile ( iPath + "disparityMap.ppm" );
 
-    m_rawDisplacementsX.resize (
+    m_motionFieldU.resize (
         m_texture->GetHeight (),
         m_texture->GetWidth ()
     );
-    m_rawDisplacementsY.resize (
+    m_motionFieldV.resize (
         m_texture->GetHeight (),
         m_texture->GetWidth ()
     );
-    m_rawDisplacementsZ.resize (
+    m_motionFieldX.resize (
+        m_texture->GetHeight (),
+        m_texture->GetWidth ()
+    );
+    m_motionFieldY.resize (
+        m_texture->GetHeight (),
+        m_texture->GetWidth ()
+    );
+    m_motionFieldZ.resize (
         m_texture->GetHeight (),
         m_texture->GetWidth ()
     );
 
-    std::ifstream rawDisps ( (iPath + "rawDisplacement.dat").c_str(), std::ifstream::binary );
-    if ( rawDisps.good () && rawDisps.is_open () ) {
+    std::ifstream motionField ( (iPath + "motionField.dat").c_str(), std::ifstream::binary );
+    if ( motionField.good () && motionField.is_open () ) {
         for ( unsigned int x = 0; x < m_texture->GetWidth (); x++ ) {
             for ( unsigned int y = 0; y < m_texture->GetHeight (); y++ ) {
-                float rdx, rdy, rdz;
+                float rdu, rdv, rdx, rdy, rdz;
 
-                rawDisps.read ( (char*)&rdx, sizeof ( float ) );
-                rawDisps.read ( (char*)&rdy, sizeof ( float ) );
-                rawDisps.read ( (char*)&rdz, sizeof ( float ) );
+                motionField.read ( (char*)&rdu, sizeof ( float ) );
+                motionField.read ( (char*)&rdv, sizeof ( float ) );
+                motionField.read ( (char*)&rdx, sizeof ( float ) );
+                motionField.read ( (char*)&rdy, sizeof ( float ) );
+                motionField.read ( (char*)&rdz, sizeof ( float ) );
 
-                m_rawDisplacementsX ( y, x ) = rdx;
-                m_rawDisplacementsY ( y, x ) = rdy;
-                m_rawDisplacementsZ ( y, x ) = rdz;
+                m_motionFieldU ( y, x ) = rdu;
+                m_motionFieldV ( y, x ) = rdv;
+                m_motionFieldX ( y, x ) = rdx;
+                m_motionFieldY ( y, x ) = rdy;
+                m_motionFieldZ ( y, x ) = rdz;
             }
         }
     }
@@ -208,5 +224,17 @@ void Frame::LoadFromFile ( const std::string& iPath ) {
     }
     m_depthMap = new Image ();
     m_depthMap->LoadFromFile ( iPath + "depthMap.pgm" ); 
+}
+
+void Frame::ApplyMotionField (
+    PointSet&       ioMesh
+) const {
+    ioMesh.ApplyMotionField (
+        m_motionFieldU, 
+        m_motionFieldV, 
+        m_motionFieldX, 
+        m_motionFieldY, 
+        m_motionFieldZ
+    );
 }
 

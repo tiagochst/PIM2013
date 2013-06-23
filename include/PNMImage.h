@@ -23,7 +23,7 @@ public:
     virtual void SetMaxValue (
         const unsigned int&     iMaxValue
     ) = 0;
-    virtual const unsigned int& GetChannelValue (
+    virtual const unsigned int GetChannelValue (
         const unsigned int&     iRow,
         const unsigned int&     iCol,
         const unsigned int&     iChannel

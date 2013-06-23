@@ -73,7 +73,7 @@ void Window::setReferenceFrame(int iFrame){
             referenceFrame.at(idxFrame) -> oldFrameStyle = referenceFrame.at(idxFrame) -> frameStyle();
             referenceFrame.at(idxFrame) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
             referenceFrame.at(idxFrame) -> setStyleSheet("color:red");
-            referenceFrame.at(idxFrame)  -> setLineWidth(3);
+            referenceFrame.at(idxFrame) -> setLineWidth(3);
         }
 
         return;
@@ -161,9 +161,9 @@ void Window::findAutoAnchors(){
 
     while(!listOfFrames.atEnd())
     {
-        progress +=  2;
+        progress++;
         if (progressDialog)
-            progressDialog->setValue (progress);
+            progressDialog->setValue (100*progress/400);
 
         id = listOfFrames.readLine();
         
@@ -176,7 +176,7 @@ void Window::findAutoAnchors(){
 
         float errorScore = ImageBase::CalculateErrorScore ( frame, refFrame );
         cout << errorScore << endl;
-        if( 100.0f * errorScore <= params->GetThreshold () ){
+        if( errorScore <= params->GetThreshold () ){
             cout << "Anchor frame found" << endl;
             /* Save frame as an anchor */
             bool ok;
@@ -787,19 +787,15 @@ void Window::setFrame1(int iFrame) {
     if(iFrame >= 0 && !isinf(iFrame)){
         params -> SetFrame1(iFrame);
 
-        try{
-            std::string path = Config::FramesPath() + "f" + toString (iFrame) + "/";
-            
-            Frame* frame = new Frame ();
-            frame->LoadFromFile ( path );
-            frame->LoadDisplacements ( 
+        std::string path = Config::FramesPath() + "f" + toString (iFrame) + "/";
+
+        Frame* frame = new Frame ();
+        frame->LoadFromFile ( path );
+        frame->LoadMotionField ( 
                 path + "track/" + toString ( params->GetFrame2()) + "/"
                 );
-            
-            params->SetCurrentFrame ( frame );
-        } catch(...){
-        
-        }
+
+        params->SetCurrentFrame ( frame );
     }
     
     if(params -> GetMesh()){
@@ -866,13 +862,13 @@ void Window::calcDisp() {
         tarDep
     );
     pt.Track ();
-    pt.Calculate3DDisplacements (
+    pt.CalculateMotionField (
        refMesh, tarMesh 
     );
     pt.Export ( f1path + "track/" + Int2Str(params->GetFrame2()) + "/" );
     
     std::cout << "Frame ID: " << Int2Str(params->GetFrame1())<< std::endl;
-    params->GetCurrentFrame()->LoadDisplacements ( f1path + "track/" + Int2Str (params->GetFrame2 ()) + "/" );
+    params->GetCurrentFrame()->LoadMotionField ( f1path + "track/" + Int2Str (params->GetFrame2 ()) + "/" );
 
     delete refImg;
     refImg = (Image*)0x0;
@@ -942,7 +938,7 @@ void Window::updateImages() {
     if (dispX) delete dispX;
     dispX = new QLabel;
     dispX -> setMaximumSize(QSize(320, 240));
-    QPixmap pic3(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "f"+ frameID1 + "/track/"+ frameID2 + "/displacement.ppm").c_str()))));
+    QPixmap pic3(QPixmap(QString::fromUtf8(((RES_IMG_PATH + "f"+ frameID1 + "/track/"+ frameID2 + "/disparityMap.ppm").c_str()))));
     if(!pic3.isNull())
         dispX -> setPixmap(pic3.scaled( 320, 240, Qt::IgnoreAspectRatio, Qt::FastTransformation));
 
@@ -972,7 +968,7 @@ void Window::setFrame2(int iFrame) {
         params->SetFrame2(iFrame);
         
         if ( params->GetCurrentFrame () ) {
-            params->GetCurrentFrame ()->LoadDisplacements (
+            params->GetCurrentFrame ()->LoadMotionField (
                 Config::FramesPath () + "f" + Int2Str ( params->GetFrame1 () ) +
                 "/track/" + Int2Str ( iFrame ) + "/"
             );
@@ -1192,7 +1188,7 @@ void Window::initControlWidget () {
     /* Creating tables for frame selection */
     frame1ComboBox = new QComboBox (previewGroupBox);
     frame2ComboBox = new QComboBox (previewGroupBox);
-    this -> setFrame1(0);
+    //this -> setFrame1(0); // Used for point set allocation
     addImageItems();
 
     animation2ComboBox = new QComboBox (previewGroupBox);
@@ -1308,17 +1304,21 @@ void Window::initControlWidget () {
     nearPlaneSP -> setValue(params -> GetNearPlane());
     QLabel*   nearPlaneLabel = new QLabel(tr("Near Plane:"));
     nearPlaneLabel -> setBuddy(nearPlaneSP);
+    nearPlaneSP -> setMaximum(100000);
+    nearPlaneSP -> setMinimum(-100000);
     nearPlaneSP -> setSingleStep(10);
     
     farPlaneSP = new QSpinBox(parametersGroupBox);
     QLabel*   farPlaneLabel = new QLabel(tr("Far Plane:"));
     farPlaneLabel -> setBuddy(farPlaneSP);
     farPlaneSP -> setMaximum(100000);
+    farPlaneSP -> setMinimum(-100000);
     farPlaneSP -> setSingleStep(10);
     farPlaneSP -> setValue(params -> GetFarPlane());
 
     framesToCapture = new QSpinBox(parametersGroupBox);
     framesToCapture -> setValue(params -> GetNumCaptureFrames());
+    framesToCapture->setMaximum ( 1000 );
     QLabel*   framesToCaptureLabel = new QLabel(tr("Frames to Capture:"));
     framesToCaptureLabel -> setBuddy(framesToCapture);
 

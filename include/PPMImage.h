@@ -24,7 +24,7 @@ public:
     void SetMaxValue (
         const unsigned int&     iValue
     );
-    const unsigned int& GetChannelValue (
+    const unsigned int GetChannelValue (
         const unsigned int&     iRow,
         const unsigned int&     iCol,
         const unsigned int&     iChannel

@@ -103,6 +103,9 @@ void GLViewer::init() {
 
     //restoreStateFromFile();
 
+    m_wireframe = false;
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
     // Make world axis visible
     //setAxisIsDrawn();
 }
@@ -170,6 +173,9 @@ static void drawPoints (
     glEnd();
 }
 
+#include <XnTypes.h>
+#include "PPMImage.h"
+#include "Image.h"
 void GLViewer::draw () {
     // Here we are in the world coordinate system.
     // Draw your scene here.
@@ -187,17 +193,17 @@ void GLViewer::draw () {
 
     ParameterHandler* params = ParameterHandler::Instance ();
     if ( params->GetCamera () ) {
-        PointSet* ps = new PointSet ();
-        Camera& cam = Camera::Instance ();
-        cam.ReadFrame (
-            0x0,
-            0x0,
-            ps
-            );
         
-        ps->Draw ();
-        delete ps;
-        ps = NULL;
+        Camera& cam = Camera::Instance ();
+        PointSet ps;
+        cam.ReadFrame (
+            (Image*)0x0,
+            (Image*)0x0,
+            &ps
+        );
+
+        ps.MoveToBarycenter ();
+        ps.Draw ();
     } else {
         const Frame* f = params->GetCurrentFrame ();
         
@@ -222,11 +228,13 @@ void GLViewer::keyPressEvent(QKeyEvent *e)
     bool handled = false;
     if ((e->key()==Qt::Key_W) && (modifiers==Qt::NoButton))
         {
-            m_wireframe = !m_wireframe;
-            if (m_wireframe)
-                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            else
+            if (m_wireframe) {
+                m_wireframe = false;
                 glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            } else {
+                m_wireframe = true;
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            }
             handled = true;
             updateGL();
         }

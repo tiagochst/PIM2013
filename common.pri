@@ -31,6 +31,7 @@ HEADERS              =  include/Window.h                \
                         include/ImagePyramid.h          \
                         include/Frame.h                 \
                         include/Clip.h                  \
+                        include/PointCloudGenerator.h   \
                         include/TrackInfo.h
 
 SOURCES              =  src/Window.cpp                  \
@@ -52,6 +53,7 @@ SOURCES              =  src/Window.cpp                  \
                         src/ImagePyramid.cpp            \
                         src/Frame.cpp                   \
                         src/Clip.cpp                    \
+                        src/PointCloudGenerator.cpp     \
                         src/TrackInfo.cpp 
 
 

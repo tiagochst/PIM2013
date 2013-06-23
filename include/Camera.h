@@ -53,6 +53,8 @@ enum DisplayModes_e
 	DISPLAY_MODE_IMAGE
 };
 
+class PPMImage;
+
 class Camera
     :   public QObject
 {
@@ -70,7 +72,18 @@ public:
 	virtual XnStatus Init(int argc, char **argv);
 	virtual XnStatus Run();	//Does not return
 
+
+    void ConvertProjectiveToRealWorld (
+        const unsigned int&     iCount,
+        const XnPoint3D*        iProjective,
+        XnPoint3D*              iRealWorld
+    ) const;
     void BuildTextureMaps ();
+    void ReadFrame (
+        PPMImage&               oTexture,
+        Image&                  oDepth,
+        std::vector<XnPoint3D>& oRealPoints
+    );
     void ReadFrame (
         Image*      oBrightness,
         Image*      oDepth,

@@ -6,10 +6,10 @@ Vertex::Vertex(void)
 {}
 
 Vertex::Vertex(const Vec3Df& iPosition, const Vec3Df& iNormal, const Color& iColor)
-    : m_position(iPosition), m_normal(iNormal), m_color(iColor), m_U (0u), m_V (0u)
+    : m_position(iPosition), m_normal(iNormal), m_color(iColor), m_U (0.0f), m_V (0.0f)
 {}
 
-Vertex::Vertex(const Vec3Df& iPosition, const Vec3Df& iNormal, const Color& iColor, const unsigned int& iU, const unsigned int& iV)
+Vertex::Vertex(const Vec3Df& iPosition, const Vec3Df& iNormal, const Color& iColor, const float& iU, const float& iV)
     : m_position(iPosition), m_normal(iNormal), m_color(iColor), m_U(iU), m_V(iV)
 {}
 
@@ -57,13 +57,13 @@ void Vertex::SetColor(const Color& iColor)
     m_color = iColor;
 }
 
-void Vertex::GetUVCoord(unsigned int& oU, unsigned int& oV) const
+void Vertex::GetUVCoord(float& oU, float& oV) const
 {
     oU = m_U;
     oV = m_V;
 }
 
-void Vertex::SetUVCoord(const unsigned int& iU, const unsigned int& iV)
+void Vertex::SetUVCoord(const float& iU, const float& iV)
 {
     m_U = iU;
     m_V = iV;

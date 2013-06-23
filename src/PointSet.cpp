@@ -1,13 +1,22 @@
 #include "PointSet.h"
+#include "PPMImage.h"
+#include "Image.h"
 #include "PlyFile.h"
 #include <string>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <exception>
+#include <stdexcept>
+#include <sstream>
+#include <XnTypes.h>
+#include <cmath>
+
+using namespace std;
 
 typedef struct VertexPOD {
     float           x, y, z; // Position
     float           nx, ny, nz; // Normal
-    unsigned int    u, v; //UV coordinates
+    float           u, v; //UV coordinates
     unsigned char   red, green, blue, alpha; // Color
 } VertxPOD;
 
@@ -23,8 +32,8 @@ static PlyProperty vertexProperties[] = {
     {            "nx", PLY_FLOAT, PLY_FLOAT, offsetof(VertexPOD,    nx), 0,         0,         0,                         0},
     {            "ny", PLY_FLOAT, PLY_FLOAT, offsetof(VertexPOD,    ny), 0,         0,         0,                         0},
     {            "nz", PLY_FLOAT, PLY_FLOAT, offsetof(VertexPOD,    nz), 0,         0,         0,                         0},
-    {             "u",  PLY_UINT,  PLY_UINT, offsetof(VertexPOD,     u), 0,         0,         0,                         0},
-    {             "v",  PLY_UINT,  PLY_UINT, offsetof(VertexPOD,     v), 0,         0,         0,                         0},
+    {             "u", PLY_FLOAT, PLY_FLOAT, offsetof(VertexPOD,     u), 0,         0,         0,                         0},
+    {             "v", PLY_FLOAT, PLY_FLOAT, offsetof(VertexPOD,     v), 0,         0,         0,                         0},
     {           "red", PLY_UCHAR, PLY_UCHAR, offsetof(VertexPOD,   red), 0,         0,         0,                         0},
     {         "green", PLY_UCHAR, PLY_UCHAR, offsetof(VertexPOD, green), 0,         0,         0,                         0},
     {          "blue", PLY_UCHAR, PLY_UCHAR, offsetof(VertexPOD,  blue), 0,         0,         0,                         0},
@@ -98,8 +107,8 @@ void PointSet::WritePlyFile(const char* iFilename) {
         const Vec3Df&   position    =   vtx.GetPosition ();
         const Vec3Df&   normal      =   vtx.GetNormal ();
         const Color&    color       =   vtx.GetColor ();
-        unsigned int    u           =   0;
-        unsigned int    v           =   0;
+        float           u           =   0;
+        float           v           =   0;
 
         vtx.GetUVCoord ( u, v );
 
@@ -341,7 +350,7 @@ void PointSet::PushVertex (
 ) {
     CartesianCoordinate p;
 
-    unsigned int x, y;
+    float x, y;
     iVertex.GetUVCoord ( x, y );
     p.x = x;
     p.y = y;
@@ -360,16 +369,16 @@ void PointSet::PushFace (
 const Vertex& PointSet::GetVertex ( const unsigned int& iVertex ) const {
     return m_vertices[iVertex];
 }
-#include <exception>
-#include <stdexcept>
-#include <sstream>
-const Vertex* PointSet::GetVertex ( const unsigned int& iU, const unsigned int& iV ) {
+Vertex& PointSet::GetVertex ( const unsigned int& iVertex ) {
+    return m_vertices[iVertex];
+}
+Vertex* PointSet::GetVertex ( const unsigned int& iU, const unsigned int& iV ) {
     CartesianCoordinate p ( iU, iV );
 
     for ( unsigned int i = 0; i < m_vtxCount; i++ ) {
-        const Vertex& vert = m_vertices[i];
+        Vertex& vert = m_vertices[i];
         
-        unsigned int x, y;
+        float x, y;
         vert.GetUVCoord (x, y);
         if (x == iU && y == iV ) {
             return &vert;
@@ -378,17 +387,18 @@ const Vertex* PointSet::GetVertex ( const unsigned int& iU, const unsigned int& 
     std::cout << "Error on " << iU << " " << iV;
     std::stringstream error;
 
+    /*if ( m_imageToRealWorld.count ( p ) > 0 ) {
+        unsigned int& vtx = m_imageToRealWorld[p];
+
+        return &(m_vertices[vtx]);
+    }*/
     error << "Cannot find vertex with UV coordinates ( " << iU << ", " << iV << " ).";
     throw std::out_of_range ( error.str ().c_str () );
-
-    //if ( m_imageToRealWorld.count ( p ) > 0 ) {
-    //    unsigned int& vtx = m_imageToRealWorld[p];
-
-    //    return &(m_vertices[vtx]);
-    //}
-    //return (Vertex*)0x0; 
 }
 const Face& PointSet::GetFace ( const unsigned int& iFace ) const {
+    return m_faces[iFace];
+}
+Face& PointSet::GetFace ( const unsigned int& iFace ) {
     return m_faces[iFace];
 }
 const unsigned int& PointSet::GetNumVertices ()
@@ -398,5 +408,168 @@ const {
 const unsigned int& PointSet::GetNumFaces ()
 const {
     return m_faceCount;
+}
+
+#include "Camera.h"
+void PointSet::BuildFromKinectPointCloud (
+    const PPMImage&           iColorData,
+    const Image&              iFilteredDepth,
+    std::vector<XnPoint3D>&   iRealWorld
+) {
+    const unsigned int& width  = iColorData.Width  ();
+    const unsigned int& height = iColorData.Height ();
+
+    for ( int vtx = 0; vtx < iRealWorld.size (); vtx++ ) {
+        XnPoint3D& pt = iRealWorld[vtx];
+        CartesianCoordinate uvc;
+        uvc.x = vtx % width;
+        uvc.y = vtx / width;
+
+        float maxValue = iColorData.GetMaxValue ();
+        float r = iColorData.GetChannelValue ( uvc.y, uvc.x, RED   ) / maxValue;
+        float g = iColorData.GetChannelValue ( uvc.y, uvc.x, GREEN ) / maxValue;
+        float b = iColorData.GetChannelValue ( uvc.y, uvc.x, BLUE  ) / maxValue;
+        Color c ( r, g, b );
+
+        //pt.Z = iFilteredDepth.GetGreyLvl ( uvc.y, uvc.x );
+
+        PushVertex (
+            Vertex (
+                Vec3Df ( pt.X, pt.Y, -pt.Z ),
+                Vec3Df ( 0, 1, 0 ),
+                c, uvc.x, uvc.y
+            )
+        );
+
+        if ( uvc.x < (width - 1) ) {
+            if ( uvc.y < (height - 1) ) {
+                Face f;
+
+                f.v0 = vtx;
+                f.v1 = vtx + 1;
+                f.v2 = vtx + width;
+                PushFace ( f );
+
+                f.v0 = vtx + 1;
+                f.v1 = vtx + width;
+                f.v2 = vtx + width + 1;
+                PushFace ( f );
+            }
+        }
+    }
+}
+void PointSet::Build (
+    const PPMImage& iColorData,
+    const Image&    iRawDepth,
+    const Image&    iFilteredDepth
+) {
+    std::vector<XnPoint3D> projectivePoints;
+    std::vector<XnPoint3D> realWorld;
+    std::vector<CartesianCoordinate> uvCoords;
+
+    const unsigned int& width = iColorData.Width ();
+    const unsigned int& height = iColorData.Height ();
+
+    for ( unsigned int x = 0; x < width; x++ ) {
+        for ( unsigned int y = 0; y < height; y++ ) {
+            XnPoint3D point;
+            point.X  = x;
+            point.Y  = y;
+            point.Z  = iRawDepth.GetGreyLvl ( y, x );
+            projectivePoints.push_back ( point );
+
+            CartesianCoordinate uvc;
+            uvc.x = x;
+            uvc.y = y;
+            uvCoords.push_back(uvc);
+        }
+    }
+    realWorld.resize ( projectivePoints.size () );
+    Camera::Instance().ConvertProjectiveToRealWorld (
+        projectivePoints.size (),
+        &(projectivePoints[0]),
+        &(realWorld[0])
+    );
+    for ( int vtx = 0; vtx < realWorld.size (); vtx++ ) {
+        XnPoint3D& pt = realWorld[vtx];
+        //XnPoint3D& pt = projectivePoints[vtx];
+        CartesianCoordinate& uvc = uvCoords[vtx];
+
+        float maxValue = iColorData.GetMaxValue ();
+        float r = iColorData.GetChannelValue ( uvc.y, uvc.x, RED   ) / maxValue;
+        float g = iColorData.GetChannelValue ( uvc.y, uvc.x, GREEN ) / maxValue;
+        float b = iColorData.GetChannelValue ( uvc.y, uvc.x, BLUE  ) / maxValue;
+        Color c ( r, g, b );
+
+        //pt.Z = iFilteredDepth.GetGreyLvl ( uvc.y, uvc.x );
+
+        PushVertex (
+            Vertex (
+                Vec3Df ( pt.X, pt.Y, -pt.Z ),
+                Vec3Df ( 0, 1, 0 ),
+                c, uvc.x, uvc.y
+            )
+        );
+
+        if ( (vtx%width) < (width - 1) ) {
+            if ( (vtx/width) < (height - 1) ) {
+                Face f;
+
+                f.v0 = vtx;
+                f.v1 = vtx + 1;
+                f.v2 = vtx + width;
+                PushFace ( f );
+
+                f.v0 = vtx + 1;
+                f.v1 = vtx + width;
+                f.v2 = vtx + width + 1;
+                PushFace ( f );
+            }
+        }
+    }
+}
+
+void PointSet::ApplyMotionField (
+    const Eigen::MatrixXf&  iDeltaU,
+    const Eigen::MatrixXf&  iDeltaV,
+    const Eigen::MatrixXf&  iDeltaX,
+    const Eigen::MatrixXf&  iDeltaY,
+    const Eigen::MatrixXf&  iDeltaZ
+) {
+    const unsigned int& width   = iDeltaU.cols ();
+    const unsigned int& height  = iDeltaU.rows ();
+
+    for ( unsigned int vtx = 0; vtx < m_vertices.size (); vtx++ ) {
+        Vertex& vert = m_vertices[vtx];
+
+        float u,v;
+        vert.GetUVCoord ( u, v );
+
+        unsigned int minU = max ( min ( width  - 1, (unsigned int)nearbyint(u) ), 0u );
+        unsigned int maxU = max ( min ( width  - 1, (unsigned int)nearbyint(u) ), 0u );
+        unsigned int minV = max ( min ( height - 1, (unsigned int)nearbyint(v) ), 0u );
+        unsigned int maxV = max ( min ( height - 1, (unsigned int)nearbyint(v) ), 0u );
+
+        Vec3Df d00 ( iDeltaX(minU,minV),iDeltaY(minU,minV),iDeltaZ(minU,minV) );
+        Vec3Df d01 ( iDeltaX(minU,maxV),iDeltaY(minU,maxV),iDeltaZ(minU,maxV) );
+        Vec3Df d10 ( iDeltaX(maxU,minV),iDeltaY(maxU,minV),iDeltaZ(maxU,minV) );
+        Vec3Df d11 ( iDeltaX(maxU,maxV),iDeltaY(maxU,maxV),iDeltaZ(maxU,maxV) );
+        Vec3Df disp;
+        disp = BilinearInterpolation ( d00, d01, d10, d11, minU, minV, maxU, maxV, u, v );
+
+        Vec3Df pos = vert.GetPosition ();
+        pos+= disp;
+        vert.SetPosition(pos);
+
+        d00 = Vec3Df ( iDeltaU(minU,minV),iDeltaV(minU,minV),0.0f );
+        d01 = Vec3Df ( iDeltaU(minU,maxV),iDeltaV(minU,maxV),0.0f );
+        d10 = Vec3Df ( iDeltaU(maxU,minV),iDeltaV(maxU,minV),0.0f );
+        d11 = Vec3Df ( iDeltaU(maxU,maxV),iDeltaV(maxU,maxV),0.0f );
+        disp = BilinearInterpolation ( d00, d01, d10, d11, minU, minV, maxU, maxV, u, v );
+
+        u += disp[0];
+        v += disp[1];
+        vert.SetUVCoord ( u, v );
+    }
 }
 

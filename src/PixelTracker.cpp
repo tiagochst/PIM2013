@@ -283,19 +283,19 @@ void PixelTracker::Track ()
     // Initial window size calculation.
     //m_winHeight = max ( my - my_, 3 );
     //m_winWidth  = max ( mx - mx_, 3 );
-    m_winHeight = 5;
-    m_winWidth  = 5;
-    m_rejectionTreshold = 0.85f;
+    m_rejectionTreshold = 0.65f;
 
     // Process the rest of the pyramid.
     for ( int i = m_refImgPyr.GetNumLevels () - 1; i >= 0; i-- ) {
+        m_winWidth = m_winHeight = 3 + i;
 
         PyramidTrack ( i );
 
+        std::cout << m_winWidth << " " << m_winHeight << std::endl;
+
         // Every level but the coarsest uses a 3x3 search window for pixel tracking.
-        if ( i == ( m_refImgPyr.GetNumLevels () - 1 ) ) {
-            m_winWidth = m_winHeight = 3;
-        }
+        //if ( i == ( m_refImgPyr.GetNumLevels () - 1 ) ) {
+        //}
     }
 }
 
@@ -347,7 +347,27 @@ void PixelTracker::PyramidMatch (
             if ( iLevel < m_refImgPyr.GetNumLevels () - 1 ) {
                 float fdX = m_dispX[iLevel + 1]->GetNormed ( j/2, i/2 ) * 2.0f;
                 float fdY = m_dispY[iLevel + 1]->GetNormed ( j/2, i/2 ) * 2.0f;
-                if ( !isinf(fdX) && !isinf(fdY) ) {
+                if ( isinf(fdX) && isinf(fdY) ) {
+                    if ( IsOdd ( j ) ) {
+                        fdX = m_dispX[iLevel + 1]->GetNormed ( (j+1)/2, i/2) * 2.0f; 
+                        fdY = m_dispY[iLevel + 1]->GetNormed ( (j+1)/2, i/2) * 2.0f; 
+                    } else {
+                        fdX = m_dispX[iLevel + 1]->GetNormed ( (j-1)/2, i/2) * 2.0f; 
+                        fdY = m_dispY[iLevel + 1]->GetNormed ( (j-1)/2, i/2) * 2.0f; 
+                    }
+                    if ( IsOdd ( i ) ) {
+                        fdX = m_dispX[iLevel + 1]->GetNormed ( j/2, (i+1)/2) * 2.0f; 
+                        fdY = m_dispY[iLevel + 1]->GetNormed ( j/2, (i+1)/2) * 2.0f; 
+                    } else {
+                        fdX = m_dispX[iLevel + 1]->GetNormed ( j/2, (i-1)/2) * 2.0f; 
+                        fdY = m_dispY[iLevel + 1]->GetNormed ( j/2, (i-1)/2) * 2.0f; 
+                    }
+                    if ( !isinf(fdX) || !isinf(fdY) ) {
+                        fdX = fdY = 0.0f;
+                    }
+                    deltaX = nearbyint(fdX); 
+                    deltaY = nearbyint(fdY); 
+                } else {
                     deltaX = nearbyint(fdX); 
                     deltaY = nearbyint(fdY); 
                 }
@@ -785,7 +805,7 @@ void PixelTracker::Export (
     ExportPyramidLevel ( 0, iFilename );
 }
 
-void PixelTracker::Calculate3DDisplacements (
+void PixelTracker::CalculateMotionField (
     PointSet*     iRefMesh,
     PointSet*     iTarMesh
 ) {
@@ -812,8 +832,6 @@ void PixelTracker::Calculate3DDisplacements (
             float minTarV = fmax ( 0, fmin ( height-1, floor((float)y + dY) ) );
             float maxTarV = fmax ( 0, fmin ( height-1,  ceil((float)y + dY) ) );
 
-            //std::cout << dX << " " << dY << " " << minTarU << " " << maxTarU << " " << minTarV << " " << maxTarV << std::endl;
-
             try {
                 const Vec3Df& refPos = iRefMesh->GetVertex ( refU, refV )->GetPosition ();
                 const Vec3Df& q0 = iTarMesh->GetVertex ( minTarU, minTarV )->GetPosition ();
@@ -825,10 +843,6 @@ void PixelTracker::Calculate3DDisplacements (
                 Vec3Df displacement; 
                 tarPos = BilinearInterpolation(q0,q1,q2,q3,minTarU,minTarV,maxTarU,maxTarV,x+dX,y+dY); 
                 displacement = tarPos - refPos;
-                //std::cout   << " Tar:  "    << std::setw ( 25 ) << tarPos
-                //            << " Ref:  "    << std::setw ( 25 ) << refPos
-                //            << " Disp: "    << std::setw ( 25 ) << displacement
-                //            << std::endl;
 
                 m_displacementX ( y, x ) = displacement[0];
                 m_displacementY ( y, x ) = displacement[1];
@@ -875,14 +889,14 @@ void PixelTracker::ExportPyramidLevel (
         dispX->GetHeight ()        
     );
 
-    std::ofstream rawDisp ( (iPath + "rawDisplacement.dat").c_str(), std::ofstream::binary );
+    std::ofstream motionField ( (iPath + "motionField.dat").c_str(), std::ofstream::binary );
 
     Color c;
     Vec3Df redDir ( 1.0f, 0.0f, 0.0f );
     for ( unsigned int x = 0; x < dispX->GetWidth (); x++ ) {
         for ( unsigned int y = 0; y < dispX->GetHeight (); y++ ) {
-            const float dX = dispX->GetNormed ( y, x );
-            const float dY = dispY->GetNormed ( y, x );
+            const float& dX = dispX->GetNormed ( y, x );
+            const float& dY = dispY->GetNormed ( y, x );
             Vec3Df disp ( dX, dY, 0.0f );
 
             if ( isinf(dX) || isinf(dY) ) {
@@ -902,15 +916,17 @@ void PixelTracker::ExportPyramidLevel (
             const float& rDX = m_displacementX ( y, x );
             const float& rDY = m_displacementY ( y, x );
             const float& rDZ = m_displacementZ ( y, x );
-            rawDisp.write ( (const char*)&rDX, sizeof ( float ) );
-            rawDisp.write ( (const char*)&rDY, sizeof ( float ) );
-            rawDisp.write ( (const char*)&rDZ, sizeof ( float ) );
+            motionField.write ( (const char*)&dX, sizeof ( float ) );
+            motionField.write ( (const char*)&dY, sizeof ( float ) );
+            motionField.write ( (const char*)&rDX, sizeof ( float ) );
+            motionField.write ( (const char*)&rDY, sizeof ( float ) );
+            motionField.write ( (const char*)&rDZ, sizeof ( float ) );
 
             disparityMap.SetChannelValue ( y, x,   RED, 255.f * c.Red () );
             disparityMap.SetChannelValue ( y, x, GREEN, 255.f * c.Green () );
             disparityMap.SetChannelValue ( y, x,  BLUE, 255.f * c.Blue () );
         }
     }
-    rawDisp.close ();
-    disparityMap.WriteToFile ( iPath + "displacement.ppm", PIXMAP | BINARY );
+    motionField.close ();
+    disparityMap.WriteToFile ( iPath + "disparityMap.ppm", PIXMAP | BINARY );
 }

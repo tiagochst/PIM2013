@@ -83,7 +83,7 @@ public:
         const unsigned int&     iLevel,
         const std::string&      iFilename
     ) const; 
-    void Calculate3DDisplacements (
+    void CalculateMotionField (
         PointSet*     iRefMesh,
         PointSet*     iTarMesh
     );

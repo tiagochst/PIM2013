@@ -164,9 +164,6 @@ void PNMImage::LoadFromFile (
                         input.read ( (char*)&g, 1 );
                         input.read ( (char*)&b, 1 );
 
-                        //std::cout   << (unsigned int)r << " " 
-                        //            << (unsigned int)g << " " 
-                        //            << (unsigned int)b << std::endl;
                         SetChannelValue ( i, j,   RED, (unsigned int)r );
                         SetChannelValue ( i, j, GREEN, (unsigned int)g );
                         SetChannelValue ( i, j,  BLUE, (unsigned int)b );

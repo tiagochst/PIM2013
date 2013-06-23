@@ -50,7 +50,7 @@ float ImageBase::CalculateErrorScore (
     assert ( iImageA.GetHeight () == iImageB.GetHeight () );
 
     const unsigned int& SAMPLING_STEP   = 3;
-    const int&          NH_SZ           = 3;
+    const int&          NH_SZ           = 15;
 
     float globalScore = 0.f;
     const int height  = iImageA.GetHeight ();
@@ -112,7 +112,8 @@ float ImageBase::CalculateErrorScore (
     //featureCount++;
 
     //std::cerr << featureCount << " " << zeroCount << " " << oneCount << std::endl;
-    return ( globalScore / (float)featureCount );
+    //return ( globalScore / (float)featureCount );
+    return ( globalScore );
 }
 
 

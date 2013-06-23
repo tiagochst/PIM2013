@@ -9,14 +9,14 @@ private:
     Vec3Df          m_position;
     Vec3Df          m_normal;
     Color           m_color;
-    unsigned int    m_U;
-    unsigned int    m_V;
+    float           m_U;
+    float           m_V;
 
 public:
     // Constructors & destructors
     Vertex(void);
     Vertex(const Vec3Df& iPosition, const Vec3Df& iNormal, const Color& iColor);
-    Vertex(const Vec3Df& iPosition, const Vec3Df& iNormal, const Color& iColor, const unsigned int& iU, const unsigned int& iV);
+    Vertex(const Vec3Df& iPosition, const Vec3Df& iNormal, const Color& iColor, const float& iU, const float& iV);
     Vertex(const Vertex& iSource);
     ~Vertex(void);
 
@@ -30,8 +30,8 @@ public:
     const Color& GetColor(void) const;
     void SetColor(const Color& iColor);
 
-    void GetUVCoord(unsigned int& oU, unsigned int& oV) const;
-    void SetUVCoord(const unsigned int& iU, const unsigned int& iV);
+    void GetUVCoord(float& oU, float& oV) const;
+    void SetUVCoord(const float& iU, const float& iV);
 
     // Operators
     Vertex& operator=(const Vertex& iOther);

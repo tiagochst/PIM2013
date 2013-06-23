@@ -7,6 +7,7 @@
 #include "ParameterHandler.h"
 #include "FileWriterServices.h"
 #include "MathUtils.h"
+#include "PPMImage.h"
 
 using namespace xn;
 
@@ -361,16 +362,81 @@ void Camera::ScalePoint(XnPoint3D& point)
     point.Y /= m_depthMD.YRes();
 }
 
+const XnUInt XOffset    = 160u;
+const XnUInt YOffset    = 120u;
+const XnUInt CropWidth  = 320u;
+const XnUInt CropHeight = 240u;
+
+void Camera::ReadFrame (
+    PPMImage&               oTexture,
+    Image&                  oDepth,
+    std::vector<XnPoint3D>& oRealPoints  
+) {
+    const XnUInt& width   = m_imageMD.XRes();
+    const XnUInt& height  = m_imageMD.YRes();
+
+    oTexture.ResetDimensions (
+            CropWidth,
+            CropHeight
+            );
+    oTexture.SetMaxValue ( 255 );
+
+    oDepth.SetDimensions (
+            CropWidth,
+            CropHeight
+            );
+    oDepth.SetMaxGreyLevel ( 5000 );
+
+    const XnRGB24Pixel* pImageRow   = m_imageMD.RGB24Data()
+                                    + YOffset * width
+                                    + XOffset;
+    const XnDepthPixel* pDepthRow   = m_depthMD.Data()
+                                    + YOffset * width
+                                    + XOffset;
+
+
+    std::vector<XnPoint3D> projectivePoints;
+    for (XnUInt y = 0; y < CropHeight; ++y)
+    {
+        const XnRGB24Pixel* pImage = pImageRow;
+        const XnDepthPixel* pDepth = pDepthRow;
+        
+        for (XnUInt x = 0; x < CropWidth; ++x, ++pImage, ++pDepth)
+        {
+            /* HDTV rgb to grayscale*/
+            oTexture.SetChannelValue ( y, x,   RED, pImage->nRed   );
+            oTexture.SetChannelValue ( y, x, GREEN, pImage->nGreen );
+            oTexture.SetChannelValue ( y, x,  BLUE, pImage->nBlue  );
+            
+            oDepth.SetGreyLvl ( y, x, *pDepth );
+
+            XnPoint3D p;
+            p.X = x;
+            p.Y = y;
+            p.Z = *pDepth;
+            projectivePoints.push_back (p);
+        }
+
+        pImageRow += m_imageMD.XRes();
+        pDepthRow += m_depthMD.XRes();
+    }
+    oRealPoints.resize ( projectivePoints.size () );
+    m_depth.ConvertProjectiveToRealWorld ( projectivePoints.size (), &(projectivePoints[0]), &(oRealPoints[0]) );
+}
+
+void Camera::ConvertProjectiveToRealWorld (
+    const unsigned int&     iCount,
+    const XnPoint3D*        iProjective,
+    XnPoint3D*              iRealWorld
+) const {
+    m_depth.ConvertProjectiveToRealWorld ( iCount, iProjective, iRealWorld );
+}
+
 void Camera::ReadFrame (
     Image*      oBrightness,
     Image*      oDepth,
     PointSet*   oPoints
 ) {
-    const XnUInt XOffset    = 160u;
-    const XnUInt YOffset    = 120u;
-    const XnUInt CropWidth  = 320u;
-    const XnUInt CropHeight = 240u;
-
     const XnUInt& width   = m_imageMD.XRes();
     const XnUInt& height  = m_imageMD.YRes();
 
@@ -539,14 +605,14 @@ void Camera::captureSingleFrame()
 {
     ParameterHandler* params = ParameterHandler::Instance();
 
-    Image*      camImg = new Image ();
+    PPMImage*   camImg = new PPMImage ();
     Image*      camDepth = new Image ();
-    PointSet*   pointCloud = new PointSet ();
 
+    std::vector<XnPoint3D>* realPoints = new std::vector<XnPoint3D>();
     ReadFrame (
-        camImg,
-        camDepth,
-        pointCloud
+        *camImg,
+        *camDepth,
+        *realPoints
     );
 
     //QThread* thread = new QThread();
@@ -565,7 +631,7 @@ void Camera::captureSingleFrame()
         m_nbFrames++,
         camImg,
         camDepth,
-        pointCloud,
+        realPoints,
         Config::FramesPath()
     );
 

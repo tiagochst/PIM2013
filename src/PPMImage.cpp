@@ -35,7 +35,8 @@ void PPMImage::SetMaxValue (
 ) {
     m_maxValue = iMaxValue;
 }
-const unsigned int& PPMImage::GetChannelValue (
+#include <cmath>
+const unsigned int PPMImage::GetChannelValue (
     const unsigned int&     iRow,
     const unsigned int&     iCol,
     const unsigned int&     iChannel
@@ -54,7 +55,7 @@ const unsigned int& PPMImage::GetChannelValue (
         if ( iChannel & BIT ) {
             return ( grey >= ( 0.5f * m_maxValue ) ) ? 0u : 1u;
         } else {
-            return (unsigned int)grey;
+            return nearbyint (grey);
         }
     }
 }
@@ -146,10 +147,10 @@ void PPMImage::WriteToFile (
                 }
             } else if ( iMode & GREYMAP ) {
                 unsigned int    grey    = GetChannelValue ( i, j, GREY );
-                unsigned char   cgrey   = (grey * 255) / m_maxValue; 
 
                 if ( iMode & BINARY ) {
-                    outFile.write ( (char*)&grey , 1 );
+                    unsigned char   cgrey   = (grey * 255) / m_maxValue; 
+                    outFile.write ( (char*)&cgrey , 1 );
                 } else {
                     outFile << grey << std::endl;
                 }

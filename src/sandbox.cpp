@@ -21,6 +21,7 @@
 #include "ParameterHandler.h"
 #include "PixelTracker.h"
 #include "ImagePyramid.h"
+#include "Clip.h"
 
 extern void PrintColorChart (
     const int& width,
@@ -60,7 +61,6 @@ void FindTemplateAndPrintMap(
                 << std::endl;
     oCorrelationMap.CreateAsciiPgm(Config::OutputPath() + iMapFilename);
 }
-
 
 /* Class Camera test: Kinect's  */
 xn::Context        g_context;
@@ -112,11 +112,113 @@ int KinectInit(int argc, char** argv)
 }
 
 int main ( void ) {
+    Config::LoadConfigs(Config::RootPath() + "settings");
+
+    Clip cl ( 0, 15 );
+
+    PointSet mesh;
+    mesh.LoadFromFile (Config::FramesPath () + "f0/mesh.ply" );
+    for ( unsigned int i = 0; i < 10; i++ ) {
+        Frame f;
+        f.LoadMotionField ( Config::FramesPath () + "f" + toString(i) + "/track/" + toString (i+1));
+
+        f.ApplyMotionField ( mesh );
+        mesh.WriteToFile ( Config::OutputPath () + "Animation/0/frame" + toString(i) + ".ply");
+    }
+
+    return 0;
+}
+
+int main_tits ( void ) {
+    Config::LoadConfigs(Config::RootPath() + "settings");
+
+    //for (unsigned int i = 0; i < 35; i++ ) {
+    //    std::string outputPath = Config::FramesPath () + "filtered/f" + Int2Str(i) + "/";
+    //    system ( ( "mkdir -p " + outputPath ).c_str () );
+
+    //    std::string prefix = Config::FramesPath () + "f" + Int2Str(i) + "/";
+    //    std::cout << prefix << std::endl;
+
+    //    PointSet* ps = new PointSet ( prefix + "mesh.ply" );
+    //    Image* tex = new Image ( prefix + "texture.pgm" );
+    //    Image* img = new Image ( prefix + "depthMap.pgm" );
+    //    Image* im = new Image ( img->GetWidth (), img->GetHeight (), img->GetMaxGreyLevel () );
+    //    unsigned int zeroCount = 0;
+    //    do {
+    //        zeroCount = 0;
+    //        for ( int x = 0; x < img->GetWidth (); x++ ) {
+    //            for ( int y = 0; y < img->GetHeight (); y++ ) {
+    //                int value = img->GetGreyLvl ( y, x );
+
+    //                if ( value ) {
+    //                    im->SetGreyLvl(y,x,value);
+    //                    continue;
+    //                };
+
+    //                float median = 0;
+    //                unsigned int zeroes = 0;
+    //                int sv[9];
+    //                unsigned int count = 0;
+    //                for ( int dx = -1; dx <= 1; dx++ ) {
+    //                    for ( int dy = -1; dy <= 1; dy++ ) {
+
+    //                        int val = img->GetGreyLvl ( y + dy, x + dx );
+
+    //                        if ( !val ) continue;
+
+    //                        if ( count ) {
+    //                            sv[count++] = val;
+    //                        } else {
+    //                            int idx = 0;
+    //                            for ( idx = 0; idx < count && sv[idx]<val; idx++ );
+    //                            int tmp[9];
+    //                            memcpy ( tmp, sv + idx, (count - idx)*sizeof(int));
+    //                            sv[idx] = val;
+    //                            memcpy ( sv + idx + 1, tmp, (count++ - idx)*sizeof(int));
+    //                        }
+    //                    }
+    //                }
+    //                if ( count && count & 0x1 ) {
+    //                    median = sv[count >> 1];
+    //                } else if ( count ) {
+    //                    median = (sv[count>>1]+sv[count>>2+1]) / 2.0f;
+    //                }
+    //                if ( median == 0 ) zeroCount++;
+    //                im->SetGreyLvl ( y, x, nearbyint ( median ) );
+    //            }
+    //        }
+    //        Image* tmp = img;
+    //        img = im;
+    //        im = tmp;
+    //    } while ( zeroCount );
+    //    for ( int x = 0; x < img->GetWidth (); x++ ) {
+    //        for ( int y = 0; y < img->GetHeight (); y++ ) {
+    //            Vertex* v = ps->GetVertex(x,y);
+
+    //            Vec3Df pos = v->GetPosition();
+    //            pos[2] = -im->GetGreyLvl ( y, x );
+    //            v->SetPosition (pos);
+    //        }
+    //    }
+    //    ps->WriteToFile ( outputPath + "mesh.ply" );
+    //    tex->CreateAsciiPgm ( outputPath + "texture.ply" );
+    //    im->CreateAsciiPgm ( outputPath + "depthMap.pgm" );
+    //    
+    //    delete ps;
+    //    delete tex;
+    //    delete img;
+    //    delete im;
+    //}
+
     //PPMImage img1; img1.LoadFromFile ( "img1.ppm" );
     //PPMImage img2; img2.LoadFromFile ( "img2.ppm" );
 
-    PPMImage colorChart;
-    PrintColorChart (320,320,Config::DataPath () + "ColorChart.ppm" );
+
+    //PPMImage colorChart;
+    //colorChart.LoadFromFile ( Config::DataPath () + "ColorChart.ppm" );
+    //colorChart.WriteToFile  ( "GreyLevels_bin.pgm", GREYMAP | BINARY );
+    //colorChart.WriteToFile  ( "GreyLevels_ascii.pgm", GREYMAP | ASCII );
+    //PrintColorChart (320,320,Config::DataPath () + "ColorChart.ppm" );
 
     //img1.WriteToFile ( "img1_ascii.ppm", PIXMAP | ASCII );
     //img1.WriteToFile ( "img1_binary.ppm", PIXMAP | BINARY );
@@ -196,7 +298,7 @@ int main_total ( void ) {
     pixTrack.SetReference ( 0, &frame0i, &frame0d );
     pixTrack.SetTarget ( 1, &frame1i, &frame1d );
     pixTrack.Track ();
-    pixTrack.Calculate3DDisplacements (
+    pixTrack.CalculateMotionField (
         &mesh0,
         &mesh1        
     );

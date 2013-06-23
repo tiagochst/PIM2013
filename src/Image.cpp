@@ -52,7 +52,7 @@ Image::~Image () {
 void Image::LoadFromFile (
     const std::string& iFilename
 ) {
-    int width = 0, height = 0, greyLevel = 0, i = 0, j = 0;
+    int width = 0, height = 0, greyLevel = 0;
     int isBinary = 0;
     std::stringstream ss;
     std::string inputLine = "";
@@ -82,36 +82,71 @@ void Image::LoadFromFile (
             isBinary = 1;
         }
 
-        /* Second line : comment */
-        getline( inFile, inputLine );
+        bool widthRead      = true;
+        bool heightRead     = true;
+        bool maxValueRead   = true;
+        while ( widthRead || heightRead || maxValueRead ) {
+            bool isComment = false;
+            std::string inputLine;
+            getline (
+                inFile,
+                inputLine
+            );
+            std::stringstream lineStream ( inputLine );
+            //std::cout << "line read: " << inputLine << std::endl;
 
-        /* Third  line : size
-           Fourth line : grey level*/
-        inFile >> width >> height >> greyLevel ;
-
-        //SetHeight( height );
-        //SetWidth( width );
-        SetDimensions ( width, height );
-        SetMaxGreyLevel ( greyLevel );
-
-        if ( isBinary ) {
-            for ( i = 0; i < height; i++ ) {
-                for ( j = 0; j < width; j++ ) {
-                    int readValue = static_cast<int>( inFile.get() );
-
-                    SetGreyLvl ( i, j, readValue );
+            while (
+                    !lineStream.eof ()
+                &&  ( widthRead || heightRead || maxValueRead )
+            ) {
+                char peeked = lineStream.peek ();
+                while ( peeked == '#' || peeked == ' ' ) {
+                    //std::cout << "blank char '" << peeked << "'" << std::endl;
+                    if ( peeked = '#' ) {
+                        isComment = true;
+                        break;
+                    }
+                    lineStream >> peeked;
+                    peeked = lineStream.peek ();
+                }
+                if ( isComment ) {
+                    isComment = false;
+                    break;
+                }
+                if ( widthRead && !lineStream.eof () ) {
+                    lineStream >> width;
+                    //std::cout << "w: " << width << std::endl;
+                    widthRead = false;
+                }
+                if ( heightRead && !lineStream.eof () ) {
+                    lineStream >> height;
+                    //std::cout << "h: " << height << std::endl;
+                    heightRead = false;
+                }
+                if ( maxValueRead && !lineStream.eof () ) {
+                    lineStream >> greyLevel;
+                    //std::cout << "m: " << greyLevel << std::endl;
+                    maxValueRead = false;
                 }
             }
-        } else {
+        }
+        SetMaxGreyLevel ( greyLevel );
+        SetDimensions ( width, height );
+
+        if ( !isBinary ) {
             ss << inFile.rdbuf();
+        }
+        for ( int i = 0; i < height; i++ ) {
+            for ( int j = 0; j < width; j++ ) {
+                int readValue = 0;
 
-            for ( i = 0; i < height; i++ ) {
-                for ( j = 0; j < width; j++ ) {
-                    int readValue = 0;
+                if ( isBinary ) {
+                    readValue = static_cast<int>( inFile.get() );
+                } else {
                     ss >> readValue;
-
-                    SetGreyLvl ( i, j, readValue );
                 }
+
+                SetGreyLvl ( i, j, readValue );
             }
         }
         inFile.close();

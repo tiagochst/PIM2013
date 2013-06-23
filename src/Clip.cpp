@@ -24,6 +24,7 @@ Clip::Clip (
     Frame* f1 = new Frame ();
     f1->LoadFromFile ( prefix + Int2Str(m_startFrame) + "/" );
     for ( unsigned int frame = m_startFrame; frame < m_endFrame; frame++ ) {
+        std::cout << "Calculating frame " << frame << std::endl;
         
         Frame* f2 = new Frame ();
         f2->LoadFromFile ( prefix + Int2Str(frame + 1) + "/" );
@@ -54,12 +55,12 @@ void Clip::CreateDisplacementMaps (
     );
     pt.SetTarget (
         iTarFrameId,
-        iRefFrame->GetTexture (),
-        iRefFrame->GetDepthMap ()
+        iTarFrame->GetTexture (),
+        iTarFrame->GetDepthMap ()
     );
     
     pt.Track ();
-    pt.Calculate3DDisplacements (
+    pt.CalculateMotionField(
         iRefFrame->GetMesh (),
         iTarFrame->GetMesh ()
     );

@@ -3,11 +3,14 @@
 
 #include <QObject>
 #include <QQueue>
+#include <vector>
+#include <XnTypes.h>
 
 class FrameDescriptor;
 class QThread;
 class PointSet;
 class Image;
+class PPMImage;
 
 class FileWriterServices
     :   public QObject
@@ -25,11 +28,18 @@ public:
     static FileWriterServices* Instance ();
     static void DeleteInstance ();
     void RegisterFrame (
+        unsigned int            iFrameId,
+        PPMImage*               iTextureInfo,
+        Image*                  iDepthInfo,
+        std::vector<XnPoint3D>* iVertexInfo,
+        std::string             iPath
+    );
+    void RegisterFrame (
         unsigned int    iFrameId,
         Image*          iBrightnessInfo,
         Image*          iDepthInfo,
         PointSet*       iVertexInfo,
-	std::string     iPath
+        std::string     iPath
     );
 
 signals:

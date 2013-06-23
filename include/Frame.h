@@ -13,10 +13,12 @@ private:
     PointSet*           m_mesh;
     Image*              m_texture;
     Image*              m_depthMap;
-    PPMImage*           m_displacements;
-    Eigen::MatrixXf     m_rawDisplacementsX;
-    Eigen::MatrixXf     m_rawDisplacementsY;
-    Eigen::MatrixXf     m_rawDisplacementsZ;
+    PPMImage*           m_disparityMap;
+    Eigen::MatrixXf     m_motionFieldU;
+    Eigen::MatrixXf     m_motionFieldV;
+    Eigen::MatrixXf     m_motionFieldX;
+    Eigen::MatrixXf     m_motionFieldY;
+    Eigen::MatrixXf     m_motionFieldZ;
 
 public:
     Frame ();
@@ -27,7 +29,11 @@ public:
     void Draw () const;
 
     void LoadFromFile ( const std::string& iPath );
-    void LoadDisplacements ( const std::string& iPath );
+    void LoadMotionField ( const std::string& iPath );
+    void ApplyMotionField (
+        PointSet&       ioMesh
+    ) const;
+
 
     const PointSet* GetMesh () const {
         return m_mesh; 
@@ -63,14 +69,14 @@ public:
     }
 
     const PPMImage* GetDisplacements () const {
-        return m_displacements; 
+        return m_disparityMap; 
     }
     PPMImage* GetDisplacements () {
-        return m_displacements; 
+        return m_disparityMap; 
     }
-    void SetDisplacements ( PPMImage* iDisplacements ) {
-        if ( m_displacements ) delete m_displacements;
-        m_displacements = iDisplacements; 
+    void SetDisparityMap ( PPMImage* iDisparityMap ) {
+        if ( m_disparityMap ) delete m_disparityMap;
+        m_disparityMap = iDisparityMap; 
     }
 };
 

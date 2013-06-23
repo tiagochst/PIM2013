@@ -550,10 +550,10 @@ void PointSet::ApplyMotionField (
         unsigned int minV = max ( min ( height - 1, (unsigned int)nearbyint(v) ), 0u );
         unsigned int maxV = max ( min ( height - 1, (unsigned int)nearbyint(v) ), 0u );
 
-        Vec3Df d00 ( iDeltaX(minU,minV),iDeltaY(minU,minV),iDeltaZ(minU,minV) );
-        Vec3Df d01 ( iDeltaX(minU,maxV),iDeltaY(minU,maxV),iDeltaZ(minU,maxV) );
-        Vec3Df d10 ( iDeltaX(maxU,minV),iDeltaY(maxU,minV),iDeltaZ(maxU,minV) );
-        Vec3Df d11 ( iDeltaX(maxU,maxV),iDeltaY(maxU,maxV),iDeltaZ(maxU,maxV) );
+        Vec3Df d00 ( iDeltaX(minV,minU),iDeltaY(minV,minU),iDeltaZ(minV,minU) );
+        Vec3Df d01 ( iDeltaX(maxV,minU),iDeltaY(maxV,minU),iDeltaZ(maxV,minU) );
+        Vec3Df d10 ( iDeltaX(minV,maxU),iDeltaY(minV,maxU),iDeltaZ(minV,maxU) );
+        Vec3Df d11 ( iDeltaX(maxV,maxU),iDeltaY(maxV,maxU),iDeltaZ(maxV,maxU) );
         Vec3Df disp;
         disp = BilinearInterpolation ( d00, d01, d10, d11, minU, minV, maxU, maxV, u, v );
 
@@ -561,10 +561,10 @@ void PointSet::ApplyMotionField (
         pos+= disp;
         vert.SetPosition(pos);
 
-        d00 = Vec3Df ( iDeltaU(minU,minV),iDeltaV(minU,minV),0.0f );
-        d01 = Vec3Df ( iDeltaU(minU,maxV),iDeltaV(minU,maxV),0.0f );
-        d10 = Vec3Df ( iDeltaU(maxU,minV),iDeltaV(maxU,minV),0.0f );
-        d11 = Vec3Df ( iDeltaU(maxU,maxV),iDeltaV(maxU,maxV),0.0f );
+        d00 = Vec3Df ( iDeltaU(minV,minU),iDeltaV(minV,minU),0.0f );
+        d01 = Vec3Df ( iDeltaU(maxV,minU),iDeltaV(maxV,minU),0.0f );
+        d10 = Vec3Df ( iDeltaU(minV,maxU),iDeltaV(minV,maxU),0.0f );
+        d11 = Vec3Df ( iDeltaU(maxV,maxU),iDeltaV(maxV,maxU),0.0f );
         disp = BilinearInterpolation ( d00, d01, d10, d11, minU, minV, maxU, maxV, u, v );
 
         u += disp[0];

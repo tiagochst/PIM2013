@@ -14,6 +14,8 @@ Frame::Frame ()
         m_texture ( 0x0 ),
         m_depthMap ( 0x0 ),
         m_disparityMap ( 0x0 ),
+        m_motionFieldU (),
+        m_motionFieldV (),
         m_motionFieldX (),
         m_motionFieldY (),
         m_motionFieldZ ()
@@ -62,9 +64,6 @@ void Frame::DrawMesh () const {
 
     glLineWidth ( 1.0f );
 
-    // Default is used from class glviewer.
-    //glPolygonMode ( GL_FRONT_AND_BACK, GL_LINE );
-
     glBegin ( GL_TRIANGLES );
     for ( unsigned int face = 0; face < m_mesh->GetNumFaces (); face++ ) {
         const Face& fc = m_mesh->GetFace ( face );
@@ -105,6 +104,7 @@ void Frame::DrawMesh () const {
     //m_mesh->Draw ();
 }
 
+#include <cmath>
 void Frame::DrawDisplacements () const {
     ParameterHandler* params = ParameterHandler::Instance ();
     const float n = -params->GetNearPlane ();
@@ -120,6 +120,9 @@ void Frame::DrawDisplacements () const {
 
         float u,v;
         vert.GetUVCoord ( u, v );
+
+        u = fmax ( fmin ( m_disparityMap->Width ()  - 1, (unsigned int)nearbyint(u) ), 0u );
+        v = fmax ( fmin ( m_disparityMap->Height () - 1, (unsigned int)nearbyint(v) ), 0u );
 
         float r = (float)m_disparityMap->GetChannelValue ( v, u, RED   ) / maxVal;
         float g = (float)m_disparityMap->GetChannelValue ( v, u, GREEN ) / maxVal;
@@ -159,32 +162,35 @@ void Frame::LoadMotionField ( const std::string& iPath ) {
         m_disparityMap = (PPMImage*)0x0;
     }
     m_disparityMap = PPMImage::TryLoadFromFile ( iPath + "disparityMap.ppm" );
+    if ( !m_disparityMap ) {
+        std::cout << iPath + "disparityMap.ppm" << std::endl;
+    }
 
     m_motionFieldU.resize (
-        m_texture->GetHeight (),
-        m_texture->GetWidth ()
+        m_disparityMap->Height (),
+        m_disparityMap->Width ()
     );
     m_motionFieldV.resize (
-        m_texture->GetHeight (),
-        m_texture->GetWidth ()
+        m_disparityMap->Height (),
+        m_disparityMap->Width ()
     );
     m_motionFieldX.resize (
-        m_texture->GetHeight (),
-        m_texture->GetWidth ()
+        m_disparityMap->Height (),
+        m_disparityMap->Width ()
     );
     m_motionFieldY.resize (
-        m_texture->GetHeight (),
-        m_texture->GetWidth ()
+        m_disparityMap->Height (),
+        m_disparityMap->Width ()
     );
     m_motionFieldZ.resize (
-        m_texture->GetHeight (),
-        m_texture->GetWidth ()
+        m_disparityMap->Height (),
+        m_disparityMap->Width ()
     );
 
     std::ifstream motionField ( (iPath + "motionField.dat").c_str(), std::ifstream::binary );
     if ( motionField.good () && motionField.is_open () ) {
-        for ( unsigned int x = 0; x < m_texture->GetWidth (); x++ ) {
-            for ( unsigned int y = 0; y < m_texture->GetHeight (); y++ ) {
+        for ( unsigned int x = 0; x < m_disparityMap->Width (); x++ ) {
+            for ( unsigned int y = 0; y < m_disparityMap->Height (); y++ ) {
                 float rdu, rdv, rdx, rdy, rdz;
 
                 motionField.read ( (char*)&rdu, sizeof ( float ) );

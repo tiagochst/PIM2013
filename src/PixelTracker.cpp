@@ -44,21 +44,21 @@ inline float ComputeUs (
     const Eigen::Matrix3f&  iErr
 ) {
     float Us = 0.0f;
-    float sigma = 1000.0f;/* 10 cm? */
+    float sigma = 1.0f;/* 10 cm? */
     float sumCoefs = 0.0f;
 
     unsigned int errone = 0;
     unsigned int expzero = 0;
 
     CartesianCoordinate p ( px, py );
-    #pragma omp critical
-    {
+    //#pragma omp critical
+    //{
         for ( int x = -1; x <= 1; x++ ) {
             for ( int y = -1; y <= 1; y++ ) {
                 CartesianCoordinate q ( px + x, py + y );
 
                 /*Calculation made only with 8 neighboring pixels */
-                //if ( !x && !y ) continue;
+                if ( !x && !y ) continue;
 
                 float delta = ( iRefDepth->GetGreyLvl ( q ) )
                     - ( iRefDepth->GetGreyLvl ( p ) );
@@ -87,13 +87,15 @@ inline float ComputeUs (
             }
         }
         if (sumCoefs == 0) {
-            std::cout << "error == 1 count: " << errone << std::endl;
-            std::cout << "exp == 0 count: " << expzero << std::endl;
+            //std::cout << "error == 1 count: " << errone << std::endl;
+            //std::cout << "exp == 0 count: " << expzero << std::endl;
             Us = 0.0f;
+        } else {
+            Us /= sumCoefs;
         }
-    }
+    //}
 
-    return Us / sumCoefs;
+    return Us;
 }
   
 /* Calculate data-driven parameter wp*/
@@ -117,7 +119,7 @@ inline float ComputeWp (
 inline float GetWs()
 {
   /*Value based on the paper*/
-  return 0.005f;
+  return 0.5f;
 }
 
 /* Calculate refinament adjustment */ 
@@ -306,17 +308,17 @@ void PixelTracker::PyramidTrack (
     UNMATCHED = 0;
 
     PyramidMatch        ( iLevel );
-    std::cout << UNMATCHED << " unmatched pixels." << std::endl;
+    //std::cout << UNMATCHED << " unmatched pixels." << std::endl;
     PyramidSmooth       ( iLevel );
-    std::cout << UNMATCHED << " unmatched pixels." << std::endl;
+    //std::cout << UNMATCHED << " unmatched pixels." << std::endl;
     PyramidOrdering     ( iLevel );
-    std::cout << UNMATCHED << " unmatched pixels." << std::endl;
+    //std::cout << UNMATCHED << " unmatched pixels." << std::endl;
     PyramidUniqueness   ( iLevel );
-    std::cout << UNMATCHED << " unmatched pixels." << std::endl;
+    //std::cout << UNMATCHED << " unmatched pixels." << std::endl;
     PyramidRematch      ( iLevel );
-    std::cout << UNMATCHED << " unmatched pixels." << std::endl;
+    //std::cout << UNMATCHED << " unmatched pixels." << std::endl;
     PyramidUniqueness   ( iLevel );
-    std::cout << UNMATCHED << " unmatched pixels. Rematching..." << std::endl;
+    //std::cout << UNMATCHED << " unmatched pixels. Rematching..." << std::endl;
     const unsigned int maxIter = 80u;
     const unsigned int minIter = 20u;
     const unsigned int nIter = maxIter - ( (maxIter-minIter) * (iLevel+1) ) / m_refImgPyr.GetNumLevels ();
@@ -326,6 +328,7 @@ void PixelTracker::PyramidTrack (
         PyramidRefine       ( iLevel );
     }
     PyramidUniqueness   ( iLevel );
+    std::cout << UNMATCHED << " pixels" << std::endl;
 }
 
 void PixelTracker::PyramidMatch (
@@ -362,15 +365,12 @@ void PixelTracker::PyramidMatch (
                         fdX = m_dispX[iLevel + 1]->GetNormed ( j/2, (i-1)/2) * 2.0f; 
                         fdY = m_dispY[iLevel + 1]->GetNormed ( j/2, (i-1)/2) * 2.0f; 
                     }
-                    if ( !isinf(fdX) || !isinf(fdY) ) {
+                    if ( isinf(fdX) || isinf(fdY) ) {
                         fdX = fdY = 0.0f;
                     }
-                    deltaX = nearbyint(fdX); 
-                    deltaY = nearbyint(fdY); 
-                } else {
-                    deltaX = nearbyint(fdX); 
-                    deltaY = nearbyint(fdY); 
                 }
+                deltaX = nearbyint(fdX); 
+                deltaY = nearbyint(fdY); 
             }
 
             Image nbh;
@@ -640,6 +640,7 @@ void PixelTracker::PyramidUniqueness (
                 newDX->SetNormed ( j, i, dispX ) ;
                 newDY->SetNormed ( j, i, dispY ) ;
             } else {
+                #pragma omp atomic
                 UNMATCHED++;
                 newDX->SetNormed ( j, i, inf ) ;
                 newDY->SetNormed ( j, i, inf ) ;
@@ -817,10 +818,12 @@ void PixelTracker::CalculateMotionField (
     const unsigned int& width   = dispX->GetWidth ();
     const unsigned int& height  = dispX->GetHeight ();
 
+    #pragma omp parallel for
     for ( unsigned int x = 0; x < width; x++ ) {
+        #pragma omp parallel for
         for ( unsigned int y = 0; y < height; y++ ) {
-            unsigned int refU = x;
-            unsigned int refV = y;
+            float refU = x;
+            float refV = y;
 
             float dX = dispX->GetNormed ( y, x );
             float dY = dispY->GetNormed ( y, x );
@@ -833,16 +836,26 @@ void PixelTracker::CalculateMotionField (
             float maxTarV = fmax ( 0, fmin ( height-1,  ceil((float)y + dY) ) );
 
             try {
-                const Vec3Df& refPos = iRefMesh->GetVertex ( refU, refV )->GetPosition ();
-                const Vec3Df& q0 = iTarMesh->GetVertex ( minTarU, minTarV )->GetPosition ();
-                const Vec3Df& q1 = iTarMesh->GetVertex ( minTarU, maxTarV )->GetPosition ();
-                const Vec3Df& q2 = iTarMesh->GetVertex ( maxTarU, minTarV )->GetPosition ();
-                const Vec3Df& q3 = iTarMesh->GetVertex ( maxTarU, maxTarV )->GetPosition ();
+                const unsigned int& refId = iRefMesh->GetVertexId ( refU, refV );
+                const unsigned int& q0id  = iTarMesh->GetVertexId ( minTarU, minTarV );
+                const unsigned int& q1id  = iTarMesh->GetVertexId ( minTarU, maxTarV );
+                const unsigned int& q2id  = iTarMesh->GetVertexId ( maxTarU, minTarV );
+                const unsigned int& q3id  = iTarMesh->GetVertexId ( maxTarU, maxTarV );
+
+                const Vec3Df& refPos = iRefMesh->GetVertex ( refId ).GetPosition ();
+                const Vec3Df& q0 = iTarMesh->GetVertex ( q0id ).GetPosition ();
+                const Vec3Df& q1 = iTarMesh->GetVertex ( q1id ).GetPosition ();
+                const Vec3Df& q2 = iTarMesh->GetVertex ( q2id ).GetPosition ();
+                const Vec3Df& q3 = iTarMesh->GetVertex ( q3id ).GetPosition ();
 
                 Vec3Df tarPos;
                 Vec3Df displacement; 
                 tarPos = BilinearInterpolation(q0,q1,q2,q3,minTarU,minTarV,maxTarU,maxTarV,x+dX,y+dY); 
                 displacement = tarPos - refPos;
+
+                if (fabs(displacement[2]) >= 20 ) {
+                    displacement[2] = 0;
+                }
 
                 m_displacementX ( y, x ) = displacement[0];
                 m_displacementY ( y, x ) = displacement[1];
@@ -886,7 +899,7 @@ void PixelTracker::ExportPyramidLevel (
     disparityMap.SetMaxValue ( 255u );
     disparityMap.ResetDimensions (
         dispX->GetWidth (),
-        dispX->GetHeight ()        
+        dispX->GetHeight ()
     );
 
     std::ofstream motionField ( (iPath + "motionField.dat").c_str(), std::ofstream::binary );

@@ -114,17 +114,69 @@ int KinectInit(int argc, char** argv)
 int main ( void ) {
     Config::LoadConfigs(Config::RootPath() + "settings");
 
-//    Clip cl ( 0, 15 );
+    unsigned int ref = 0;
+    unsigned int start = 1;
+    unsigned int end = 10;
 
+    std::string prefix = Config::FramesPath () + "f";
+    std::string refpath  = prefix + toString ( ref ) + "/";
+    std::string startpath = prefix + toString ( start ) + "/";
+    std::string endpath = prefix + toString ( end ) + "/";
+
+    PixelTracker pt;
+    PointSet* refMesh =  new PointSet ( refpath + "mesh.ply" );
+    Image* refImg = new Image ( refpath + "texture.pgm"); 
+    Image* refDep = new Image ( refpath + "depthMap.pgm");
+    pt.SetReference ( ref, refImg, refDep );
+
+    PointSet* tarMesh = new PointSet ( startpath + "mesh.ply" );
+    Image* tarImg = new Image ( startpath + "texture.pgm");
+    Image* tarDep = new Image ( startpath + "depthMap.pgm");
+    pt.SetTarget ( start, tarImg, tarDep );
+    pt.Track ();
+    pt.CalculateMotionField ( refMesh, tarMesh );
+    pt.Export ( refpath + "track/" + Int2Str(start) + "/" );
+
+    tarMesh->LoadFromFile ( endpath + "mesh.ply" );
+    tarImg->LoadFromFile ( endpath + "texture.pgm" );
+    tarDep->LoadFromFile ( endpath + "depthMap.pgm" );
+
+    pt.SetTarget ( end, tarImg, tarDep );
+    pt.Track ();
+    pt.CalculateMotionField ( refMesh, tarMesh );
+    pt.Export ( refpath + "track/" + Int2Str(end) + "/" );
+
+    Clip cl ( start, end );
+
+    Frame f;
     PointSet mesh;
-    mesh.LoadFromFile (Config::FramesPath () + "f0/mesh.ply" );
-    mesh.WriteToFile ( Config::OutputPath () + "Animation/0/frame0.ply");
-    for ( unsigned int i = 0; i < 10; i++ ) {
-        Frame f;
-        f.LoadMotionField ( Config::FramesPath () + "f" + toString(i) + "/track/" + toString (i+1) + "/" );
+    mesh.LoadFromFile (Config::FramesPath () + "f"+toString(ref)+"/mesh.ply" );
+    mesh.WriteToFile ( Config::OutputPath () + "Animation/1/frame0_"+toString(ref)+"r.ply");
+
+    f.LoadMotionField ( Config::FramesPath () + "f" + toString(ref) + "/track/" + toString (start) + "/" );
+
+    unsigned int i = 1;
+    for ( unsigned int fId = start; fId < end; fId++, i++ ) {
+        std::string suffix;
+        if ( fId == start ) suffix = "a.ply";
+        else suffix = ".ply";
 
         f.ApplyMotionField ( mesh );
-        mesh.WriteToFile ( Config::OutputPath () + "Animation/0/frame" + toString(i+1) + ".ply");
+        
+        mesh.WriteToFile ( Config::OutputPath () + "Animation/1/frame"+toString(i)+"_"+toString(fId)+suffix);
+
+        f.LoadMotionField ( Config::FramesPath () + "f" + toString(fId) + "/track/" + toString (fId+1) + "/" );
+    }
+    for ( unsigned int fId = end; fId >= start; fId--, i++ ) {
+        std::string suffix;
+        if ( fId == start ) suffix = "a.ply";
+        else suffix = ".ply";
+
+        f.ApplyMotionField ( mesh );
+        
+        mesh.WriteToFile ( Config::OutputPath () + "Animation/1/frame"+toString(i)+"_"+toString(fId)+suffix);
+
+        f.LoadMotionField ( Config::FramesPath () + "f" + toString(fId) + "/track/" + toString (fId-1) + "/" );
     }
 
     return 0;

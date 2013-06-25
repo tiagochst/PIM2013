@@ -63,22 +63,27 @@ void Frame::DrawMesh () const {
     const float f = -params->GetFarPlane ();
 
     glLineWidth ( 1.0f );
+    glPointSize ( 3.0f );
 
     glBegin ( GL_TRIANGLES );
+    //glColor3f ( 0.5f, 0.5f, 0.8f );
     for ( unsigned int face = 0; face < m_mesh->GetNumFaces (); face++ ) {
         const Face& fc = m_mesh->GetFace ( face );
 
         const Vertex&   v0  =   m_mesh->GetVertex ( fc.v0 );
         const Color&    c0  =   v0.GetColor ();
-        const Vec3Df   p0   =   v0.GetPosition ();
+        const Vec3Df    p0  =   v0.GetPosition ();
+        const Vec3Df    n0  =   v0.GetNormal ();
 
         const Vertex&   v1  =   m_mesh->GetVertex ( fc.v1 );
         const Color&    c1  =   v1.GetColor ();
-        const Vec3Df   p1   =   v1.GetPosition ();
+        const Vec3Df    p1  =   v1.GetPosition ();
+        const Vec3Df    n1  =   v1.GetNormal ();
 
         const Vertex&   v2  =   m_mesh->GetVertex ( fc.v2 );
         const Color&    c2  =   v2.GetColor ();
-        const Vec3Df   p2   =   v2.GetPosition ();
+        const Vec3Df    p2  =   v2.GetPosition ();
+        const Vec3Df    n2  =   v2.GetNormal ();
 
         if (
                ( p0[2] >= n ) || ( p0[2] <= f )
@@ -92,12 +97,15 @@ void Frame::DrawMesh () const {
         }
 
         glColor4f ( c0.Red(), c0.Green(), c0.Blue(), c0.Alpha() );
+        glNormal3f ( n0[0], n0[1], n0[2] );
         glVertex3f ( p0[0], p0[1], p0[2] );
 
         glColor4f ( c1.Red(), c1.Green(), c1.Blue(), c1.Alpha() );
+        glNormal3f ( n1[0], n1[1], n1[2] );
         glVertex3f ( p1[0], p1[1], p1[2] );
         
         glColor4f ( c2.Red(), c2.Green(), c2.Blue(), c2.Alpha() );
+        glNormal3f ( n2[0], n2[1], n2[2] );
         glVertex3f ( p2[0], p2[1], p2[2] );
     }
     glEnd ();
@@ -163,7 +171,7 @@ void Frame::LoadMotionField ( const std::string& iPath ) {
     }
     m_disparityMap = PPMImage::TryLoadFromFile ( iPath + "disparityMap.ppm" );
     if ( !m_disparityMap ) {
-        std::cout << iPath + "disparityMap.ppm" << std::endl;
+        return;
     }
 
     m_motionFieldU.resize (

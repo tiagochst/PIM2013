@@ -92,6 +92,12 @@ void GLViewer::init() {
 
     glEnable( GL_POINT_SPRITE );    // GL_POINT_SPRITE_ARB if you're
                                     // using the functionality as an extension.
+    //glEnable ( GL_LIGHTING );
+    //glEnable ( GL_LIGHT0 );
+
+    //GLfloat lightPos[] = { .0, 1000.0f, 0.0f, 0.0f };
+    //glLightfv (GL_LIGHT0, GL_POSITION, lightPos ); 
+
     glDisable( GL_LIGHTING );
     glEnable( GL_POINT_SMOOTH );
     glPointSize( 1.0 );

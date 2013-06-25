@@ -38,6 +38,7 @@ public:
     void PushFace ( const Face& iFace );
 
     void MoveToBarycenter ();
+    void RecalculateNormals ();
 
     void Draw () const;
 

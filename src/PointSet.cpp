@@ -299,7 +299,62 @@ void PointSet::LoadFromFile(const std::string& iFilename) {
             (plyPos == (iFilename.size() - 4)) ) {
         LoadPlyFile(iFilename.c_str());
     }
+    RecalculateNormals ();
 }
+
+void PointSet::RecalculateNormals () {
+    for ( unsigned int i = 0; i < m_vertices.size (); i++ ) {
+        m_vertices[i].SetNormal ( Vec3Df ( 0.0f, 0.0f, 0.0f ) );
+    }
+    float* denoms = new float[m_vertices.size ()];
+    memset ( denoms, 0x0, sizeof(float) * m_vertices.size () );
+    for ( unsigned int i = 0; i < m_faces.size (); i++ ) {
+        const Face&     fc  =   m_faces[i];
+
+        Vertex&         v0  =   GetVertex ( fc.v0 );
+        const Vec3Df    p0  =   v0.GetPosition ();
+
+        Vertex&         v1  =   GetVertex ( fc.v1 );
+        const Vec3Df    p1  =   v1.GetPosition ();
+
+        Vertex&         v2  =   GetVertex ( fc.v2 );
+        const Vec3Df    p2  =   v2.GetPosition ();
+        
+        Vec3Df  e0 = p2 - p1;
+        Vec3Df  e1 = p2 - p0;
+        Vec3Df  e2 = p1 - p0;
+
+        e0.normalize ();
+        e1.normalize ();
+        e2.normalize ();
+
+        Vec3Df n = Vec3Df::crossProduct ( e1, e2 );
+        n.normalize ();
+
+        float alpha, beta, gamma;
+        alpha = acos ( Vec3Df::dotProduct (  e1,  e2 ) ); // angle at v0
+        beta  = acos ( Vec3Df::dotProduct ( -e0,  e2 ) ); // angle at v1
+        gamma = acos ( Vec3Df::dotProduct (  e0,  e1 ) ); // angle at v2
+
+        v0.SetNormal ( n * alpha );
+        v1.SetNormal ( n * beta  );
+        v2.SetNormal ( n * gamma );
+
+        denoms[fc.v0] += alpha;
+        denoms[fc.v1] += beta ;
+        denoms[fc.v2] += gamma;
+    }
+    for ( unsigned int i = 0; i < m_vertices.size (); i++ ) {
+        Vec3Df n = m_vertices[i].GetNormal ();
+
+        n.normalize ();
+
+        m_vertices[i].SetNormal ( n );
+    }
+    delete[] denoms;
+    denoms = (float*)0x0;
+}
+
 void PointSet::WriteToFile(const std::string& iFilename) {
     unsigned int plyPos = iFilename.find(".ply");
     if ( (plyPos != std::string::npos) && 

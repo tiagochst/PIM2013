@@ -44,10 +44,10 @@ static PlyProperty faceProperties[] = {
 };
 
 PointSet::PointSet(void)
-    :   m_vtxCount ( 0u ), m_faceCount ( 0u )
+    :   m_vtxCount ( 0u ), m_faceCount ( 0u ), m_vertices(), m_faces(), m_imageToRealWorld ()
 {}
 PointSet::PointSet(const std::string& iFilename)
-    :   m_vtxCount ( 0u ), m_faceCount ( 0u )
+    :   m_vtxCount ( 0u ), m_faceCount ( 0u ), m_vertices(), m_faces(), m_imageToRealWorld ()
 {
     LoadFromFile(iFilename);
 }
@@ -223,8 +223,7 @@ void PointSet::LoadPlyFile(const char* iFilename) {
                 Color  c(vDesc.red, vDesc.green, vDesc.blue, vDesc.alpha);
                 Vertex v(p, n, c, vDesc.u, vDesc.v);
                 
-                m_vertices.push_back(v);
-                m_vtxCount++;
+                PushVertex ( v );
                 
 #ifdef __DEBUG_PLY_READ
                 /* print out vertex x,y,z for debugging */
@@ -261,8 +260,7 @@ void PointSet::LoadPlyFile(const char* iFilename) {
                 faceObj.v1 = f.verts[1];
                 faceObj.v2 = f.verts[2];
 
-                m_faces.push_back ( faceObj );
-                m_faceCount++;
+                PushFace ( faceObj );
 
 #ifdef __DEBUG_PLY_READ
                 /* print out face info, for debugging */
@@ -403,15 +401,15 @@ void PointSet::Draw () const {
 void PointSet::PushVertex (
     const Vertex& iVertex
 ) {
-    CartesianCoordinate p;
+    CartCoordf p;
 
-    float x, y;
-    iVertex.GetUVCoord ( x, y );
-    p.x = x;
-    p.y = y;
+    iVertex.GetUVCoord ( p.x, p.y );
 
     m_vertices.push_back ( iVertex );
-    m_imageToRealWorld.insert ( std::pair<CartesianCoordinate,unsigned int>(p, m_vtxCount++));
+    m_imageToRealWorld.insert ( std::make_pair(p, m_vtxCount++));
+    if ( m_imageToRealWorld.empty () ) {
+        std::cout << "FODEU" << std::endl;
+    }
 }
 
 void PointSet::PushFace (
@@ -427,26 +425,31 @@ const Vertex& PointSet::GetVertex ( const unsigned int& iVertex ) const {
 Vertex& PointSet::GetVertex ( const unsigned int& iVertex ) {
     return m_vertices[iVertex];
 }
-Vertex* PointSet::GetVertex ( const unsigned int& iU, const unsigned int& iV ) {
-    CartesianCoordinate p ( iU, iV );
+unsigned int& PointSet::GetVertexId ( const float& iU, const float& iV ) {
+    CartCoordf p ( iU, iV );
 
+    if ( m_imageToRealWorld.empty () ) {
+        std::cout << "CRASH" << std::endl;
+        exit (0);
+    }
+
+    if ( m_imageToRealWorld.count ( p ) > 0 ) {
+        unsigned int& vtx = m_imageToRealWorld[p];
+
+        return vtx;
+    }
+    std::cout << "Error on " << iU << " " << iV << ". Falling back to brute force search." << std::endl;
     for ( unsigned int i = 0; i < m_vtxCount; i++ ) {
         Vertex& vert = m_vertices[i];
         
         float x, y;
         vert.GetUVCoord (x, y);
         if (x == iU && y == iV ) {
-            return &vert;
+            return i;
         }
     }
-    std::cout << "Error on " << iU << " " << iV;
     std::stringstream error;
 
-    /*if ( m_imageToRealWorld.count ( p ) > 0 ) {
-        unsigned int& vtx = m_imageToRealWorld[p];
-
-        return &(m_vertices[vtx]);
-    }*/
     error << "Cannot find vertex with UV coordinates ( " << iU << ", " << iV << " ).";
     throw std::out_of_range ( error.str ().c_str () );
 }
@@ -593,24 +596,25 @@ void PointSet::ApplyMotionField (
 ) {
     const unsigned int& width   = iDeltaU.cols ();
     const unsigned int& height  = iDeltaU.rows ();
-
+    
     for ( unsigned int vtx = 0; vtx < m_vertices.size (); vtx++ ) {
         Vertex& vert = m_vertices[vtx];
 
-        float u,v;
-        vert.GetUVCoord ( u, v );
+        CartCoordf p;
+        vert.GetUVCoord ( p.x, p.y );
+        m_imageToRealWorld.erase ( p );
 
-        unsigned int minU = max ( min ( width  - 1, (unsigned int)nearbyint(u) ), 0u );
-        unsigned int maxU = max ( min ( width  - 1, (unsigned int)nearbyint(u) ), 0u );
-        unsigned int minV = max ( min ( height - 1, (unsigned int)nearbyint(v) ), 0u );
-        unsigned int maxV = max ( min ( height - 1, (unsigned int)nearbyint(v) ), 0u );
+        unsigned int minU = max ( min ( width  - 1, (unsigned int)nearbyint(p.x) ), 0u );
+        unsigned int maxU = max ( min ( width  - 1, (unsigned int)nearbyint(p.x) ), 0u );
+        unsigned int minV = max ( min ( height - 1, (unsigned int)nearbyint(p.y) ), 0u );
+        unsigned int maxV = max ( min ( height - 1, (unsigned int)nearbyint(p.y) ), 0u );
 
         Vec3Df d00 ( iDeltaX(minV,minU),iDeltaY(minV,minU),iDeltaZ(minV,minU) );
         Vec3Df d01 ( iDeltaX(maxV,minU),iDeltaY(maxV,minU),iDeltaZ(maxV,minU) );
         Vec3Df d10 ( iDeltaX(minV,maxU),iDeltaY(minV,maxU),iDeltaZ(minV,maxU) );
         Vec3Df d11 ( iDeltaX(maxV,maxU),iDeltaY(maxV,maxU),iDeltaZ(maxV,maxU) );
         Vec3Df disp;
-        disp = BilinearInterpolation ( d00, d01, d10, d11, minU, minV, maxU, maxV, u, v );
+        disp = BilinearInterpolation ( d00, d01, d10, d11, minU, minV, maxU, maxV, p.x, p.y );
 
         Vec3Df pos = vert.GetPosition ();
         pos+= disp;
@@ -620,11 +624,13 @@ void PointSet::ApplyMotionField (
         d01 = Vec3Df ( iDeltaU(maxV,minU),iDeltaV(maxV,minU),0.0f );
         d10 = Vec3Df ( iDeltaU(minV,maxU),iDeltaV(minV,maxU),0.0f );
         d11 = Vec3Df ( iDeltaU(maxV,maxU),iDeltaV(maxV,maxU),0.0f );
-        disp = BilinearInterpolation ( d00, d01, d10, d11, minU, minV, maxU, maxV, u, v );
+        disp = BilinearInterpolation ( d00, d01, d10, d11, minU, minV, maxU, maxV, p.x, p.y );
 
-        u += disp[0];
-        v += disp[1];
-        vert.SetUVCoord ( u, v );
+        p.x += disp[0];
+        p.y += disp[1];
+        vert.SetUVCoord ( p.x, p.y );
+
+        m_imageToRealWorld.insert ( std::make_pair(p,vtx));
     }
 }
 

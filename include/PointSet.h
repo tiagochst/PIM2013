@@ -22,7 +22,7 @@ private:
     unsigned int                                    m_faceCount;
     std::vector<Vertex>                             m_vertices;
     std::vector<Face>                               m_faces;
-    std::map<CartesianCoordinate, unsigned int>     m_imageToRealWorld;
+    std::map<CartCoordf, unsigned int>              m_imageToRealWorld;
     
 public:
     PointSet ( void );
@@ -44,7 +44,7 @@ public:
 
     const Vertex& GetVertex ( const unsigned int& iVertex ) const;
     Vertex& GetVertex ( const unsigned int& iVertex );
-    Vertex* GetVertex ( const unsigned int& iU, const unsigned int& iV );
+    unsigned int& GetVertexId ( const float& iU, const float& iV );
     const Face& GetFace ( const unsigned int& iFace ) const;
     Face& GetFace ( const unsigned int& iFace );
 

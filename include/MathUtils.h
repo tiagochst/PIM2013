@@ -55,6 +55,24 @@ inline bool InRange(
 }
 
 
+struct CartCoordf {
+    float x;
+    float y;
+
+    inline CartCoordf ()
+        : x ( 0 ), y ( 0 )
+    {}
+    inline CartCoordf (
+        const float& x,
+        const float& y
+    )   : x ( x ), y ( y )
+    {}
+};
+inline bool operator<(const CartCoordf& iLhs, const CartCoordf& iRhs)
+{
+    return iLhs.x<iRhs.x || (!(iRhs.x<iLhs.x) && iLhs.y<iRhs.y);
+}
+
 struct CartesianCoordinate {
     int x;
     int y;
@@ -67,23 +85,6 @@ struct CartesianCoordinate {
         const int& y
     )   : x ( x ), y ( y )
     {}
-
-    inline bool operator<(const CartesianCoordinate& iOther) const
-    {
-        return (x<iOther.x)&&(y<iOther.y);
-    }
-    inline bool operator>(const CartesianCoordinate& iOther) const
-    {
-        return (x>iOther.x)&&(y>iOther.y);
-    }
-    inline bool operator<=(const CartesianCoordinate& iOther) const
-    {
-        return (x<=iOther.x)&&(y<=iOther.y);
-    }
-    inline bool operator>=(const CartesianCoordinate& iOther) const
-    {
-        return (x>=iOther.x)&&(y>=iOther.y);
-    }
 };
 
 class Matrix33 {

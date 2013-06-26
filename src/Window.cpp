@@ -251,9 +251,12 @@ void Window::updateAnimationList () {
     QString clip;
     QFile imageList(IMG_LIST_PATH.c_str());
     
+    /* Verify if the file with frames is readable*/
+    if(!imageList.open(QIODevice::ReadOnly )) return;
+
     /* Reads the file */
     QTextStream in(& imageList);
-    std::cout << "Adding clips  " << IMG_LIST_PATH << std::endl;
+    std::cout << "Adding clips  " << IMG_LIST_PATH  << std::endl;
     
     while(!in.atEnd())
         {
@@ -1194,9 +1197,9 @@ void Window::initControlWidget () {
 
     animation2ComboBox = new QComboBox (previewGroupBox);
     animation1ComboBox = new QComboBox (previewGroupBox);
-    addClipItems();
-    updateAnimationFramesList();
     updateAnimationList();
+    updateAnimationFramesList();
+    addClipItems();
     addAnimationItems(0);
 
     QLabel          *   frame1Label = new QLabel(tr("Frame:"));

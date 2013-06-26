@@ -144,6 +144,8 @@ public slots:
     void setFramesToCapture ( const int& iNumber );
     void setMeshMode   (bool b);
     void setKinectMode (bool b);
+    void setAnimationMode(bool b);
+    void addAnimationItems(int idx);
 
 private :
     void initControlWidget ();
@@ -151,6 +153,11 @@ private :
     void initAutoAnchorSelection ();
     void addAnchorListItems();
     void addImageItems();
+    void updateAnimationList();
+    void updateAnimationFramesList () ;
+    void addAnimationItems();
+    void addClipItems();
+
     void loadAnchorFrames();
     void saveAnchors();
     void saveAnchors(const std::vector<int>& iAnchorList);
@@ -167,6 +174,8 @@ private :
     QPushButton     *   startCaptureButton;
     QComboBox       *   frame1ComboBox;
     QComboBox       *   frame2ComboBox;
+    QComboBox       *   animation1ComboBox;
+    QComboBox       *   animation2ComboBox;
     QRadioButton    *   displacementRB;
     QRadioButton    *   meshRB;
     QRadioButton    *   anchorManuRB;
@@ -180,6 +189,7 @@ private :
     QSpinBox        *   framesToCapture;
     QRadioButton    *   meshMode;
     QRadioButton    *   kinectMode;
+    QRadioButton    *   animationMode;
 
     /* Mesh widgets*/
     GLViewer        *   viewer;           //!< The GLViewer (central window)

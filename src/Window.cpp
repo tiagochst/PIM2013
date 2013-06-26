@@ -235,6 +235,127 @@ void Window::setKinectMode(bool b){
     centerWidget->setCurrentIndex ( viewerIdx );
 }
 
+void Window::updateAnimationFramesList () {
+
+
+    /* Update the list of clips in the system*/
+    static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=*.png --ignore=depth* --ignore=disparity* --ignore=*.ply " + Config::OutputPath() + "Animation/ |  sed 's/f//g' | sed -r 's/^.{6}//' | sort -g >" + Config::OutputPath() + "Animation/list.txt");
+
+    /* Update the list of images in the system*/
+    system(IMAGE_LIST.c_str());
+}
+
+void Window::updateAnimationList () {
+
+    static const std::string IMG_LIST_PATH(Config::OutputPath() + "Animation/list.txt");
+    QString clip;
+    QFile imageList(IMG_LIST_PATH.c_str());
+    
+    /* Reads the file */
+    QTextStream in(& imageList);
+    std::cout << "Adding clips  " << IMG_LIST_PATH << std::endl;
+    
+    while(!in.atEnd())
+        {
+            clip = in.readLine();
+            /* Update the list of clips in the system*/
+            static const std::string IMAGE_LIST(" ls -B --ignore=*.txt " + Config::OutputPath() + "Animation/" + clip.toStdString() + "/ >" + Config::OutputPath() + "Animation/"  + clip.toStdString() + "/list.txt");
+            std::cout << "Adding frames clips" << IMAGE_LIST << std::endl;
+            
+            /* Update the list of images in the system*/
+            system(IMAGE_LIST.c_str());
+            
+        }
+    /* Close the file */
+    imageList.close();
+
+}
+
+void Window::addAnimationItems(int idx)
+{
+
+    static const std::string IMG_LIST_PATH(Config::OutputPath() + "Animation/" + Int2Str(idx) +"/list.txt");
+
+    QFile imageList(IMG_LIST_PATH.c_str());
+    QString fileName;
+    QString refFrame;
+    int frame = 0;
+
+    /* Clear combo box items*/
+    animation2ComboBox -> clear();
+
+    /* Verify if the file readable*/
+    if(!imageList.open(QIODevice::ReadOnly ))
+        return;
+
+    /* Reads the file */
+    QTextStream in(& imageList);
+
+    while(!in.atEnd())
+    {
+        fileName = in.readLine();
+        /*First image is a reference frame*/
+        if(frame == 0){
+            refFrame = fileName;
+        }
+
+        /*Frames of the animation*/
+        animation2ComboBox -> addItem(QString::number(frame),fileName); 
+        frame++;
+
+        /* Se tem a no nome Adiciono referencia*/
+        if(fileName.contains("a.ply",Qt::CaseSensitive)){
+            animation2ComboBox -> addItem(QString::number(frame),refFrame); 
+            frame++;
+        }
+    }
+
+    /* Close the file */
+    imageList.close();
+    return;
+}
+
+void Window::addClipItems()
+{
+
+    static const std::string IMG_LIST_PATH(Config::OutputPath() + "Animation/list.txt");
+
+    QFile imageList(IMG_LIST_PATH.c_str());
+    QString fileName;
+    int frame = 0;
+
+    /* Clear combo box items*/
+    animation1ComboBox -> clear();
+
+    /* Verify if the file readable*/
+    if(!imageList.open(QIODevice::ReadOnly ))
+        return;
+
+    /* Reads the file */
+    QTextStream in(& imageList);
+    std::cout << "Adding clips" << IMG_LIST_PATH << std::endl;
+    while(!in.atEnd())
+    {
+        fileName = in.readLine();
+        /*Frames of the animation*/
+        animation1ComboBox -> addItem(QString::number(frame),fileName); 
+        frame++;
+    }
+
+    /* Close the file */
+    imageList.close();
+    return;
+}
+
+
+void Window::setAnimationMode(bool b){
+    ParameterHandler* params = ParameterHandler::Instance();
+    params -> SetCamera(!b);
+    viewer -> reset();
+    centerWidget->setCurrentIndex ( viewerIdx );
+    //addAnimationItems();
+}
+
 void Window::setDisplacement(bool b){
     if(b){
         updateImages();
@@ -1071,12 +1192,24 @@ void Window::initControlWidget () {
     this -> setFrame1(0);
     addImageItems();
 
+    animation2ComboBox = new QComboBox (previewGroupBox);
+    animation1ComboBox = new QComboBox (previewGroupBox);
+    addClipItems();
+    updateAnimationFramesList();
+    updateAnimationList();
+    addAnimationItems(0);
+
     QLabel          *   frame1Label = new QLabel(tr("Frame:"));
     frame1Label -> setBuddy(frame1ComboBox);
 
     QLabel          *   frame2Label = new QLabel(tr("Frame 2:"));
     frame2Label -> setBuddy(frame2ComboBox);
 
+    QLabel          *   clip1Label = new QLabel(tr("Clip:"));
+    clip1Label -> setBuddy(animation1ComboBox);
+
+    QLabel          *   clip2Label = new QLabel(tr("Clip Frame:"));
+    clip2Label -> setBuddy(animation2ComboBox);
 
     QWidget *generalLayoutWidget   = new QWidget(previewGroupBox);
     QGridLayout *generalGridLayout = new QGridLayout(generalLayoutWidget);
@@ -1085,6 +1218,11 @@ void Window::initControlWidget () {
     generalGridLayout -> addWidget(frame1ComboBox,0,1);
     generalGridLayout -> addWidget(frame2Label,0,2);
     generalGridLayout -> addWidget(frame2ComboBox,0,3);
+
+    generalGridLayout -> addWidget(clip1Label,1,0);
+    generalGridLayout -> addWidget(animation1ComboBox,1,1);
+    generalGridLayout -> addWidget(clip2Label,1,2);
+    generalGridLayout -> addWidget(animation2ComboBox,1,3);
 
     /*Creating PB buttons*/
 
@@ -1131,8 +1269,10 @@ void Window::initControlWidget () {
     meshModeBG -> setExclusive (true);
     meshMode   =  new QRadioButton("Mesh"  , meshModeGroupBox);
     kinectMode =  new QRadioButton("Kinect", meshModeGroupBox);
+    animationMode =  new QRadioButton("Animation", meshModeGroupBox);
     meshModeBG -> addButton (kinectMode);
     meshModeBG -> addButton (meshMode);
+    meshModeBG -> addButton (animationMode);
   
     QWidget *meshModeLayoutWidget   = new QWidget(meshModeGroupBox);
     QFormLayout *meshModeFormLayout = new QFormLayout(meshModeLayoutWidget);
@@ -1141,6 +1281,7 @@ void Window::initControlWidget () {
     meshModeFormLayout -> setLabelAlignment ( Qt::AlignLeft);
     meshModeFormLayout -> setWidget(0, QFormLayout::LabelRole, meshMode);
     meshModeFormLayout -> setWidget(0, QFormLayout::FieldRole, kinectMode);
+    meshModeFormLayout -> setWidget(1, QFormLayout::LabelRole, animationMode);
 
 
     QGroupBox * parametersGroupBox = new QGroupBox ("Parameters", controlWidget);
@@ -1274,6 +1415,11 @@ void Window::initControlWidget () {
     connect (
             frame2ComboBox, SIGNAL ( currentIndexChanged (int) ), 
             this, SLOT   (           setFrame2 (int) )
+            );
+
+    connect (
+            animation1ComboBox, SIGNAL ( currentIndexChanged (int) ), 
+            this, SLOT   (           addAnimationItems (int) )
             );
 
     /* Description: Change of situation 
@@ -1439,6 +1585,11 @@ void Window::initControlWidget () {
     connect(
             kinectMode, SIGNAL(       toggled (bool) ), 
             this      , SLOT  ( setKinectMode (bool) )
+           );
+
+    connect(
+            animationMode, SIGNAL(       toggled (bool) ), 
+            this         , SLOT  ( setAnimationMode (bool) )
            );
 
     /*** Initial situation: Default options ***/

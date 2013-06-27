@@ -1,0 +1,84 @@
+body {
+    text-align          :   justify;
+    font-family         :   sans-serif;
+    border              :   1px #AAAAAA solid;
+    padding             :   1ex;
+    margin              :   auto;
+    font-size           :   9pt;
+    color               :   white;
+    width               :   50%;
+}
+
+.capimg {
+    text-align          :   center;
+}
+
+h2 {
+    border              :   1px #AAAAAA solid;
+    padding             :   0ex 1ex 0ex 1ex;
+    color               :   #CC8800;
+    font-size           :   18pt;
+    text-align          :   center;
+}
+
+h3 {
+    border              :   1px #AAAAAA solid;
+    padding             :   0ex 1ex 0ex 1ex;
+    color               :   #CC8800;
+    font-size           :   12pt;
+    text-align          :   center;
+}
+
+p.content {
+    text-align          :   justify;
+    text-indent         :   2ex;
+    margin              :   0ex;
+    padding             :   0ex 1ex;
+}
+
+p.caption {
+    text-align          :   center;
+    font-size           :   8pt;
+    font-style          :   italic;
+    margin              :   0ex;
+    text-indent         :   0ex;
+} 
+  
+a:link {
+    color               :   white;
+    text-decoration     :   none;
+}
+a:visited {
+    color               :   grey;
+    text-decoration     :   none;
+}
+a:hover {
+    text-decoration     :   underline;
+}
+a:active {
+    text-decoration     :   none;
+}
+
+a[href$=".tar.gz"] { 
+    background          :   transparent url('./images/zip.png') no-repeat right center;
+    display             :   inline-block; 
+    padding-right       :   20px;
+}
+
+a[href*="github"] {
+    background          :   transparent url('./images/git.png') no-repeat right center;
+    display             :   inline-block; 
+    padding-right       :   20px;
+}
+
+a[href$=".zip"] { 
+    background          :   transparent url('./images/zip.png') no-repeat right center;
+    display             :   inline-block; 
+    padding-right       :   20px;
+} 
+
+a[href$=".pdf"] { 
+    background          :   transparent url('./images/pdf.png') no-repeat right center;
+    display             :   inline-block; 
+    padding-right       :   20px;
+} 

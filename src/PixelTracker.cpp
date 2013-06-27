@@ -853,9 +853,9 @@ void PixelTracker::CalculateMotionField (
                 tarPos = BilinearInterpolation(q0,q1,q2,q3,minTarU,minTarV,maxTarU,maxTarV,x+dX,y+dY); 
                 displacement = tarPos - refPos;
 
-                if (fabs(displacement[2]) >= 20 ) {
-                    displacement[2] = 0;
-                }
+                //if (fabs(displacement[2]) >= 20 ) {
+                //    displacement[2] = 0;
+                //}
 
                 m_displacementX ( y, x ) = displacement[0];
                 m_displacementY ( y, x ) = displacement[1];

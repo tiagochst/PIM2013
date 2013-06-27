@@ -10,6 +10,7 @@
 #include <QCleanlooksStyle>
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include "MathUtils.h"
 #include "Image.h"
 #include "ImageBase.h"
@@ -114,9 +115,9 @@ int KinectInit(int argc, char** argv)
 int main ( void ) {
     Config::LoadConfigs(Config::RootPath() + "settings");
 
-    unsigned int ref = 0;
-    unsigned int start = 1;
-    unsigned int end = 10;
+    unsigned int ref = 82;
+    unsigned int start = 36;
+    unsigned int end = 84;
 
     std::string prefix = Config::FramesPath () + "f";
     std::string refpath  = prefix + toString ( ref ) + "/";
@@ -151,7 +152,7 @@ int main ( void ) {
     Frame f;
     PointSet mesh;
     mesh.LoadFromFile (Config::FramesPath () + "f"+toString(ref)+"/mesh.ply" );
-    mesh.WriteToFile ( Config::OutputPath () + "Animation/1/frame0_"+toString(ref)+"r.ply");
+    mesh.WriteToFile ( Config::OutputPath () + "Animation/4/frame000_"+toString(ref)+"r.ply");
 
     f.LoadMotionField ( Config::FramesPath () + "f" + toString(ref) + "/track/" + toString (start) + "/" );
 
@@ -161,23 +162,32 @@ int main ( void ) {
         if ( fId == start ) suffix = "a.ply";
         else suffix = ".ply";
 
-        f.ApplyMotionField ( mesh );
+        std::stringstream iStr;
+        iStr << std::setfill('0') << std::setw(3) << i;
+
+        if ( fId == ref ) {
+            mesh.LoadFromFile (Config::FramesPath () + "f"+toString(ref)+"/mesh.ply");
+            mesh.WriteToFile ( Config::OutputPath () + "Animation/4/frame"+iStr.str()+"_"+toString(ref)+"r.ply");
+        }
+        else f.ApplyMotionField ( mesh );
         
-        mesh.WriteToFile ( Config::OutputPath () + "Animation/1/frame"+toString(i)+"_"+toString(fId)+suffix);
+        mesh.WriteToFile ( Config::OutputPath () + "Animation/4/frame"+iStr.str()+"_"+toString(fId)+suffix);
 
         f.LoadMotionField ( Config::FramesPath () + "f" + toString(fId) + "/track/" + toString (fId+1) + "/" );
     }
-    for ( unsigned int fId = end; fId >= start; fId--, i++ ) {
-        std::string suffix;
-        if ( fId == start ) suffix = "a.ply";
-        else suffix = ".ply";
+    //for ( unsigned int fId = end; fId >= start; fId--, i++ ) {
+    //    std::string suffix;
+    //    if ( fId == start ) suffix = "a.ply";
+    //    else suffix = ".ply";
 
-        f.ApplyMotionField ( mesh );
-        
-        mesh.WriteToFile ( Config::OutputPath () + "Animation/1/frame"+toString(i)+"_"+toString(fId)+suffix);
+    //    f.ApplyMotionField ( mesh );
+    //    
+    //    std::stringstream iStr;
+    //    iStr << std::setfill('0') << std::setw(3) << i;
+    //    mesh.WriteToFile ( Config::OutputPath () + "Animation/4/frame"+iStr.str()+"_"+toString(fId)+suffix);
 
-        f.LoadMotionField ( Config::FramesPath () + "f" + toString(fId) + "/track/" + toString (fId-1) + "/" );
-    }
+    //    f.LoadMotionField ( Config::FramesPath () + "f" + toString(fId) + "/track/" + toString (fId-1) + "/" );
+    //}
 
     return 0;
 }

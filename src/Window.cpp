@@ -4,6 +4,8 @@
 #include <sstream>
 #include <QGraphicsScene>
 #include <QImage>
+#include <QString>
+#include <QStringList>
 
 #include "Image.h"
 #include "PPMImage.h"
@@ -245,11 +247,36 @@ void Window::updateAnimationFramesList () {
     system(IMAGE_LIST.c_str());
 }
 
+void Window::loadAnimationFrame(const int frameId) {
+    ParameterHandler* params = ParameterHandler::Instance ();
+
+    Frame* f = new Frame ();
+
+    std::string thisFilename = animation2ComboBox->itemData(frameId).toString().toStdString();
+    if ( frameId < animation2ComboBox->count()-1 ) {
+        std::string nextFilename = animation2ComboBox->itemData(frameId+1).toString().toStdString();
+        //std::stringstream nextIdStream(nextFilename.substr(nextFilename.find('_')));
+        //int nextid;
+        //nextIdStream >> nextid;
+
+        //std::cout << nextid << std::endl;
+        //f->LoadMotionField ( Config::FramesPath() + "f"+toString(thisid)+"/track/"+toString(nextid)+"/" );
+    }
+    int currentClip = animation1ComboBox->currentIndex ();
+    std::string mesh = Config::OutputPath() + "Animation/"+toString(currentClip)+"/" + thisFilename;
+
+    f->SetMesh ( new PointSet ( mesh ) );
+
+    params->SetCurrentFrame ( f );
+    viewer->update ();
+}
+
 void Window::updateAnimationList () {
 
-    static const std::string IMG_LIST_PATH(Config::OutputPath() + "Animation/list.txt");
+    const std::string IMG_LIST_PATH(Config::OutputPath() + "Animation/list.txt");
     QString clip;
     QFile imageList(IMG_LIST_PATH.c_str());
+    imageList.open(QIODevice::ReadOnly);
     
     /* Verify if the file with frames is readable*/
     if(!imageList.open(QIODevice::ReadOnly )) return;
@@ -262,8 +289,8 @@ void Window::updateAnimationList () {
         {
             clip = in.readLine();
             /* Update the list of clips in the system*/
-            static const std::string IMAGE_LIST(" ls -B --ignore=*.txt " + Config::OutputPath() + "Animation/" + clip.toStdString() + "/ >" + Config::OutputPath() + "Animation/"  + clip.toStdString() + "/list.txt");
-            std::cout << "Adding frames clips" << IMAGE_LIST << std::endl;
+            const std::string IMAGE_LIST(" ls -B --ignore=*.txt " + Config::OutputPath() + "Animation/" + clip.toStdString() + "/ | sort -g >" + Config::OutputPath() + "Animation/"  + clip.toStdString() + "/list.txt");
+            std::cout << "Adding frames clips " << clip.toStdString() << IMAGE_LIST << std::endl;
             
             /* Update the list of images in the system*/
             system(IMAGE_LIST.c_str());
@@ -277,7 +304,7 @@ void Window::updateAnimationList () {
 void Window::addAnimationItems(int idx)
 {
 
-    static const std::string IMG_LIST_PATH(Config::OutputPath() + "Animation/" + Int2Str(idx) +"/list.txt");
+    const std::string IMG_LIST_PATH(Config::OutputPath() + "Animation/" + Int2Str(idx) +"/list.txt");
 
     QFile imageList(IMG_LIST_PATH.c_str());
     QString fileName;
@@ -294,6 +321,7 @@ void Window::addAnimationItems(int idx)
     /* Reads the file */
     QTextStream in(& imageList);
 
+    bool opened = false;
     while(!in.atEnd())
     {
         fileName = in.readLine();
@@ -306,10 +334,15 @@ void Window::addAnimationItems(int idx)
         animation2ComboBox -> addItem(QString::number(frame),fileName); 
         frame++;
 
+        std::cout << fileName.toStdString() << std::endl;
+
         /* Se tem a no nome Adiciono referencia*/
-        if(fileName.contains("a.ply",Qt::CaseSensitive)){
+        if(fileName.contains("a.ply",Qt::CaseSensitive) && !opened ){
             animation2ComboBox -> addItem(QString::number(frame),refFrame); 
             frame++;
+            opened = false;
+        } else {
+            opened = true;
         }
     }
 
@@ -794,6 +827,13 @@ void Window::setFrame1(int iFrame) {
         frame->LoadMotionField ( 
                 path + "track/" + toString ( params->GetFrame2()) + "/"
                 );
+        
+        //PointSet* ps = new PointSet ();
+        //ps->LoadFromFile (Config::OutputPath() + "Animation/frame" + Int2Str(iFrame)+".ply");
+        //frame->LoadMotionField ( 
+        //        path + "track/" + toString ( iFrame + 1 ) + "/"
+        //        );
+        //frame->SetMesh (ps);
 
         params->SetCurrentFrame ( frame );
     }
@@ -1423,6 +1463,10 @@ void Window::initControlWidget () {
     connect (
             animation1ComboBox, SIGNAL ( currentIndexChanged (int) ), 
             this, SLOT   (           addAnimationItems (int) )
+            );
+    connect (
+            animation2ComboBox, SIGNAL ( currentIndexChanged (int) ), 
+            this, SLOT   (      loadAnimationFrame (int) )
             );
 
     /* Description: Change of situation 

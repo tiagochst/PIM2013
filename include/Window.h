@@ -146,6 +146,7 @@ public slots:
     void setKinectMode (bool b);
     void setAnimationMode(bool b);
     void addAnimationItems(int idx);
+    void loadAnimationFrame (const int frameId);
 
 private :
     void initControlWidget ();

@@ -998,7 +998,10 @@ void Window::setFrame1(int iFrame) {
     viewer -> update();
 }
 
-/* Move Item from candidate list to anchor List*/
+
+/**
+ * \brief  Move Item from candidate list to anchor List 
+ */
 void Window::addNewAnchorItem(){
 
     /*Get selected row*/
@@ -1012,7 +1015,9 @@ void Window::addNewAnchorItem(){
     anchorList -> sortItems();
 }
 
-/* Move item from anchor list to candidate List*/
+/**
+ * \brief  Move Item from anchor List to candidate list 
+ */
 void Window::removeAnchorItem(){
 
     /*Get selected row*/
@@ -1028,6 +1033,9 @@ void Window::removeAnchorItem(){
 
 }
 
+/**
+ * \brief Calculate displacement between to images 
+ */
 void Window::calcDisp() {
     ParameterHandler* params = ParameterHandler::Instance();
 
@@ -1102,6 +1110,9 @@ void Window::calcDisp() {
     updateImages ();
 }
 
+/**
+ * \brief Show the displacement images on the screen
+ */
 void Window::updateImages() {
     ParameterHandler* params = ParameterHandler::Instance();
     std::string RES_IMG_PATH(Config::FramesPath());
@@ -1152,6 +1163,9 @@ void Window::updateImages() {
     gridLayout -> addWidget(dispY, 1, 1, 1, 1);
 }
 
+/**
+ * \brief Update selection frame 2 on the screen
+ */
 void Window::setFrame2(int iFrame) {
     ParameterHandler* params = ParameterHandler::Instance();
 
@@ -1315,11 +1329,17 @@ Window::Window ()
 
 }
 
+/*!
+ *  \brief Capture mode; All images saved, delete writers 
+ */
 void Window::exitPreprocess () {
     FileWriterServices::DeleteInstance ();
     emit ( exiting () );
 }
 
+/*!
+ *  \brief Creates left dock
+ */
 void Window::createDock () {
 
     /* Defining size policy of the windows */
@@ -1359,7 +1379,9 @@ void Window::about () {
             "<br> and <i>Tiago Chedraoui Silva</i>.");
 }
 
-
+/*!
+ *  \brief Create left dock widgets 
+ */
 void Window::initControlWidget () {
 
     /* Get initial defined parameters*/
@@ -1867,21 +1889,38 @@ void Window::createMesh () {
     cam -> captureSingleMesh(fileAbsPath.toStdString());
 }
 
+/*!
+ *  \brief The mouse if on our qlabel, show bigger image 
+ */
 void AnchorLabel::enterEvent (
     QEvent* e
 ) {
     emit mouseEntered ();
 }
+
+/*!
+ *  \brief The mouse if off our qlabel: hide bigger image 
+ */
 void AnchorLabel::leaveEvent (
     QEvent* e
 ) {
     emit mouseLeft ();
 }
+
+/*!
+ *  \brief Selection of reference frame, update its id 
+ *  \params Mouse event
+ */
 void AnchorLabel::mousePressEvent( QMouseEvent* ev )
 {
     emit  mousePressed();
     emit  mousePressed(frameID);
 }
+
+
+/*!
+ *  \brief Show bigger image, when mouse is over a frame
+ */
 void AnchorLabel::onMouseEnter () {
     frameLabel = new QLabel (this);
     frameLabel->setWindowFlags ( Qt::Window );
@@ -1901,10 +1940,18 @@ void AnchorLabel::onMouseEnter () {
         frameLabel, SLOT   ( deleteLater () )
     );
 }
+
+/*!
+ *  \brief Delete bigger image, when mouse is no more over a frame
+ */
 void AnchorLabel::onMouseLeave () {
     frameLabel = (QLabel*)0x0;
 }
 
+
+/*!
+ *  \brief Creates selectable widgets
+ */
 AnchorLabel::AnchorLabel( const QString & text, QWidget * parent )
 :QLabel(parent)
 {
@@ -1923,6 +1970,9 @@ AnchorLabel::AnchorLabel( const QString & text, QWidget * parent )
     );
 }
 
+/*!
+ *  \brief Creates selectable widgets
+ */
 AnchorLabel::AnchorLabel(QWidget * parent )
     :   QLabel(parent)
 {
@@ -1940,6 +1990,9 @@ AnchorLabel::AnchorLabel(QWidget * parent )
     );
 }
 
+/*!
+ *  \brief Update color of the frame when it is clicked
+ */
 void AnchorLabel::slotClicked()
 {
 

@@ -15,29 +15,45 @@
 
 using namespace std;
 
+/**
+ * \brief Fuction that will start the kinect's capture of frame
+ */
 void Window::startCapture() {
+    /* Save the state */
     ParameterHandler* params = ParameterHandler::Instance();
     params->SetCaptureMode ( true );
+
+    /* Disable button while capturing avoiding wrong state */
     startCaptureButton->setEnabled ( false );
     controlWidget->setEnabled ( false );
+
+    /* Show time remaining in percent */
     progressDialog = new QProgressDialog (
             QString ("Processing..."),
             QString ("Cancel"),
             0,
             100 
             );
+
+    /* Create the instace responsable for writing the files in the system */
     FileWriterServices* fws = FileWriterServices::Instance ();
+
+    /* When one image is written update progress */
     connect (
             fws, SIGNAL (       Progress ( int ) ),
             progressDialog, SLOT   (       setValue ( int ) )
             );
-    connect (
+   /* When all images are written return to ready state */
+   connect (
             fws, SIGNAL (            Finished () ),
             this, SLOT   ( enableCaptureButton () )
             );
     progressDialog->show ();
 }
 
+/**
+ * \brief Fuction that will enable buttons for capture and remove progress dialog
+ */
 void Window::enableCaptureButton () {
     startCaptureButton->setEnabled ( true );
     controlWidget->setEnabled ( true );
@@ -51,6 +67,10 @@ void Window::enableCaptureButton () {
     addImageItems();
 }
 
+/**
+ * \brief Fuction that will update the list of frames in the system
+         it saves all id in list.txt
+ */
 void Window::updateFrameList () {
 
     /* Update the list of images in the system*/
@@ -60,15 +80,49 @@ void Window::updateFrameList () {
 
 }
 
+/**
+ * \brief Update screen number for anchor automatique selection view.
+ */
 void Window::sumShowingFrames(){
+    /* Used to show next group of frames*/
     showingFrames++;
+
+    /* Enable return to previous group*/
     previousFrames -> setEnabled(true);
+
+    /* Update group of frames on the screen*/
     updateAutoAnchorPreview ();
 }
 
+/**
+ * \brief Update screen number for anchor automatique selection view.
+ */
+void Window::subtractShowingFrames(){
+
+    /* Used to show previous group of frames*/
+    if(showingFrames > 0 ) showingFrames--;
+
+    /* I'm on the first group, no previous group. Disable button, to avoid wrong state*/
+    if(showingFrames == 0) previousFrames -> setDisabled(true);
+
+    /* Enable going to next group*/
+    nextFrames->setEnabled(true);
+
+    /* Update group of frames on the screen*/
+    updateAutoAnchorPreview ();
+
+}
+
+/**
+ * \brief This function will paint in red reference frame, and in blue anchor frames
+ */
 void Window::setReferenceFrame(int iFrame){
 
+    /* In the screen, which is the index of a reference frame*/
     int idxFrame = refFrameID % 15;
+ 
+   /* My selected frame is my reference and in the same group
+      put a color bord and save its state, do not need to change other widget */
     if(refFrameID == iFrame){
 
         if(referenceFrame.at(idxFrame) -> frameStyle() != 18){
@@ -81,8 +135,11 @@ void Window::setReferenceFrame(int iFrame){
         return;
     }
 
+    /* The frame selected is the same group of frames so we need to  
+       Change the old selected frame to unselected state
+    */
     if(refFrameID/15 == iFrame/15) {
-        /* Change the old selected frame to unselected state*/
+
         if(referenceFrame.at(idxFrame) -> frameStyle() != 18){
             referenceFrame.at(idxFrame) -> oldFrameStyle = referenceFrame.at(idxFrame) -> frameStyle();
             referenceFrame.at(idxFrame) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
@@ -95,39 +152,43 @@ void Window::setReferenceFrame(int iFrame){
             referenceFrame.at(idxFrame) -> setLineWidth(3);
         }
         else { 
-            referenceFrame.at(idxFrame) -> setFrameStyle(referenceFrame.at(idxFrame) ->oldFrameStyle);
+            referenceFrame.at(idxFrame) -> setFrameStyle(referenceFrame.at(idxFrame) -> oldFrameStyle);
         }
     }  
     this -> refFrameID = iFrame;
 
 }
 
-void Window::subtractShowingFrames(){
 
-    if(showingFrames > 0 ) showingFrames--;
-    if(showingFrames == 0) previousFrames -> setDisabled(true);
-    nextFrames->setEnabled(true);
-    updateAutoAnchorPreview ();
-
-}
-
+/**
+ * \brief Set the far plane value selected in the UI
+ */
 void Window::setFarPlane ( const int& iFar ) {
     ParameterHandler* params = ParameterHandler::Instance ();
     params->SetFarPlane ( iFar );
 }
 
+/**
+ * \brief Set the near plane value selected in the UI
+ */
 void Window::setNearPlane ( const int& iNear ) {
     ParameterHandler* params = ParameterHandler::Instance ();
     params->SetNearPlane ( iNear );
     viewer->update ();
 }
 
+/**
+ * \brief Set the number of frames to capture by the kinect
+ */
 void Window::setFramesToCapture ( const  int& iNumber ) {
     ParameterHandler* params = ParameterHandler::Instance ();
     params->SetNumCaptureFrames ( iNumber );
     viewer->update ();
 }
 
+/**
+ * \brief Find which are our anchor frames based in the reference frame
+ */
 void Window::findAutoAnchors(){
 
     ParameterHandler* params = ParameterHandler::Instance ();
@@ -138,7 +199,6 @@ void Window::findAutoAnchors(){
         anchorFound.clear();
     }
 
-    //TODO put a process dialog
     static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
     static const std::string FRAME_LIST_PATH(Config::FramesPath() + "list.txt");
 
@@ -176,6 +236,7 @@ void Window::findAutoAnchors(){
 
         Image frame(Config::FramesPath() + "f" + ss.str() + "/texture.pgm");	      
 
+        /* My frame is an anchor frame, based on a score and a thrsehold defined by the user */
         float errorScore = ImageBase::CalculateErrorScore ( frame, refFrame );
         cout << errorScore << endl;
         if( errorScore <= params->GetThreshold () ){
@@ -184,35 +245,46 @@ void Window::findAutoAnchors(){
             bool ok;
             anchorFound.push_back(id.toInt(&ok,10));	  
         }
-
     }
 
+    /* No more frames to compare*/
     if (progressDialog)
         progressDialog->setValue (100);
 
+    /* debug function: which are my anchor frames */
     for(int j =0; j < anchorFound.size(); j++) {
         cout << anchorFound.at(j) << endl;
     }
 
+    /* Save anchor frames in a file anchors.txt */
     saveAnchors ( anchorFound ) ;
+
+    /* Update anchor frames in the screen */
     updateAutoAnchorPreview ();
 
     if (progressDialog)
         delete progressDialog;
-
-
 }
 
+/**
+ * \brief Set the window size used for all algorithms
+ */
 void  Window::setWindowSize(int iSize){
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetWindowSize(iSize);
 }
 
+/**
+ * \brief Set the neighbourhood size used for all algorithms
+ */
 void  Window::setNeighbourhoodSize(int  iSize){
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetNeighbourhoodSize(iSize);
 }
 
+/**
+ * \brief Set the screen to show the mesh from frame or from kinect (qglviewer class)
+ */
 void Window::setMesh(bool b){
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetMesh(b);
@@ -223,6 +295,9 @@ void Window::setMesh(bool b){
     }
 }
 
+/**
+ * \brief Set the screen to show the mesh (qglviewer class), and save state of camera
+ */
 void Window::setMeshMode(bool b){
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetCamera(!b);
@@ -230,6 +305,9 @@ void Window::setMeshMode(bool b){
     centerWidget->setCurrentIndex ( viewerIdx );
 }
 
+/**
+ * \brief Set the screen to show the mesh created by kinect on live (qglviewer class), and save state of camera
+ */
 void Window::setKinectMode(bool b){
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetCamera(b);
@@ -237,8 +315,10 @@ void Window::setKinectMode(bool b){
     centerWidget->setCurrentIndex ( viewerIdx );
 }
 
+/**
+ * \brief Save the list of clips in the file system 
+ */
 void Window::updateAnimationFramesList () {
-
 
     /* Update the list of clips in the system*/
     static const std::string IMAGE_LIST(" ls -B --ignore=*.txt --ignore=*.png --ignore=depth* --ignore=disparity* --ignore=*.ply " + Config::OutputPath() + "Animation/ |  sed 's/f//g' | sed -r 's/^.{6}//' | sort -g >" + Config::OutputPath() + "Animation/list.txt");
@@ -247,11 +327,17 @@ void Window::updateAnimationFramesList () {
     system(IMAGE_LIST.c_str());
 }
 
+
+/**
+ * \brief Given a frame index from a clip, show the result of the mesh 
+ */
 void Window::loadAnimationFrame(const int frameId) {
+
     ParameterHandler* params = ParameterHandler::Instance ();
 
     Frame* f = new Frame ();
 
+    /* get the file path to the mesh */
     std::string thisFilename = animation2ComboBox->itemData(frameId).toString().toStdString();
     if ( frameId < animation2ComboBox->count()-1 ) {
         std::string nextFilename = animation2ComboBox->itemData(frameId+1).toString().toStdString();
@@ -265,14 +351,19 @@ void Window::loadAnimationFrame(const int frameId) {
     int currentClip = animation1ComboBox->currentIndex ();
     std::string mesh = Config::OutputPath() + "Animation/"+toString(currentClip)+"/" + thisFilename;
 
+    /* Update mesh to be showed */
     f->SetMesh ( new PointSet ( mesh ) );
 
     params->SetCurrentFrame ( f );
     viewer->update ();
 }
 
+/**
+ * \brief For each clip, create a file with the name of the frames inside it
+ */
 void Window::updateAnimationList () {
 
+    /* Get list of clips*/
     const std::string IMG_LIST_PATH(Config::OutputPath() + "Animation/list.txt");
     QString clip;
     QFile imageList(IMG_LIST_PATH.c_str());
@@ -288,6 +379,7 @@ void Window::updateAnimationList () {
     while(!in.atEnd())
         {
             clip = in.readLine();
+
             /* Update the list of clips in the system*/
             const std::string IMAGE_LIST(" ls -B --ignore=*.txt " + Config::OutputPath() + "Animation/" + clip.toStdString() + "/ | sort -g >" + Config::OutputPath() + "Animation/"  + clip.toStdString() + "/list.txt");
             std::cout << "Adding frames clips " << clip.toStdString() << IMAGE_LIST << std::endl;
@@ -301,6 +393,9 @@ void Window::updateAnimationList () {
 
 }
 
+/**
+ * \brief For the clip selected, update the frames of this clip
+ */
 void Window::addAnimationItems(int idx)
 {
 
@@ -336,7 +431,7 @@ void Window::addAnimationItems(int idx)
 
         std::cout << fileName.toStdString() << std::endl;
 
-        /* Se tem a no nome Adiciono referencia*/
+        /* If my file is an anchor add file path to reset propagation */
         if(fileName.contains("a.ply",Qt::CaseSensitive) && !opened ){
             animation2ComboBox -> addItem(QString::number(frame),refFrame); 
             frame++;
@@ -351,6 +446,9 @@ void Window::addAnimationItems(int idx)
     return;
 }
 
+/**
+ * \brief Update list of clips in the combo box
+ */
 void Window::addClipItems()
 {
 
@@ -384,6 +482,9 @@ void Window::addClipItems()
 }
 
 
+/**
+ * \brief Show mesh from clips and its frames
+ */
 void Window::setAnimationMode(bool b){
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetCamera(!b);
@@ -392,6 +493,9 @@ void Window::setAnimationMode(bool b){
     //addAnimationItems();
 }
 
+/**
+ * \brief Set displacement mode
+ */
 void Window::setDisplacement(bool b){
     if(b){
         updateImages();
@@ -399,6 +503,9 @@ void Window::setDisplacement(bool b){
     }
 }
 
+/**
+ * \brief Get anchor frames from database
+ */
 void Window::loadAnchorFrames(){
 
     /* clear list of anchorFrames */
@@ -433,6 +540,9 @@ void Window::loadAnchorFrames(){
     return;
 }
 
+/**
+ * \brief Manual anchor selection: put values of frames in list of anchors or anchor's candidates
+ */
 void Window::addAnchorListItems(){
 
     static const std::string IMG_LIST_PATH(Config::FramesPath() + "list.txt");
@@ -510,8 +620,10 @@ void Window::addAnchorListItems(){
 
 }
 
+/**
+ * \brief Manual anchor selection:Creates a file with the anchor list
+ */
 void Window::saveAnchors(){
-    //TODO: Create a file with the items in anchorList
     static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
 
     QFile anchorFile(ANCHOR_LIST_PATH.c_str());
@@ -529,10 +641,13 @@ void Window::saveAnchors(){
 
     anchorFile.close();
 }
+
+/**
+ * \brief Automatic anchor selection: Saves automatic found anchors in file 
+ */
 void Window::saveAnchors(
     const std::vector<int>& iAnchorList
 ){
-    //TODO: Create a file with the items in anchorList
     static const std::string ANCHOR_LIST_PATH(Config::FramesPath() + "anchorList.txt");
 
     QFile anchorFile(ANCHOR_LIST_PATH.c_str());
@@ -548,9 +663,12 @@ void Window::saveAnchors(
     }
 
     anchorFile.close();
-
 }
 
+
+/**
+ * \brief Manual anchor selection: Show image of the frames selected  
+ */
 void Window::updateManuAnchorPreview(){
 
     std::string RES_IMG_PATH(Config::FramesPath());
@@ -559,12 +677,16 @@ void Window::updateManuAnchorPreview(){
     QList<QListWidgetItem *>  anchors = anchorList -> selectedItems();
 
     QString id1,id2;
+    
+    /* If I have frames capture, get the first one*/
     if(candidates.count() > 0){
         id1 = (candidates[0] -> text());
     }
     else{
         id1 = "-1";
     }
+
+    /* If I have a list of anchors, get the first one*/
     if(anchors.count() > 0){
         id2 = (anchors[0] -> text());
     }
@@ -580,6 +702,7 @@ void Window::updateManuAnchorPreview(){
     std::string frameID2= toString(id);
 
 
+    /* Load both images */
     QPixmap anchorCandidateImg(QString::fromUtf8(((Config::FramesPath () + "f" + frameID1 + "/texture.pgm").c_str())));
     if(!anchorCandidateImg.isNull())
         anchorCandidate -> setPixmap(anchorCandidateImg.scaled(180, 150, Qt::IgnoreAspectRatio, Qt::FastTransformation));
@@ -591,17 +714,23 @@ void Window::updateManuAnchorPreview(){
 
 }
 
+/**
+ * \brief Automatic anchor selection: Show frames  
+ */
 void Window::updateAutoAnchorPreview(){
 
     std::string RES_IMG_PATH(Config::FramesPath());
 
+    /* Get anchor frames from database*/
     loadAnchorFrames();
 
+    /* Remove the color from widget */
     for(int i = 0; i < 15;  i++){
         referenceFrame.at(i) -> setFrameStyle(QFrame::NoFrame);
         referenceFrame.at(i) -> setVisible(true);
     }
 
+    /* Update images and color for each widget */
     for(int i = 15 * showingFrames, j = 0; i < 15 + 15 * showingFrames; i++,j++){
 
         QPixmap anchorCandidateImg(QString::fromUtf8(((Config::FramesPath () + "f"+ toString ( i ) + "/texture.pgm").c_str())));
@@ -610,13 +739,14 @@ void Window::updateAutoAnchorPreview(){
             referenceFrame.at(j) -> setPixmap(anchorCandidateImg.scaled(100, 80, Qt::IgnoreAspectRatio, Qt::FastTransformation));
             referenceFrame.at(j) -> frameID = i;
 
+            /* Anchor frame?*/
             if(std::find(isAnchorFrames.begin(), isAnchorFrames.end(), i)!=isAnchorFrames.end())
             {
                 referenceFrame.at(j) -> setFrameStyle(QFrame::Box | QFrame::Plain);
                 referenceFrame.at(j) -> setStyleSheet("color:blue");
                 referenceFrame.at(j) -> setLineWidth(3);
             }
-            /* Default selected Frame */
+            /* Default selected Frame: reference frame */
             if(i == refFrameID){
                 referenceFrame.at(j) -> oldFrameStyle = referenceFrame.at(j) -> frameStyle();
                 referenceFrame.at(j) -> setFrameStyle(QFrame::Panel | QFrame::Plain);
@@ -635,6 +765,9 @@ void Window::updateAutoAnchorPreview(){
     }
 }
 
+/**
+ * \brief Manual anchor selection: update both lists  
+ */
 void Window::initManuAnchorSelection(){
 
     QLabel *candidateAnchorCaption =  new QLabel("List of no-anchors frames:",anchorManuSelection);
@@ -665,11 +798,13 @@ void Window::initManuAnchorSelection(){
 
     updateManuAnchorPreview ();
 
+    /* Change a canditate to anchor*/
     connect(
             candidateAnchorList, SIGNAL(    itemSelectionChanged () ),
             this, SLOT  ( updateManuAnchorPreview () )
            );
 
+    /* Change an anchor frame to candidate*/
     connect(
             anchorList, SIGNAL(    itemSelectionChanged () ),
             this, SLOT  ( updateManuAnchorPreview () )
@@ -677,19 +812,28 @@ void Window::initManuAnchorSelection(){
 
 }
 
+/**
+ * \brief Update value of the thresold  
+ *  \param Value of the threshold
+ */
 void Window::setThreshold( double iThreshold){
     ParameterHandler* params = ParameterHandler::Instance();
     params -> SetThreshold(iThreshold);
 }
 
+/**
+ * \brief Automatic anchor selection: init all the sreen and allocate widgets 
+ */
 void Window::initAutoAnchorSelection(){
 
+    /* load list of anchor frames from database*/
     loadAnchorFrames();
 
     /* Frames to be showed while selecting */
     for(int i = 0; i < 15; i++){
         referenceFrame << new AnchorLabel(anchorAutoSelection);
 
+        /* If the image is clicked, handle it */
         connect(
             referenceFrame.at(i), SIGNAL(     mousePressed (int) ), 
                             this, SLOT  ( setReferenceFrame(int) ) 
@@ -703,17 +847,42 @@ void Window::initAutoAnchorSelection(){
             referenceFrame.at(i*5+j) -> setMaximumSize(QSize(100, 80));
         }
     }
-    
+
+    /* Start group of frames as 0*/
+    showingFrames  =  0;
+
     /* Create buttons to interact with frames */
+    /* Show previous group of frames*/
     previousFrames =  new QPushButton ("Previous Frames", anchorAutoSelection);
     previousFrames -> setGeometry( QRect(480, 340, 110, 25) );
     previousFrames -> setDisabled(true);
-    showingFrames  =  0;
+
+    connect(
+            previousFrames, SIGNAL(               clicked () ),
+            this, SLOT  ( subtractShowingFrames () )
+           );
+
+    /* Show next group of frames*/
     nextFrames     =  new QPushButton ("Next Frames", anchorAutoSelection);
     nextFrames     -> setGeometry( QRect(480, 375, 110, 25) );
+
+    connect(
+            nextFrames, SIGNAL(          clicked () ),
+            this, SLOT  ( sumShowingFrames () )
+           );
+
+
+    /* Start algoritm of anchor selection */
     findAnchors    =  new QPushButton ("Find Anchors", anchorAutoSelection);
     findAnchors    -> setGeometry( QRect(250, 350, 140, 31) );
-    QLabel         *  thresholdLabel = new QLabel(tr("Threshold:"),anchorAutoSelection);
+
+    connect(
+        findAnchors, SIGNAL(          clicked () ),
+        this, SLOT  (  findAutoAnchors () )
+        );
+    
+    /* Threshold value used in find anchors */
+    QLabel *  thresholdLabel = new QLabel(tr("Threshold:"),anchorAutoSelection);
     thresholdLabel->setGeometry(QRect(250, 390, 75, 33));
     thresholdSP =  new QDoubleSpinBox(anchorAutoSelection);
     thresholdSP -> setGeometry(QRect(330, 390, 62, 25));
@@ -723,7 +892,12 @@ void Window::initAutoAnchorSelection(){
     ParameterHandler* params = ParameterHandler::Instance();
     thresholdSP -> setValue(params -> GetThreshold());
 
-
+    connect(
+        thresholdSP, SIGNAL(     valueChanged (double) ),
+        this, SLOT  (     setThreshold (double) )
+        );
+    
+    
     /* Creating caption/explanation */
     QPalette palette;
     QBrush blue(QColor(0, 0, 255, 255));
@@ -742,17 +916,6 @@ void Window::initAutoAnchorSelection(){
     anchorCaptionBox -> setPalette(palette);
     anchorCaptionBox -> setAutoFillBackground(true);
 
-    /* green caption*/
-    /*
-    palette.setBrush(QPalette::Active, QPalette::Window, green);
-    QLabel *autoAnchorCaptionText =  new QLabel("Automatically selected",anchorAutoSelection);
-    autoAnchorCaptionText -> setGeometry(QRect(80, 370, 150, 21));
-    QLabel *autoAnchorCaptionBox =  new QLabel(anchorAutoSelection);
-    autoAnchorCaptionBox -> setGeometry(QRect(50, 370, 21, 21));
-    autoAnchorCaptionBox -> setPalette(palette);
-    autoAnchorCaptionBox -> setAutoFillBackground(true);
-    */
-
     /* red caption*/
     palette.setBrush(QPalette::Active, QPalette::Window, red);
     QLabel *referenceFrameCaptionText =  new QLabel("Reference frame",anchorAutoSelection);
@@ -762,30 +925,15 @@ void Window::initAutoAnchorSelection(){
     referenceFrameCaptionBox -> setPalette(palette);
     referenceFrameCaptionBox -> setAutoFillBackground(true);
 
-    /* Creating connections */
-    connect(
-            previousFrames, SIGNAL(               clicked () ),
-            this, SLOT  ( subtractShowingFrames () )
-           );
-    connect(
-            nextFrames, SIGNAL(          clicked () ),
-            this, SLOT  ( sumShowingFrames () )
-           );
-
-    connect(
-            findAnchors, SIGNAL(          clicked () ),
-            this, SLOT  (  findAutoAnchors () )
-           );
-
-    connect(
-            thresholdSP, SIGNAL(     valueChanged (double) ),
-            this, SLOT  (     setThreshold (double) )
-           );
-
     updateAutoAnchorPreview ();
 
 }
 
+
+/**
+ * \brief Set screen to manual anchor selection 
+ *  \param Value of the radio box
+ */
 void Window::setManuAnchor(bool b){
     if(b){
         initManuAnchorSelection();
@@ -798,6 +946,10 @@ void Window::setManuAnchor(bool b){
 
 }
 
+/**
+ * \brief Set screen to automatic anchor selection 
+ *  \param Value of the radio box
+ */
 void Window::setAutoAnchor(bool b){
     if(b){
         initAutoAnchorSelection();
@@ -807,7 +959,6 @@ void Window::setAutoAnchor(bool b){
         //save anchors listed in file 
         //saveAnchors();
     }
-
 }
 
 /*!
